@@ -298,6 +298,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="sb-nav-item" onclick="aba('campanhas',this)"><span class="sb-dot"></span>Campanhas</div>
     <div class="sb-nav-item" onclick="aba('historico',this)"><span class="sb-dot"></span>Historico</div>
     <div class="sb-nav-item" onclick="aba('equipe',this)"><span class="sb-dot"></span>Equipe</div>
+    <div class="sb-nav-item" onclick="aba('agenda',this)"><span class="sb-dot"></span>Agenda</div>
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button class="sb-theme-btn" id="theme-toggle" onclick="alternarTema()" title="Alternar tema">&#9788;</button>
@@ -770,6 +771,46 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
   </div><!-- /page-content -->
 </div>
+<div id="tab-agenda" class="tp" style="display:none;">
+    <div class="topbar"><div class="topbar-title">Agenda</div><div class="topbar-sub">Compromissos e lembretes</div></div>
+  <div class="page-content">
+  <div class="pt"><h2>Agenda</h2><p>Seus <span class="hl">compromissos e lembretes</span> — sincronizados na nuvem</p></div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="hall-cols">
+      <div class="fc">
+        <div class="sh" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;"><div class="si">📅</div><span id="ag-mes-titulo">Mês</span></div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn bl" style="padding:5px 12px;" onclick="agMudarMes(-1)">←</button>
+            <button class="btn bl" style="padding:5px 12px;" onclick="agHoje()">Hoje</button>
+            <button class="btn bl" style="padding:5px 12px;" onclick="agMudarMes(1)">→</button>
+          </div>
+        </div>
+        <div id="ag-calendario" style="padding:16px;"></div>
+      </div>
+
+      <div>
+        <div class="fc" style="margin-bottom:16px;">
+          <div class="sh"><div class="si">➕</div><span id="ag-form-titulo">Novo compromisso</span></div>
+          <div style="padding:16px 20px;">
+            <div class="fi" style="margin-bottom:10px;"><label>O que fazer</label><input type="text" id="ag-titulo" placeholder="Ex: Ligar pro João"/></div>
+            <div class="fg" style="margin-bottom:10px;">
+              <div class="fi"><label>Data</label><input type="date" id="ag-data"/></div>
+              <div class="fi"><label>Hora</label><input type="time" id="ag-hora"/></div>
+            </div>
+            <button class="btn be" style="width:100%;" onclick="agSalvarCompromisso()">Salvar</button>
+            <input type="hidden" id="ag-editando-id"/>
+          </div>
+        </div>
+        <div class="fc">
+          <div class="sh"><div class="si">🔔</div>Próximos compromissos</div>
+          <div id="ag-proximos" style="padding:8px 0;max-height:320px;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div>
 <div id="tab-scripts" class="tp" style="display:none;">
     <div class="topbar"><div class="topbar-title">Scripts</div><div class="topbar-sub">Roteiros de abordagem</div></div>
   <div class="page-content">
@@ -943,6 +984,7 @@ firebase.auth().onAuthStateChanged(function(user){
     var nomeEl=document.getElementById('sb-user-nome');
     if(nomeEl)nomeEl.textContent=user.displayName||user.email;
     _fbCarregarDados(user.uid);
+    _agIniciarLembretes();
   } else {
     _currentUID=null;
     loginScreen.style.display='flex';
@@ -957,17 +999,20 @@ function _fbCarregarDados(uid){
       var d=doc.data();
       if(d.historico!==undefined)localStorage.setItem(HK,JSON.stringify(d.historico));
       if(d.estudosProgresso!==undefined)localStorage.setItem('rsd_estudos_progresso',JSON.stringify(d.estudosProgresso));
+      if(d.agenda!==undefined)localStorage.setItem('rsd_agenda',JSON.stringify(d.agenda));
     } else {
       _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
       _fbSyncHistorico();
       _fbSyncEstudos();
+      _fbSyncAgenda();
     }
     _fbAtualizarPerfilPublico();
     // re-renderiza o que estiver visivel no momento
     if(document.getElementById('tab-hall').style.display!=='none')renderHall();
     if(document.getElementById('tab-historico').style.display!=='none')hRender();
     if(document.getElementById('tab-equipe').style.display!=='none')renderEquipe();
+    if(document.getElementById('tab-agenda').style.display!=='none')renderAgenda();
   }).catch(function(err){
     _fbLog('❌ ERRO ao carregar: '+err.code+' — '+err.message);
   });
@@ -1006,6 +1051,188 @@ function _fbNomeAtual(){
   var u=firebase.auth().currentUser;
   return u?(u.displayName||u.email||'Consultor'):'Consultor';
 }
+function _fbSyncAgenda(){
+  if(!_currentUID)return;
+  var a=JSON.parse(localStorage.getItem('rsd_agenda')||'[]');
+  db.collection('usuarios').doc(_currentUID).set({agenda:a},{merge:true}).catch(function(err){
+    _fbLog('❌ ERRO (agenda): '+err.message);
+  });
+}
+
+// ===== AGENDA =====
+var _agMesAtual=new Date().getMonth();
+var _agAnoAtual=new Date().getFullYear();
+var _agDiaSelecionado=null;
+var _agIntervalId=null;
+var MESES_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function _agGet(){return JSON.parse(localStorage.getItem('rsd_agenda')||'[]');}
+function _agSet(arr){localStorage.setItem('rsd_agenda',JSON.stringify(arr));_fbSyncAgenda();}
+
+function renderAgenda(){
+  _agRenderCalendario();
+  _agRenderProximos();
+}
+function agMudarMes(dir){
+  _agMesAtual+=dir;
+  if(_agMesAtual<0){_agMesAtual=11;_agAnoAtual--;}
+  if(_agMesAtual>11){_agMesAtual=0;_agAnoAtual++;}
+  _agRenderCalendario();
+}
+function agHoje(){
+  var hoje=new Date();
+  _agMesAtual=hoje.getMonth();
+  _agAnoAtual=hoje.getFullYear();
+  _agDiaSelecionado=_agFmtData(hoje);
+  _agRenderCalendario();
+}
+function _agFmtData(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _agRenderCalendario(){
+  var host=document.getElementById('ag-calendario');
+  if(!host)return;
+  var titEl=document.getElementById('ag-mes-titulo');
+  if(titEl)titEl.textContent=MESES_PT[_agMesAtual]+' de '+_agAnoAtual;
+
+  var compromissos=_agGet();
+  var porDia={};
+  compromissos.forEach(function(c){
+    porDia[c.data]=(porDia[c.data]||[]);
+    porDia[c.data].push(c);
+  });
+
+  var primeiroDia=new Date(_agAnoAtual,_agMesAtual,1);
+  var offset=primeiroDia.getDay(); // 0=domingo
+  var diasNoMes=new Date(_agAnoAtual,_agMesAtual+1,0).getDate();
+  var hojeStr=_agFmtData(new Date());
+
+  var html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:10px;font-weight:700;color:var(--tm);text-align:center;margin-bottom:6px;">';
+  ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'].forEach(function(d){html+='<div>'+d+'</div>';});
+  html+='</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+
+  for(var i=0;i<offset;i++)html+='<div></div>';
+  for(var dia=1;dia<=diasNoMes;dia++){
+    var dataStr=_agAnoAtual+'-'+String(_agMesAtual+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+    var temCompromisso=(porDia[dataStr]||[]).length>0;
+    var ehHoje=(dataStr===hojeStr);
+    var selecionado=(dataStr===_agDiaSelecionado);
+    html+='<div onclick="agSelecionarDia(\''+dataStr+'\')" style="cursor:pointer;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;font-size:12px;position:relative;'+
+      (selecionado?'background:var(--v);color:#fff;':(ehHoje?'border:1.5px solid var(--v);color:var(--t);':'color:var(--t);'))+
+      '">'+dia+
+      (temCompromisso?'<span style="width:5px;height:5px;border-radius:50%;background:'+(selecionado?'#fff':'var(--v)')+';margin-top:2px;"></span>':'')+
+      '</div>';
+  }
+  html+='</div>';
+  host.innerHTML=html;
+
+  if(_agDiaSelecionado)_agMostrarDia(_agDiaSelecionado);
+}
+function agSelecionarDia(dataStr){
+  _agDiaSelecionado=dataStr;
+  _agRenderCalendario();
+}
+function _agMostrarDia(dataStr){
+  var el=document.getElementById('ag-data');
+  if(el && !el.value)el.value=dataStr;
+}
+function agSalvarCompromisso(){
+  var titulo=v('ag-titulo');
+  var data=v('ag-data');
+  var hora=v('ag-hora');
+  if(!titulo||!data||!hora){toast('⚠️ Preencha o que fazer, a data e a hora','#c0392b');return;}
+  var editandoId=v('ag-editando-id');
+  var arr=_agGet();
+  if(editandoId){
+    var item=arr.find(function(c){return c.id===editandoId;});
+    if(item){item.titulo=titulo;item.data=data;item.hora=hora;item.notificado=false;}
+  } else {
+    arr.push({id:'ag'+Date.now(),titulo:titulo,data:data,hora:hora,feito:false,notificado:false});
+  }
+  _agSet(arr);
+  document.getElementById('ag-titulo').value='';
+  document.getElementById('ag-hora').value='';
+  document.getElementById('ag-editando-id').value='';
+  document.getElementById('ag-form-titulo').textContent='Novo compromisso';
+  toast('✅ Compromisso salvo!');
+  renderAgenda();
+}
+function agEditar(id){
+  var c=_agGet().find(function(x){return x.id===id;});
+  if(!c)return;
+  document.getElementById('ag-titulo').value=c.titulo;
+  document.getElementById('ag-data').value=c.data;
+  document.getElementById('ag-hora').value=c.hora;
+  document.getElementById('ag-editando-id').value=c.id;
+  document.getElementById('ag-form-titulo').textContent='Editar compromisso';
+}
+function agExcluir(id){
+  if(!confirm('Excluir esse compromisso?'))return;
+  var arr=_agGet().filter(function(c){return c.id!==id;});
+  _agSet(arr);
+  renderAgenda();
+}
+function agMarcarFeito(id){
+  var arr=_agGet();
+  var c=arr.find(function(x){return x.id===id;});
+  if(c)c.feito=!c.feito;
+  _agSet(arr);
+  renderAgenda();
+}
+function _agRenderProximos(){
+  var host=document.getElementById('ag-proximos');
+  if(!host)return;
+  var arr=_agGet().filter(function(c){return !c.feito;});
+  arr.sort(function(a,b){return (a.data+a.hora).localeCompare(b.data+b.hora);});
+  arr=arr.slice(0,15);
+  if(arr.length===0){
+    host.innerHTML='<div class="hem" style="padding:16px 20px;">Nenhum compromisso pendente.</div>';
+    return;
+  }
+  var hojeStr=_agFmtData(new Date());
+  host.innerHTML=arr.map(function(c){
+    var atrasado=(c.data+c.hora)<(hojeStr+String(new Date().getHours()).padStart(2,'0')+':'+String(new Date().getMinutes()).padStart(2,'0'))&&c.data<=hojeStr;
+    var dataFmt=c.data.split('-').reverse().join('/');
+    return '<div style="padding:10px 20px;border-bottom:1px solid var(--cb);">'+
+      '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'+
+        '<div><div style="font-size:12px;font-weight:700;color:var(--t);">'+c.titulo+'</div>'+
+        '<div style="font-size:10px;color:'+(atrasado?'#c0392b':'var(--tm)')+';">'+dataFmt+' às '+c.hora+(atrasado?' · atrasado':'')+'</div></div>'+
+        '<div style="display:flex;gap:4px;flex-shrink:0;">'+
+          '<button onclick="agMarcarFeito(\''+c.id+'\')" title="Marcar como feito" style="border:none;background:none;cursor:pointer;font-size:14px;">✅</button>'+
+          '<button onclick="agEditar(\''+c.id+'\')" title="Editar" style="border:none;background:none;cursor:pointer;font-size:14px;">✏️</button>'+
+          '<button onclick="agExcluir(\''+c.id+'\')" title="Excluir" style="border:none;background:none;cursor:pointer;font-size:14px;">🗑️</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function _agVerificarLembretes(){
+  var arr=_agGet();
+  var agora=new Date();
+  var mudou=false;
+  arr.forEach(function(c){
+    if(c.feito||c.notificado)return;
+    var dt=new Date(c.data+'T'+c.hora+':00');
+    if(dt<=agora && (agora-dt)<10*60000){ // ate 10min de atraso, ainda avisa
+      c.notificado=true;
+      mudou=true;
+      toast('🔔 '+c.titulo+' — agora!',undefined);
+      if(window.Notification && Notification.permission==='granted'){
+        try{new Notification('Red Sea Digital',{body:c.titulo,icon:''});}catch(e){}
+      }
+    }
+  });
+  if(mudou)_agSet(arr);
+}
+function _agIniciarLembretes(){
+  if(window.Notification && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+  if(_agIntervalId)clearInterval(_agIntervalId);
+  _agIntervalId=setInterval(_agVerificarLembretes,30000);
+  _agVerificarLembretes();
+}
+
 function _fbAtualizarPerfilPublico(){
   if(!_currentUID)return;
   var h=JSON.parse(localStorage.getItem(HK)||'[]');
@@ -1124,6 +1351,7 @@ function aba(id,el){
   if(id==='hall')renderHall();
   if(id==='estudos')estVoltarGrid();
   if(id==='equipe')renderEquipe();
+  if(id==='agenda')renderAgenda();
 }
 function irPara(id){
   var navEl=document.querySelector('.sb-nav-item[onclick*="\''+id+'\'"]');
@@ -1217,7 +1445,8 @@ var FUNIL=[
   {id:'boasvindas',label:'Pós-Venda',icon:'🎉'},
   {id:'campanhas',label:'Campanhas',icon:'📣'},
   {id:'historico',label:'Histórico',icon:'🕓'},
-  {id:'equipe',label:'Equipe',icon:'🏆'}
+  {id:'equipe',label:'Equipe',icon:'🏆'},
+  {id:'agenda',label:'Agenda',icon:'📅'}
 ];
 function _hallDiaChave(){
   var d=new Date();

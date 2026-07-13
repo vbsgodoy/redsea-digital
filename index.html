@@ -297,6 +297,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="sb-nav-item" onclick="aba('boasvindas',this)"><span class="sb-dot"></span>Pos-Venda</div>
     <div class="sb-nav-item" onclick="aba('campanhas',this)"><span class="sb-dot"></span>Campanhas</div>
     <div class="sb-nav-item" onclick="aba('historico',this)"><span class="sb-dot"></span>Historico</div>
+    <div class="sb-nav-item" onclick="aba('equipe',this)"><span class="sb-dot"></span>Equipe</div>
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button class="sb-theme-btn" id="theme-toggle" onclick="alternarTema()" title="Alternar tema">&#9788;</button>
@@ -750,6 +751,25 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
   </div><!-- /page-content -->
 </div>
+<div id="tab-equipe" class="tp" style="display:none;">
+    <div class="topbar"><div class="topbar-title">Equipe</div><div class="topbar-sub">Ranking e mural dos Tubarões</div></div>
+  <div class="page-content">
+  <div class="pt"><h2>Equipe</h2><p>Acompanhe o <span class="hl">ranking e a atividade</span> do time — sem dado de cliente aparecendo aqui</p></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:20px;" class="hall-cols">
+      <div class="fc">
+        <div class="sh"><div class="si">🏆</div>Ranking</div>
+        <div id="equipe-ranking" style="padding:8px 0;"><div class="hem" style="padding:20px;">Carregando...</div></div>
+      </div>
+
+      <div class="fc">
+        <div class="sh"><div class="si">📣</div>Mural de Atividade</div>
+        <div id="equipe-mural" style="padding:8px 0;max-height:520px;overflow-y:auto;"><div class="hem" style="padding:20px;">Carregando...</div></div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div>
 <div id="tab-scripts" class="tp" style="display:none;">
     <div class="topbar"><div class="topbar-title">Scripts</div><div class="topbar-sub">Roteiros de abordagem</div></div>
   <div class="page-content">
@@ -943,9 +963,11 @@ function _fbCarregarDados(uid){
       _fbSyncHistorico();
       _fbSyncEstudos();
     }
+    _fbAtualizarPerfilPublico();
     // re-renderiza o que estiver visivel no momento
     if(document.getElementById('tab-hall').style.display!=='none')renderHall();
     if(document.getElementById('tab-historico').style.display!=='none')hRender();
+    if(document.getElementById('tab-equipe').style.display!=='none')renderEquipe();
   }).catch(function(err){
     _fbLog('❌ ERRO ao carregar: '+err.code+' — '+err.message);
   });
@@ -964,6 +986,7 @@ function _fbSyncHistorico(){
   db.collection('usuarios').doc(_currentUID).set({historico:h},{merge:true}).then(function(){
     terminou=true;
     _fbLog('✅ SUCESSO: historico salvo na nuvem ('+h.length+' registros)');
+    _fbAtualizarPerfilPublico();
   }).catch(function(err){
     terminou=true;
     _fbLog('❌ ERRO: '+err.code+' — '+err.message);
@@ -974,8 +997,116 @@ function _fbSyncEstudos(){
   var p=JSON.parse(localStorage.getItem('rsd_estudos_progresso')||'{}');
   db.collection('usuarios').doc(_currentUID).set({estudosProgresso:p},{merge:true}).then(function(){
     _fbLog('✅ SUCESSO: progresso dos estudos salvo na nuvem');
+    _fbAtualizarPerfilPublico();
   }).catch(function(err){
     _fbLog('❌ ERRO (estudos): '+err.code+' — '+err.message);
+  });
+}
+function _fbNomeAtual(){
+  var u=firebase.auth().currentUser;
+  return u?(u.displayName||u.email||'Consultor'):'Consultor';
+}
+function _fbAtualizarPerfilPublico(){
+  if(!_currentUID)return;
+  var h=JSON.parse(localStorage.getItem(HK)||'[]');
+  var prog=JSON.parse(localStorage.getItem('rsd_estudos_progresso')||'{}');
+  var modulosCompletos=Object.keys(prog).filter(function(k){return prog[k]&&prog[k].provaPassada;}).length;
+  db.collection('perfis_publicos').doc(_currentUID).set({
+    nome:_fbNomeAtual(),
+    documentos:h.length,
+    modulosCompletos:modulosCompletos,
+    atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true}).catch(function(err){
+    _fbLog('❌ ERRO (perfil p\u00FAblico): '+err.message);
+  });
+}
+function _fbPostarMural(tipo,texto){
+  if(!_currentUID)return;
+  db.collection('mural').add({
+    uid:_currentUID,
+    nome:_fbNomeAtual(),
+    tipo:tipo,
+    texto:texto,
+    criadoEm:firebase.firestore.FieldValue.serverTimestamp(),
+    reacoes:{}
+  }).catch(function(err){
+    _fbLog('❌ ERRO (mural): '+err.message);
+  });
+}
+
+// ===== EQUIPE (RANKING + MURAL) =====
+function renderEquipe(){
+  renderRanking();
+  renderMural();
+}
+function renderRanking(){
+  var host=document.getElementById('equipe-ranking');
+  if(!host)return;
+  db.collection('perfis_publicos').get().then(function(snap){
+    var perfis=[];
+    snap.forEach(function(doc){perfis.push(doc.data());});
+    perfis.sort(function(a,b){
+      var pa=(a.documentos||0)+(a.modulosCompletos||0)*3;
+      var pb=(b.documentos||0)+(b.modulosCompletos||0)*3;
+      return pb-pa;
+    });
+    if(perfis.length===0){
+      host.innerHTML='<div class="hem" style="padding:20px;">Ningu\u00E9m no ranking ainda.</div>';
+      return;
+    }
+    var medalhas=['🥇','🥈','🥉'];
+    host.innerHTML=perfis.map(function(p,i){
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--cb);">'+
+        '<div style="font-size:18px;width:28px;text-align:center;">'+(medalhas[i]||(i+1)+'.')+'</div>'+
+        '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+(p.nome||'Consultor')+'</div>'+
+        '<div style="font-size:10px;color:var(--tm);">'+(p.documentos||0)+' documentos \u00B7 '+(p.modulosCompletos||0)+' m\u00F3dulos conclu\u00EDdos</div></div>'+
+      '</div>';
+    }).join('');
+  }).catch(function(err){
+    host.innerHTML='<div class="hem" style="padding:20px;color:#c0392b;">Erro ao carregar ranking: '+err.message+'</div>';
+  });
+}
+function renderMural(){
+  var host=document.getElementById('equipe-mural');
+  if(!host)return;
+  db.collection('mural').orderBy('criadoEm','desc').limit(30).get().then(function(snap){
+    if(snap.empty){
+      host.innerHTML='<div class="hem" style="padding:20px;">Nenhuma atividade ainda.</div>';
+      return;
+    }
+    host.innerHTML=snap.docs.map(function(doc){
+      var d=doc.data();
+      var id=doc.id;
+      var reacoes=d.reacoes||{};
+      var dataFmt='';
+      try{dataFmt=d.criadoEm?d.criadoEm.toDate().toLocaleString('pt-BR'):'';}catch(e){}
+      return '<div style="padding:12px 20px;border-bottom:1px solid var(--cb);">'+
+        '<div style="font-size:13px;color:var(--t);">'+d.texto+'</div>'+
+        '<div style="font-size:10px;color:var(--tm);margin-top:2px;">'+dataFmt+'</div>'+
+        '<div style="display:flex;gap:8px;margin-top:8px;">'+
+          '<button class="btn bl" style="padding:4px 10px;font-size:12px;" onclick="reagirMural(\''+id+'\',\'👏\')">👏 '+(reacoes['👏']||0)+'</button>'+
+          '<button class="btn bl" style="padding:4px 10px;font-size:12px;" onclick="reagirMural(\''+id+'\',\'🔥\')">🔥 '+(reacoes['🔥']||0)+'</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }).catch(function(err){
+    host.innerHTML='<div class="hem" style="padding:20px;color:#c0392b;">Erro ao carregar mural: '+err.message+'</div>';
+  });
+}
+function reagirMural(postId,emoji){
+  if(!_currentUID)return;
+  var ref=db.collection('mural').doc(postId);
+  db.runTransaction(function(tx){
+    return tx.get(ref).then(function(doc){
+      if(!doc.exists)return;
+      var reacoes=doc.data().reacoes||{};
+      reacoes[emoji]=(reacoes[emoji]||0)+1;
+      tx.update(ref,{reacoes:reacoes});
+    });
+  }).then(function(){
+    renderMural();
+  }).catch(function(err){
+    _fbLog('❌ ERRO (reagir): '+err.message);
   });
 }
 
@@ -992,6 +1123,7 @@ function aba(id,el){
   if(id==='proposta')renderProposta();
   if(id==='hall')renderHall();
   if(id==='estudos')estVoltarGrid();
+  if(id==='equipe')renderEquipe();
 }
 function irPara(id){
   var navEl=document.querySelector('.sb-nav-item[onclick*="\''+id+'\'"]');
@@ -1084,7 +1216,8 @@ var FUNIL=[
   {id:'pagamento',label:'Pagamento',icon:'💳'},
   {id:'boasvindas',label:'Pós-Venda',icon:'🎉'},
   {id:'campanhas',label:'Campanhas',icon:'📣'},
-  {id:'historico',label:'Histórico',icon:'🕓'}
+  {id:'historico',label:'Histórico',icon:'🕓'},
+  {id:'equipe',label:'Equipe',icon:'🏆'}
 ];
 function _hallDiaChave(){
   var d=new Date();
@@ -1708,6 +1841,7 @@ function estCorrigirProva(){
   var passou=pct>=70;
   var prog=_estProgresso();
   var mp=prog[_estCurrentModulo]||{aulasVistas:[],provaPassada:false};
+  var jaTinhaPassado=mp.provaPassada;
   mp.provaPassada=passou;
   mp.notaProva=pct;
   prog[_estCurrentModulo]=mp;
@@ -1716,6 +1850,7 @@ function estCorrigirProva(){
   if(passou){
     resEl.innerHTML='<div style="padding:14px;border-radius:8px;background:rgba(8,145,178,0.12);color:var(--v);font-weight:700;text-align:center;">✅ Você acertou '+acertos+'/'+total+' ('+pct+'%) — aprovado!</div>';
     toast('Prova aprovada! 🎉');
+    if(!jaTinhaPassado)_fbPostarMural('estudo',_fbNomeAtual()+' completou o módulo "'+m.titulo+'" 🎓');
   } else {
     resEl.innerHTML='<div style="padding:14px;border-radius:8px;background:rgba(192,57,43,0.12);color:#c0392b;font-weight:700;text-align:center;">Você acertou '+acertos+'/'+total+' ('+pct+'%) — precisa de 70% pra passar. Revise a aula e tente de novo!</div>';
   }
@@ -1869,6 +2004,17 @@ const L = {
 
 // \u2500\u2500 FORMATADORES \u2500\u2500
 function v(id){return (document.getElementById(id)||{}).value?.trim()||'';}
+function _validarCampos(campos){
+  var faltando=[];
+  campos.forEach(function(c){
+    if(!v(c.id))faltando.push(c.label);
+  });
+  if(faltando.length>0){
+    toast('⚠️ Preencha antes de gerar: '+faltando.join(', '),'#c0392b');
+    return false;
+  }
+  return true;
+}
 function fL(el){let x=el.value.replace(/\D/g,'');if(!x){el.value='';return;}x=(parseInt(x)/100).toFixed(2);el.value=parseFloat(x).toLocaleString('pt-BR',{minimumFractionDigits:2});}
 function fBRL(el){fL(el);}
 function fCPF(el){let x=el.value.replace(/\D/g,'').slice(0,11);x=x.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');el.value=x;}
@@ -2113,7 +2259,17 @@ ${rodapePDF()}
 // \u2500\u2500 A\u00C7\u00D5ES AN\u00C1LISE \u2500\u2500
 function prevPDF(){const el=document.getElementById('pv-aprov');document.getElementById('pv-aprov-ct').innerHTML=buildLance();el.classList.add('vis');el.scrollIntoView({behavior:'smooth',block:'start'});}
 function gPDF(){
-  if(!v('nome')||!v('lance_valor')){toast('Preencha Nome e Lance','#c0392b');return;}
+  var modeloId=(typeof _modo!=='undefined'&&_modo==='gen')?'modelo_gen_pf':'modelo';
+  var ok=_validarCampos([
+    {id:'nome',label:'Nome'},
+    {id:'cpf',label:'CPF'},
+    {id:'nasc',label:'Data de Nascimento'},
+    {id:'email_cli',label:'E-mail'},
+    {id:modeloId,label:'Modelo'},
+    {id:'lance_valor',label:'Valor do Lance'},
+    {id:'consultor',label:'Nome do Consultor'}
+  ]);
+  if(!ok)return;
   sHist('An\u00E1lise de Lance');
   toast('⏳ Preparando seu PDF...');
   var nome=v('nome')||'Cliente', prot=v('protocolo')||'S/N';
@@ -2127,7 +2283,15 @@ function gPDF(){
     toast('✅ PDF pronto!');
   });
 }
-function abrirEmail(){const nome=v('nome')||'cliente',lance=v('lance_valor')?'R$ '+v('lance_valor'):'(ver anexo)',modelo=document.getElementById('modelo').value?'Kawasaki '+document.getElementById('modelo').value:'',cons=v('consultor')||'Vitor Godoy',prot=v('protocolo')||'';
+function abrirEmail(){
+  var modeloId=(typeof _modo!=='undefined'&&_modo==='gen')?'modelo_gen_pf':'modelo';
+  var ok=_validarCampos([
+    {id:'nome',label:'Nome'},{id:'cpf',label:'CPF'},{id:'nasc',label:'Data de Nascimento'},
+    {id:'email_cli',label:'E-mail'},{id:modeloId,label:'Modelo'},
+    {id:'lance_valor',label:'Valor do Lance'},{id:'consultor',label:'Nome do Consultor'}
+  ]);
+  if(!ok)return;
+  const nome=v('nome')||'cliente',lance=v('lance_valor')?'R$ '+v('lance_valor'):'(ver anexo)',modelo=document.getElementById('modelo').value?'Kawasaki '+document.getElementById('modelo').value:'',cons=v('consultor')||'Vitor Godoy',prot=v('protocolo')||'';
 if(v('nome')&&v('lance_valor'))abrirPDF(buildLance(),v('nome'),'An\u00E1lise de Lance');
 _dest=v('email_cli');_wnum='';
 _assunto='Resultado da An\u00E1lise de Lance \u2013 Cons\u00F3rcio Kawasaki'+(prot?' | Processo '+prot:'');
@@ -2470,8 +2634,8 @@ document.getElementById('em').addEventListener('click',function(e){if(e.target==
 
 // \u2500\u2500 HIST\u00D3RICO \u2500\u2500
 const HK='kawa_hist';
-function sHist(tipo){const n=v('nome')||'\u2014',p=v('protocolo')||'\u2014',mod=document.getElementById('modelo').value?(v('ano')?'Kawasaki '+document.getElementById('modelo').value+' '+v('ano'):'Kawasaki '+document.getElementById('modelo').value):'\u2014',l=v('lance_valor')?'R$ '+v('lance_valor'):'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome:n,protocolo:p,modelo:mod,lance:l,data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');_fbSyncHistorico();}
-function sHistS(tipo,nome){const mod=document.getElementById('bv_mod')?document.getElementById('bv_mod').value?'Kawasaki '+document.getElementById('bv_mod').value:'\u2014':'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome,protocolo:'\u2014',modelo:mod,lance:'\u2014',data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');_fbSyncHistorico();}
+function sHist(tipo){const n=v('nome')||'\u2014',p=v('protocolo')||'\u2014',mod=document.getElementById('modelo').value?(v('ano')?'Kawasaki '+document.getElementById('modelo').value+' '+v('ano'):'Kawasaki '+document.getElementById('modelo').value):'\u2014',l=v('lance_valor')?'R$ '+v('lance_valor'):'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome:n,protocolo:p,modelo:mod,lance:l,data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');_fbSyncHistorico();_fbPostarMural('documento',_fbNomeAtual()+' gerou um documento ('+tipo+') 📄');}
+function sHistS(tipo,nome){const mod=document.getElementById('bv_mod')?document.getElementById('bv_mod').value?'Kawasaki '+document.getElementById('bv_mod').value:'\u2014':'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome,protocolo:'\u2014',modelo:mod,lance:'\u2014',data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');_fbSyncHistorico();_fbPostarMural('documento',_fbNomeAtual()+' gerou um documento ('+tipo+') 📄');}
 function hRender(){const h=JSON.parse(localStorage.getItem(HK)||'[]');const body=document.getElementById('h-body'),cnt=document.getElementById('h-cnt');if(!body)return;cnt.textContent=h.length+' registro'+(h.length!==1?'s':'');if(h.length===0){body.innerHTML='<div class="hem">Nenhum documento gerado ainda.</div>';return;}body.innerHTML='<table class="ht"><thead><tr><th>Cliente</th><th>Modelo</th><th>Lance</th><th>Protocolo</th><th>Data</th><th>Tipo</th><th></th></tr></thead><tbody>'+h.map((r,i)=>`<tr><td><strong>${r.nome}</strong></td><td>${r.modelo}</td><td>${r.lance}</td><td style="color:var(--tm);font-size:10px;">${r.protocolo}</td><td style="color:var(--tm);font-size:10px;white-space:nowrap;">${r.data}</td><td><span class="hb">${r.tipo}</span></td><td><button class="he dg" onclick="hDel(${i})">\u2715</button></td></tr>`).join('')+'</tbody></table>';}
 function hDel(i){const h=JSON.parse(localStorage.getItem(HK)||'[]');h.splice(i,1);localStorage.setItem(HK,JSON.stringify(h));hRender();_fbSyncHistorico();}
 function hLimpar(){if(!confirm('Apagar todo o hist\u00F3rico?'))return;localStorage.removeItem(HK);hRender();toast('🗑️ Histórico apagado.');_fbSyncHistorico();}
@@ -2608,7 +2772,16 @@ function _restaurarPreferencias(){
 document.addEventListener('DOMContentLoaded',_restaurarPreferencias);
 
 function gPDFCnpj(){
-  if(!v('cnpj_empresa')||!v('cnpj_lance_valor')){toast('Preencha Nome da Empresa e Lance','#c0392b');return;}
+  var ok=_validarCampos([
+    {id:'cnpj_empresa',label:'Nome da Empresa'},
+    {id:'cnpj_socio_nome',label:'Nome do S\u00F3cio'},
+    {id:'cnpj_socio_cpf',label:'CPF do S\u00F3cio'},
+    {id:'cnpj_email',label:'E-mail'},
+    {id:'cnpj_modelo',label:'Modelo'},
+    {id:'cnpj_lance_valor',label:'Valor do Lance'},
+    {id:'cnpj_consultor',label:'Nome do Consultor'}
+  ]);
+  if(!ok)return;
   sHist('Analise de Lance CNPJ');
   toast('⏳ Preparando seu PDF...');
   var empresa=v('cnpj_empresa')||'Empresa', prot=v('cnpj_protocolo')||'S/N';
@@ -2620,6 +2793,13 @@ function gPDFCnpj(){
 }
 
 function abrirEmailCnpj(){
+  var ok=_validarCampos([
+    {id:'cnpj_empresa',label:'Nome da Empresa'},{id:'cnpj_socio_nome',label:'Nome do S\u00F3cio'},
+    {id:'cnpj_socio_cpf',label:'CPF do S\u00F3cio'},{id:'cnpj_email',label:'E-mail'},
+    {id:'cnpj_modelo',label:'Modelo'},{id:'cnpj_lance_valor',label:'Valor do Lance'},
+    {id:'cnpj_consultor',label:'Nome do Consultor'}
+  ]);
+  if(!ok)return;
   var empresa=v('cnpj_empresa')||'empresa', lance=v('cnpj_lance_valor')?'R$ '+v('cnpj_lance_valor'):'(ver anexo)';
   var modelo=document.getElementById('cnpj_modelo').value?'Kawasaki '+document.getElementById('cnpj_modelo').value:'';
   var cons=v('cnpj_consultor')||'', prot=v('cnpj_protocolo')||'';

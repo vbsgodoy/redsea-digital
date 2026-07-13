@@ -239,7 +239,6 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  db.settings({experimentalForceLongPolling:true,useFetchStreams:false});
 </script>
 </head>
 <body>
@@ -952,17 +951,7 @@ function _fbCarregarDados(uid){
   });
 }
 function _fbLog(msg){
-  var box=document.getElementById('fb-debug-log');
-  if(!box){
-    box=document.createElement('div');
-    box.id='fb-debug-log';
-    box.style.cssText='position:fixed;bottom:90px;left:10px;right:10px;max-width:420px;max-height:260px;overflow-y:auto;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:10px;border-radius:8px;z-index:99999;border:2px solid #0f0;';
-    document.body.appendChild(box);
-  }
-  var line=document.createElement('div');
-  line.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+msg;
-  box.appendChild(line);
-  box.scrollTop=box.scrollHeight;
+  console.log('[RedSea Sync] '+msg);
 }
 function _fbSyncHistorico(){
   _fbLog('Tentando sincronizar historico... UID='+_currentUID);

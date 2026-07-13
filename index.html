@@ -917,6 +917,7 @@ firebase.auth().onAuthStateChanged(function(user){
   var appShell=document.getElementById('app-shell');
   if(user){
     _currentUID=user.uid;
+    _fbLog('Login OK. UID='+user.uid+' email='+user.email);
     loginScreen.style.display='none';
     appShell.style.display='flex';
     var nomeEl=document.getElementById('sb-user-nome');
@@ -929,12 +930,15 @@ firebase.auth().onAuthStateChanged(function(user){
   }
 });
 function _fbCarregarDados(uid){
+  _fbLog('Buscando documento na nuvem para UID='+uid+'...');
   db.collection('usuarios').doc(uid).get().then(function(doc){
     if(doc.exists){
+      _fbLog('Documento ENCONTRADO na nuvem. Baixando dados...');
       var d=doc.data();
       if(d.historico!==undefined)localStorage.setItem(HK,JSON.stringify(d.historico));
       if(d.estudosProgresso!==undefined)localStorage.setItem('rsd_estudos_progresso',JSON.stringify(d.estudosProgresso));
     } else {
+      _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
       _fbSyncHistorico();
       _fbSyncEstudos();
@@ -943,26 +947,39 @@ function _fbCarregarDados(uid){
     if(document.getElementById('tab-hall').style.display!=='none')renderHall();
     if(document.getElementById('tab-historico').style.display!=='none')hRender();
   }).catch(function(err){
-    console.error('Erro ao carregar dados da nuvem:',err);
-    toast('⚠️ NUVEM (carregar): '+err.code+' — '+err.message,'#c0392b');
+    _fbLog('❌ ERRO ao carregar: '+err.code+' — '+err.message);
   });
 }
+function _fbLog(msg){
+  var box=document.getElementById('fb-debug-log');
+  if(!box){
+    box=document.createElement('div');
+    box.id='fb-debug-log';
+    box.style.cssText='position:fixed;bottom:90px;left:10px;right:10px;max-width:420px;max-height:260px;overflow-y:auto;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:10px;border-radius:8px;z-index:99999;border:2px solid #0f0;';
+    document.body.appendChild(box);
+  }
+  var line=document.createElement('div');
+  line.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+msg;
+  box.appendChild(line);
+  box.scrollTop=box.scrollHeight;
+}
 function _fbSyncHistorico(){
-  if(!_currentUID)return;
+  _fbLog('Tentando sincronizar historico... UID='+_currentUID);
+  if(!_currentUID){_fbLog('ABORTADO: sem UID (nao logado?)');return;}
   var h=JSON.parse(localStorage.getItem(HK)||'[]');
   db.collection('usuarios').doc(_currentUID).set({historico:h},{merge:true}).then(function(){
-    toast('☁️ Histórico sincronizado com a nuvem');
+    _fbLog('✅ SUCESSO: historico salvo na nuvem ('+h.length+' registros)');
   }).catch(function(err){
-    console.error('Erro ao sincronizar historico:',err);
-    toast('⚠️ NUVEM (histórico): '+err.code+' — '+err.message,'#c0392b');
+    _fbLog('❌ ERRO: '+err.code+' — '+err.message);
   });
 }
 function _fbSyncEstudos(){
   if(!_currentUID)return;
   var p=JSON.parse(localStorage.getItem('rsd_estudos_progresso')||'{}');
-  db.collection('usuarios').doc(_currentUID).set({estudosProgresso:p},{merge:true}).catch(function(err){
-    console.error('Erro ao sincronizar estudos:',err);
-    toast('⚠️ NUVEM (estudos): '+err.code+' — '+err.message,'#c0392b');
+  db.collection('usuarios').doc(_currentUID).set({estudosProgresso:p},{merge:true}).then(function(){
+    _fbLog('✅ SUCESSO: progresso dos estudos salvo na nuvem');
+  }).catch(function(err){
+    _fbLog('❌ ERRO (estudos): '+err.code+' — '+err.message);
   });
 }
 

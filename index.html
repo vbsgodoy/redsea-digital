@@ -944,13 +944,17 @@ function _fbCarregarDados(uid){
     if(document.getElementById('tab-historico').style.display!=='none')hRender();
   }).catch(function(err){
     console.error('Erro ao carregar dados da nuvem:',err);
+    toast('⚠️ NUVEM (carregar): '+err.code+' — '+err.message,'#c0392b');
   });
 }
 function _fbSyncHistorico(){
   if(!_currentUID)return;
   var h=JSON.parse(localStorage.getItem(HK)||'[]');
-  db.collection('usuarios').doc(_currentUID).set({historico:h},{merge:true}).catch(function(err){
+  db.collection('usuarios').doc(_currentUID).set({historico:h},{merge:true}).then(function(){
+    toast('☁️ Histórico sincronizado com a nuvem');
+  }).catch(function(err){
     console.error('Erro ao sincronizar historico:',err);
+    toast('⚠️ NUVEM (histórico): '+err.code+' — '+err.message,'#c0392b');
   });
 }
 function _fbSyncEstudos(){
@@ -958,6 +962,7 @@ function _fbSyncEstudos(){
   var p=JSON.parse(localStorage.getItem('rsd_estudos_progresso')||'{}');
   db.collection('usuarios').doc(_currentUID).set({estudosProgresso:p},{merge:true}).catch(function(err){
     console.error('Erro ao sincronizar estudos:',err);
+    toast('⚠️ NUVEM (estudos): '+err.code+' — '+err.message,'#c0392b');
   });
 }
 

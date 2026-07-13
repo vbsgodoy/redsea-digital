@@ -227,6 +227,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDMqLY73OIrCLRVM_bW-VhEjCFn1iViX3A",
@@ -237,6 +238,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     appId: "1:340113403581:web:8447059c46be8a25b111d4"
   };
   firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 </script>
 </head>
 <body>
@@ -909,19 +911,55 @@ function _fbErroTraduzido(code){
   };
   return mapa[code]||'Não foi possível concluir. Tente novamente.';
 }
+var _currentUID=null;
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');
   var appShell=document.getElementById('app-shell');
   if(user){
+    _currentUID=user.uid;
     loginScreen.style.display='none';
     appShell.style.display='flex';
     var nomeEl=document.getElementById('sb-user-nome');
     if(nomeEl)nomeEl.textContent=user.displayName||user.email;
+    _fbCarregarDados(user.uid);
   } else {
+    _currentUID=null;
     loginScreen.style.display='flex';
     appShell.style.display='none';
   }
 });
+function _fbCarregarDados(uid){
+  db.collection('usuarios').doc(uid).get().then(function(doc){
+    if(doc.exists){
+      var d=doc.data();
+      if(d.historico!==undefined)localStorage.setItem(HK,JSON.stringify(d.historico));
+      if(d.estudosProgresso!==undefined)localStorage.setItem('rsd_estudos_progresso',JSON.stringify(d.estudosProgresso));
+    } else {
+      // primeira vez -- sobe o que ja existir localmente (se existir)
+      _fbSyncHistorico();
+      _fbSyncEstudos();
+    }
+    // re-renderiza o que estiver visivel no momento
+    if(document.getElementById('tab-hall').style.display!=='none')renderHall();
+    if(document.getElementById('tab-historico').style.display!=='none')hRender();
+  }).catch(function(err){
+    console.error('Erro ao carregar dados da nuvem:',err);
+  });
+}
+function _fbSyncHistorico(){
+  if(!_currentUID)return;
+  var h=JSON.parse(localStorage.getItem(HK)||'[]');
+  db.collection('usuarios').doc(_currentUID).set({historico:h},{merge:true}).catch(function(err){
+    console.error('Erro ao sincronizar historico:',err);
+  });
+}
+function _fbSyncEstudos(){
+  if(!_currentUID)return;
+  var p=JSON.parse(localStorage.getItem('rsd_estudos_progresso')||'{}');
+  db.collection('usuarios').doc(_currentUID).set({estudosProgresso:p},{merge:true}).catch(function(err){
+    console.error('Erro ao sincronizar estudos:',err);
+  });
+}
 
 // NAVEGACAO SIDEBAR
 function aba(id,el){
@@ -1508,6 +1546,7 @@ function _estProgresso(){
 }
 function _estSalvarProgresso(p){
   localStorage.setItem('rsd_estudos_progresso',JSON.stringify(p));
+  _fbSyncEstudos();
 }
 function _estModulo(id){
   return MODULOS.find(function(m){return m.id===id;});
@@ -2413,11 +2452,11 @@ document.getElementById('em').addEventListener('click',function(e){if(e.target==
 
 // \u2500\u2500 HIST\u00D3RICO \u2500\u2500
 const HK='kawa_hist';
-function sHist(tipo){const n=v('nome')||'\u2014',p=v('protocolo')||'\u2014',mod=document.getElementById('modelo').value?(v('ano')?'Kawasaki '+document.getElementById('modelo').value+' '+v('ano'):'Kawasaki '+document.getElementById('modelo').value):'\u2014',l=v('lance_valor')?'R$ '+v('lance_valor'):'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome:n,protocolo:p,modelo:mod,lance:l,data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');}
-function sHistS(tipo,nome){const mod=document.getElementById('bv_mod')?document.getElementById('bv_mod').value?'Kawasaki '+document.getElementById('bv_mod').value:'\u2014':'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome,protocolo:'\u2014',modelo:mod,lance:'\u2014',data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');}
+function sHist(tipo){const n=v('nome')||'\u2014',p=v('protocolo')||'\u2014',mod=document.getElementById('modelo').value?(v('ano')?'Kawasaki '+document.getElementById('modelo').value+' '+v('ano'):'Kawasaki '+document.getElementById('modelo').value):'\u2014',l=v('lance_valor')?'R$ '+v('lance_valor'):'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome:n,protocolo:p,modelo:mod,lance:l,data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');_fbSyncHistorico();}
+function sHistS(tipo,nome){const mod=document.getElementById('bv_mod')?document.getElementById('bv_mod').value?'Kawasaki '+document.getElementById('bv_mod').value:'\u2014':'\u2014';const h=JSON.parse(localStorage.getItem(HK)||'[]');h.unshift({tipo,nome,protocolo:'\u2014',modelo:mod,lance:'\u2014',data:new Date().toLocaleString('pt-BR')});if(h.length>50)h.pop();localStorage.setItem(HK,JSON.stringify(h));contarAcaoDia('documentos');_fbSyncHistorico();}
 function hRender(){const h=JSON.parse(localStorage.getItem(HK)||'[]');const body=document.getElementById('h-body'),cnt=document.getElementById('h-cnt');if(!body)return;cnt.textContent=h.length+' registro'+(h.length!==1?'s':'');if(h.length===0){body.innerHTML='<div class="hem">Nenhum documento gerado ainda.</div>';return;}body.innerHTML='<table class="ht"><thead><tr><th>Cliente</th><th>Modelo</th><th>Lance</th><th>Protocolo</th><th>Data</th><th>Tipo</th><th></th></tr></thead><tbody>'+h.map((r,i)=>`<tr><td><strong>${r.nome}</strong></td><td>${r.modelo}</td><td>${r.lance}</td><td style="color:var(--tm);font-size:10px;">${r.protocolo}</td><td style="color:var(--tm);font-size:10px;white-space:nowrap;">${r.data}</td><td><span class="hb">${r.tipo}</span></td><td><button class="he dg" onclick="hDel(${i})">\u2715</button></td></tr>`).join('')+'</tbody></table>';}
-function hDel(i){const h=JSON.parse(localStorage.getItem(HK)||'[]');h.splice(i,1);localStorage.setItem(HK,JSON.stringify(h));hRender();}
-function hLimpar(){if(!confirm('Apagar todo o hist\u00F3rico?'))return;localStorage.removeItem(HK);hRender();toast('🗑️ Histórico apagado.');}
+function hDel(i){const h=JSON.parse(localStorage.getItem(HK)||'[]');h.splice(i,1);localStorage.setItem(HK,JSON.stringify(h));hRender();_fbSyncHistorico();}
+function hLimpar(){if(!confirm('Apagar todo o hist\u00F3rico?'))return;localStorage.removeItem(HK);hRender();toast('🗑️ Histórico apagado.');_fbSyncHistorico();}
 // ===== NOTAS RAPIDAS (POST-IT) =====
 const NK='rsd_notas';
 function nGet(){return JSON.parse(localStorage.getItem(NK)||'[]');}

@@ -292,6 +292,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="sb-nav-item" onclick="aba('estudos',this)"><span class="sb-dot"></span>Estudos</div>
     <div class="sb-nav-item" onclick="aba('scripts',this)"><span class="sb-dot"></span>Scripts</div>
     <div class="sb-nav-item" onclick="aba('proposta',this)"><span class="sb-dot"></span>Proposta</div>
+    <div class="sb-nav-item" onclick="aba('agendamento',this)"><span class="sb-dot"></span>Agendamento</div>
     <div class="sb-nav-item" onclick="aba('aprovacao',this)"><span class="sb-dot"></span>Analise de Lance</div>
     <div class="sb-nav-item" onclick="aba('pagamento',this)"><span class="sb-dot"></span>Pagamento</div>
     <div class="sb-nav-item" onclick="aba('boasvindas',this)"><span class="sb-dot"></span>Pos-Venda</div>
@@ -896,6 +897,40 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
   </div><!-- /page-content -->
 </div>
+<div id="tab-agendamento" class="tp" style="display:none;">
+    <div class="topbar"><div class="topbar-title">Agendamento</div><div class="topbar-sub">Confirmação de análise com credibilidade</div></div>
+  <div class="page-content">
+  <div class="pt"><h2>Agendamento de Análise</h2><p>Gere o <span class="hl">texto + card de confirmação</span> pra passar segurança ao cliente</p></div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si">🗓️</div>Dados do Agendamento</div>
+      <div class="fg">
+        <div class="fi"><label>Nome do cliente</label><input type="text" id="agd_cliente" placeholder="Nome do cliente" oninput="renderAgendamento()"/></div>
+        <div class="fi"><label>Nome do analista</label><input type="text" id="agd_analista" placeholder="Quem vai atender" oninput="renderAgendamento()"/></div>
+        <div class="fi"><label>Data da análise</label><input type="date" id="agd_data" oninput="renderAgendamento()"/></div>
+        <div class="fi"><label>Horário</label><input type="time" id="agd_hora" oninput="renderAgendamento()"/></div>
+        <div class="fi"><label>Nome do consultor</label><input type="text" id="agd_consultor" value="Vitor Godoy" oninput="renderAgendamento()"/></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="sh"><div class="si">👁️</div>Prévia</div>
+      <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+        <div style="flex:0 0 260px;">
+          <canvas id="agd-canvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid var(--cb);display:block;"></canvas>
+          <button class="btn bl" style="width:100%;margin-top:8px;" onclick="copiarCardAgendamento()">📋 Copiar card</button>
+        </div>
+        <div style="flex:1;min-width:240px;">
+          <div id="agd-texto" contenteditable="true" style="font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:16px 18px;min-height:200px;outline:none;">Preencha os dados acima.</div>
+          <div class="aa" style="margin-top:12px;">
+            <button class="btn bs2" onclick="copiarTextoAgendamento()">📋 Copiar texto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div>
 </div>
 </div>
 <div id="em"><div class="modal-box"><div class="mh"><h3>Enviar ao Cliente</h3><button class="mf" onclick="fModal()">x</button></div><div class="mb"><div class="mas">Assunto: <span id="m-assunto"></span></div><div class="mco" id="m-corpo"></div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--tm);display:block;margin-bottom:5px;">E-mail do destinatario</label><input type="email" id="m-dest-input" placeholder="email@cliente.com.br" style="width:100%;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:9px 12px;color:var(--t);font-family:inherit;font-size:13px;outline:none;" oninput="_dest=this.value.trim()"/></div><div class="mac"><button class="mbtn mg" onclick="mGmail()">Gmail</button><button class="mbtn mo" onclick="mOutlook()">Outlook</button><button class="mbtn mc" onclick="mCopy()" id="m-copy-btn">Copiar</button><button class="mbtn mw" onclick="mWhats()">WhatsApp</button></div></div></div></div>
@@ -1352,6 +1387,7 @@ function aba(id,el){
   if(id==='estudos')estVoltarGrid();
   if(id==='equipe')renderEquipe();
   if(id==='agenda')renderAgenda();
+  if(id==='agendamento')renderAgendamento();
 }
 function irPara(id){
   var navEl=document.querySelector('.sb-nav-item[onclick*="\''+id+'\'"]');
@@ -1440,6 +1476,7 @@ var FUNIL=[
   {id:'estudos',label:'Estudos',icon:'📚'},
   {id:'scripts',label:'Scripts',icon:'💬'},
   {id:'proposta',label:'Proposta',icon:'🏍️'},
+  {id:'agendamento',label:'Agendamento',icon:'🗓️'},
   {id:'aprovacao',label:'Análise de Lance',icon:'📋'},
   {id:'pagamento',label:'Pagamento',icon:'💳'},
   {id:'boasvindas',label:'Pós-Venda',icon:'🎉'},
@@ -1715,6 +1752,153 @@ function _baixarImagemFallback(blob,modelo){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   toast('Seu navegador não permite copiar imagem — baixei o arquivo em vez disso.');
+}
+
+// ===== AGENDAMENTO DE ANALISE =====
+function _agdRoundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function _agdWrapCentered(ctx,text,x,y,maxWidth,lineHeight){
+  var words=text.split(' ');
+  var line='',lines=[];
+  for(var n=0;n<words.length;n++){
+    var testLine=line+words[n]+' ';
+    if(ctx.measureText(testLine).width>maxWidth && n>0){
+      lines.push(line.trim());
+      line=words[n]+' ';
+    } else {
+      line=testLine;
+    }
+  }
+  lines.push(line.trim());
+  lines.forEach(function(l,i){ctx.fillText(l,x,y+i*lineHeight);});
+  return lines.length;
+}
+function _agdDesenharCard(){
+  var canvas=document.getElementById('agd-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W=canvas.width,H=canvas.height;
+
+  var grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0B0F19');
+  grad.addColorStop(1,'#131C2E');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle='#0891B2';
+  ctx.fillRect(0,0,W,14);
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#0891B2';
+  ctx.font='bold 32px Arial';
+  ctx.fillText('RED SEA DIGITAL',W/2,95);
+
+  ctx.font='130px Arial';
+  ctx.fillText('🗓️',W/2,290);
+
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='bold 52px Arial';
+  ctx.fillText('ANÁLISE AGENDADA',W/2,370);
+
+  var cliente=v('agd_cliente')||'Cliente';
+  var analista=v('agd_analista')||'Analista Kawasaki';
+  var dataRaw=v('agd_data');
+  var hora=v('agd_hora')||'--:--';
+  var consultor=v('agd_consultor')||'Consultor';
+
+  var dataFmt='Data a definir';
+  if(dataRaw){
+    var partes=dataRaw.split('-');
+    var d=new Date(partes[0],partes[1]-1,partes[2]);
+    var dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+    dataFmt=dias[d.getDay()]+', '+partes[2]+'/'+partes[1]+'/'+partes[0];
+  }
+
+  ctx.font='36px Arial';
+  ctx.fillStyle='#94A3B8';
+  ctx.fillText('Prezado(a)',W/2,445);
+  ctx.font='bold 48px Arial';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText(cliente,W/2,505);
+
+  ctx.fillStyle='rgba(8,145,178,0.15)';
+  _agdRoundRect(ctx,90,570,W-180,190,16);
+  ctx.fill();
+  ctx.strokeStyle='#0891B2';
+  ctx.lineWidth=2;
+  _agdRoundRect(ctx,90,570,W-180,190,16);
+  ctx.stroke();
+
+  ctx.font='bold 38px Arial';
+  ctx.fillStyle='#0891B2';
+  ctx.fillText(dataFmt,W/2,635);
+  ctx.font='bold 62px Arial';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText(hora,W/2,715);
+
+  ctx.font='28px Arial';
+  ctx.fillStyle='#94A3B8';
+  ctx.fillText('Analista responsável',W/2,815);
+  ctx.font='bold 36px Arial';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText(analista,W/2,860);
+
+  ctx.font='24px Arial';
+  ctx.fillStyle='#CBD5E1';
+  _agdWrapCentered(ctx,'Nossa agenda é concorrida — fique com o celular por perto no horário combinado.',W/2,935,W-180,32);
+
+  ctx.font='22px Arial';
+  ctx.fillStyle='#64748B';
+  ctx.fillText(consultor+' · Digital Consórcio',W/2,1045);
+}
+function renderAgendamento(){
+  var cliente=v('agd_cliente')||'(Cliente)';
+  var analista=v('agd_analista')||'(Analista)';
+  var dataRaw=v('agd_data');
+  var hora=v('agd_hora')||'(Horário)';
+  var consultor=v('agd_consultor')||'(Consultor)';
+  var dataFmt=dataRaw?dataRaw.split('-').reverse().join('/'):'(Data)';
+
+  var texto='Olá, '+cliente+'! 👋\n\n'+
+    'Sua análise do Plano Inteligente está confirmada:\n\n'+
+    '📅 Data: '+dataFmt+'\n'+
+    '🕐 Horário: '+hora+'\n'+
+    '👤 Analista responsável: '+analista+'\n\n'+
+    'Por se tratar de um atendimento personalizado, nossa agenda é concorrida — pedimos que fique com o celular por perto no horário combinado, para não perdermos sua vez.\n\n'+
+    'Qualquer imprevisto, nos avise com antecedência.\n\n'+
+    'Att,\n'+consultor+' — Digital Consórcio';
+
+  var el=document.getElementById('agd-texto');
+  if(el)el.textContent=texto;
+  _agdDesenharCard();
+}
+function copiarTextoAgendamento(){
+  var el=document.getElementById('agd-texto');
+  if(!el)return;
+  navigator.clipboard.writeText(el.innerText).then(function(){toast('Texto copiado! 📋');});
+}
+function copiarCardAgendamento(){
+  var canvas=document.getElementById('agd-canvas');
+  if(!canvas)return;
+  canvas.toBlob(function(blob){
+    if(!blob){toast('Não foi possível copiar.','#c0392b');return;}
+    if(navigator.clipboard && window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+        toast('Card copiado! Cole (Ctrl+V) no WhatsApp/E-mail 📋');
+      }).catch(function(){
+        _baixarImagemFallback(blob,'agendamento_'+(v('agd_cliente')||'cliente'));
+      });
+    } else {
+      _baixarImagemFallback(blob,'agendamento_'+(v('agd_cliente')||'cliente'));
+    }
+  },'image/png');
 }
 
 // ===== ESTUDOS =====

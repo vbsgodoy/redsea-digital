@@ -239,7 +239,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  db.settings({experimentalAutoDetectLongPolling:true,useFetchStreams:false});
+  db.settings({experimentalForceLongPolling:true,useFetchStreams:false});
 </script>
 </head>
 <body>
@@ -968,9 +968,15 @@ function _fbSyncHistorico(){
   _fbLog('Tentando sincronizar historico... UID='+_currentUID);
   if(!_currentUID){_fbLog('ABORTADO: sem UID (nao logado?)');return;}
   var h=JSON.parse(localStorage.getItem(HK)||'[]');
+  var terminou=false;
+  setTimeout(function(){
+    if(!terminou)_fbLog('⏱️ TRAVOU: gravação do histórico não respondeu em 15s (provável bloqueio de rede)');
+  },15000);
   db.collection('usuarios').doc(_currentUID).set({historico:h},{merge:true}).then(function(){
+    terminou=true;
     _fbLog('✅ SUCESSO: historico salvo na nuvem ('+h.length+' registros)');
   }).catch(function(err){
+    terminou=true;
     _fbLog('❌ ERRO: '+err.code+' — '+err.message);
   });
 }

@@ -228,6 +228,12 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if(window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDMqLY73OIrCLRVM_bW-VhEjCFn1iViX3A",
@@ -719,13 +725,13 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
             <div id="vf-drop-vazio">
               <div style="font-size:26px;margin-bottom:6px;">📎</div>
               <div style="font-size:13px;color:var(--t);font-weight:600;">Clique aqui e cole (Ctrl+V) o print do comprovante</div>
-              <div style="font-size:11px;color:var(--tm);margin-top:4px;">ou clique pra escolher um arquivo</div>
+              <div style="font-size:11px;color:var(--tm);margin-top:2px;">ou clique pra escolher um arquivo — imagem ou PDF</div>
             </div>
             <div id="vf-drop-preview" style="display:none;">
               <img id="vf-comprovante-img" style="max-width:100%;max-height:220px;border-radius:8px;"/>
             </div>
           </div>
-          <input type="file" id="vf-file-input" accept="image/*" style="display:none;" onchange="vfArquivoSelecionado(this.files[0])"/>
+          <input type="file" id="vf-file-input" accept="image/*,application/pdf" style="display:none;" onchange="vfArquivoSelecionado(this.files[0])"/>
           <button class="btn bl" style="width:100%;margin-top:10px;" onclick="vfRemoverComprovante()">🗑️ Remover</button>
         </div>
       </div>
@@ -2586,7 +2592,35 @@ function _vfMostrarPreview(blob){
 }
 function vfArquivoSelecionado(file){
   if(!file)return;
-  _vfMostrarPreview(file);
+  if(file.type==='application/pdf'){
+    _vfConverterPdf(file);
+  } else {
+    _vfMostrarPreview(file);
+  }
+}
+function _vfConverterPdf(file){
+  if(!window.pdfjsLib){toast('⚠️ Não consegui carregar o leitor de PDF. Verifica sua internet.','#c0392b');return;}
+  toast('📄 Convertendo PDF...');
+  file.arrayBuffer().then(function(buf){
+    return pdfjsLib.getDocument({data:buf}).promise;
+  }).then(function(pdf){
+    return pdf.getPage(1);
+  }).then(function(page){
+    var viewport=page.getViewport({scale:2.2});
+    var canvas=document.createElement('canvas');
+    canvas.width=viewport.width;
+    canvas.height=viewport.height;
+    var ctx=canvas.getContext('2d');
+    return page.render({canvasContext:ctx,viewport:viewport}).promise.then(function(){
+      canvas.toBlob(function(blob){
+        if(!blob){toast('⚠️ Não foi possível converter o PDF','#c0392b');return;}
+        _vfMostrarPreview(blob);
+      },'image/png');
+    });
+  }).catch(function(err){
+    console.error(err);
+    toast('⚠️ Não foi possível ler esse PDF','#c0392b');
+  });
 }
 function vfRemoverComprovante(){
   _vfComprovanteBlob=null;

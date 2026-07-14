@@ -726,30 +726,26 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
             </div>
           </div>
           <input type="file" id="vf-file-input" accept="image/*" style="display:none;" onchange="vfArquivoSelecionado(this.files[0])"/>
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <button class="btn bs2" style="flex:1;" onclick="copiarComprovanteVenda()" id="vf-btn-copiar-comprovante" disabled>📋 Copiar comprovante</button>
-            <button class="btn bl" onclick="vfRemoverComprovante()">🗑️ Remover</button>
-          </div>
+          <button class="btn bl" style="width:100%;margin-top:10px;" onclick="vfRemoverComprovante()">🗑️ Remover</button>
+        </div>
+      </div>
+
+      <div class="fc" style="margin-bottom:20px;">
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Comprovante Emoldurado</div>
+        <div style="padding:20px 24px;text-align:center;">
+          <div id="vf-frame-vazio" class="hem">Anexa o comprovante acima pra gerar a versão emoldurada.</div>
+          <canvas id="vf-frame-canvas" style="display:none;max-width:320px;width:100%;border-radius:10px;"></canvas>
+          <button class="btn be" id="vf-btn-copiar-emoldurado" style="width:100%;margin-top:12px;font-size:14px;padding:14px;" onclick="copiarComprovanteEmoldurado()" disabled>🖼️ Copiar comprovante emoldurado</button>
         </div>
       </div>
 
       <div class="fc">
-        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prévia</div>
-        <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
-          <div style="flex:0 0 260px;">
-            <canvas id="vf-canvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid var(--cb);display:block;"></canvas>
-            <button class="btn bl" style="width:100%;margin-top:8px;font-size:11px;" onclick="copiarCardVendaFechada()">📋 Copiar só o card</button>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Speech%20balloon/3D/speech_balloon_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Texto do Anúncio</div>
+        <div style="padding:20px 24px;">
+          <div id="vf-texto" contenteditable="true" style="font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:16px 18px;min-height:180px;outline:none;">Preencha os dados acima.</div>
+          <div class="aa" style="margin-top:12px;">
+            <button class="btn bs2" onclick="copiarTextoVendaFechada()">📋 Copiar texto</button>
           </div>
-          <div style="flex:1;min-width:240px;">
-            <div id="vf-texto" contenteditable="true" style="font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:16px 18px;min-height:220px;outline:none;">Preencha os dados acima.</div>
-            <div class="aa" style="margin-top:12px;">
-              <button class="btn bs2" onclick="copiarTextoVendaFechada()">📋 Copiar texto</button>
-            </div>
-          </div>
-        </div>
-        <div style="padding:0 24px 22px;">
-          <button class="btn be" style="width:100%;font-size:14px;padding:14px;" onclick="copiarCardComComprovante()">🖼️ Copiar card + comprovante juntos (recomendado)</button>
-          <div style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center;">Junta tudo numa imagem só — cola uma vez no grupo e já sai completo.</div>
         </div>
       </div>
     </div>
@@ -2495,79 +2491,6 @@ function copiarCardAgendamento(){
 }
 
 // ===== ANUNCIAR VENDA FECHADA =====
-function _vfDesenharCard(){
-  var canvas=document.getElementById('vf-canvas');
-  if(!canvas)return;
-  var ctx=canvas.getContext('2d');
-  var W=canvas.width,H=canvas.height;
-
-  var grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'#0B1F14');
-  grad.addColorStop(1,'#0F2C1B');
-  ctx.fillStyle=grad;
-  ctx.fillRect(0,0,W,H);
-
-  ctx.fillStyle='#16a34a';
-  ctx.fillRect(0,0,W,14);
-
-  ctx.textAlign='center';
-  ctx.fillStyle='#16a34a';
-  ctx.font='bold 30px Arial';
-  ctx.fillText('RED SEA DIGITAL',W/2,90);
-
-  ctx.font='130px Arial';
-  ctx.fillText('🎉',W/2,290);
-
-  ctx.fillStyle='#FFFFFF';
-  ctx.font='bold 56px Arial';
-  ctx.fillText('VENDA FECHADA!',W/2,370);
-
-  var cliente=v('vf_nome')||'Cliente';
-  var modelo=v('vf_modelo')||'Modelo';
-  var valor=v('vf_valor')||'0,00';
-  var plano=v('vf_plano')||'Plano Normal';
-  var consultor=v('vf_consultor')||'Consultor';
-
-  ctx.font='34px Arial';
-  ctx.fillStyle='#94A3B8';
-  ctx.fillText('Parabéns',W/2,440);
-  ctx.font='bold 46px Arial';
-  ctx.fillStyle='#FFFFFF';
-  ctx.fillText(cliente,W/2,498);
-
-  ctx.fillStyle='rgba(22,163,74,0.15)';
-  _agdRoundRect(ctx,90,555,W-180,210,16);
-  ctx.fill();
-  ctx.strokeStyle='#16a34a';
-  ctx.lineWidth=2;
-  _agdRoundRect(ctx,90,555,W-180,210,16);
-  ctx.stroke();
-
-  ctx.font='bold 38px Arial';
-  ctx.fillStyle='#16a34a';
-  ctx.fillText(modelo,W/2,625);
-  ctx.font='bold 58px Arial';
-  ctx.fillStyle='#FFFFFF';
-  ctx.fillText('R$ '+valor,W/2,700);
-  ctx.font='26px Arial';
-  ctx.fillStyle='#94A3B8';
-  ctx.fillText(plano,W/2,745);
-
-  ctx.font='26px Arial';
-  ctx.fillStyle='#94A3B8';
-  ctx.fillText('Consultor respons\u00E1vel',W/2,835);
-  ctx.font='bold 34px Arial';
-  ctx.fillStyle='#FFFFFF';
-  ctx.fillText(consultor,W/2,878);
-
-  ctx.font='24px Arial';
-  ctx.fillStyle='#CBD5E1';
-  _agdWrapCentered(ctx,'Pra cima, Tubarões! 🦈',W/2,955,W-180,32);
-
-  ctx.font='20px Arial';
-  ctx.fillStyle='#64748B';
-  ctx.fillText('Digital Consórcio · Kawasaki',W/2,1045);
-}
 function renderVendaFechada(){
   var cliente=v('vf_nome')||'(Cliente)';
   var cpf=v('vf_cpf')||'(CPF)';
@@ -2591,7 +2514,6 @@ function renderVendaFechada(){
 
   var el=document.getElementById('vf-texto');
   if(el)el.textContent=texto;
-  _vfDesenharCard();
 }
 function copiarTextoVendaFechada(){
   if(!_vfExigirComprovante())return;
@@ -2599,25 +2521,8 @@ function copiarTextoVendaFechada(){
   if(!el)return;
   navigator.clipboard.writeText(el.innerText).then(function(){toast('Texto copiado! 📋');});
 }
-function copiarCardVendaFechada(){
-  if(!_vfExigirComprovante())return;
-  var canvas=document.getElementById('vf-canvas');
-  if(!canvas)return;
-  canvas.toBlob(function(blob){
-    if(!blob){toast('Não foi possível copiar.','#c0392b');return;}
-    if(navigator.clipboard && window.ClipboardItem){
-      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
-        toast('Card copiado! Cole (Ctrl+V) no grupo 📋');
-      }).catch(function(){
-        _baixarImagemFallback(blob,'venda_'+(v('vf_nome')||'cliente'));
-      });
-    } else {
-      _baixarImagemFallback(blob,'venda_'+(v('vf_nome')||'cliente'));
-    }
-  },'image/png');
-}
 
-// ===== COMPROVANTE DA VENDA =====
+// ===== COMPROVANTE DA VENDA (emoldurado, sem card) =====
 var _vfComprovanteBlob=null;
 function _vfExigirComprovante(){
   if(!_vfComprovanteBlob){
@@ -2628,13 +2533,55 @@ function _vfExigirComprovante(){
   }
   return true;
 }
+function _vfDesenharMoldura(){
+  var canvas=document.getElementById('vf-frame-canvas');
+  var img=document.getElementById('vf-comprovante-img');
+  if(!canvas||!img||!img.naturalWidth)return;
+  var ctx=canvas.getContext('2d');
+  var PAD=50, FOOTER=64;
+  var maxImgW=900;
+  var scale=Math.min(1,maxImgW/img.naturalWidth);
+  var drawW=Math.round(img.naturalWidth*scale), drawH=Math.round(img.naturalHeight*scale);
+  canvas.width=drawW+PAD*2;
+  canvas.height=drawH+PAD*2+FOOTER;
+
+  ctx.fillStyle='#0F2C1B';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.45)';
+  ctx.shadowBlur=26;
+  ctx.shadowOffsetY=10;
+  _agdRoundRect(ctx,PAD,PAD,drawW,drawH,14);
+  ctx.fillStyle='#ffffff';
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  _agdRoundRect(ctx,PAD,PAD,drawW,drawH,14);
+  ctx.clip();
+  ctx.filter='contrast(1.08) brightness(1.03)';
+  ctx.drawImage(img,PAD,PAD,drawW,drawH);
+  ctx.restore();
+
+  ctx.textAlign='center';
+  ctx.font='bold 20px Arial';
+  ctx.fillStyle='#5EEAD4';
+  ctx.fillText('RED SEA DIGITAL',canvas.width/2,PAD+drawH+42);
+}
 function _vfMostrarPreview(blob){
   _vfComprovanteBlob=blob;
   var url=URL.createObjectURL(blob);
-  document.getElementById('vf-comprovante-img').src=url;
+  var imgEl=document.getElementById('vf-comprovante-img');
+  imgEl.onload=function(){
+    _vfDesenharMoldura();
+    document.getElementById('vf-frame-vazio').style.display='none';
+    document.getElementById('vf-frame-canvas').style.display='inline-block';
+    document.getElementById('vf-btn-copiar-emoldurado').disabled=false;
+  };
+  imgEl.src=url;
   document.getElementById('vf-drop-vazio').style.display='none';
   document.getElementById('vf-drop-preview').style.display='block';
-  document.getElementById('vf-btn-copiar-comprovante').disabled=false;
   toast('✅ Comprovante anexado!');
 }
 function vfArquivoSelecionado(file){
@@ -2645,55 +2592,26 @@ function vfRemoverComprovante(){
   _vfComprovanteBlob=null;
   document.getElementById('vf-drop-vazio').style.display='block';
   document.getElementById('vf-drop-preview').style.display='none';
-  document.getElementById('vf-btn-copiar-comprovante').disabled=true;
+  document.getElementById('vf-frame-vazio').style.display='block';
+  document.getElementById('vf-frame-canvas').style.display='none';
+  document.getElementById('vf-btn-copiar-emoldurado').disabled=true;
   document.getElementById('vf-file-input').value='';
 }
-function copiarComprovanteVenda(){
-  if(!_vfComprovanteBlob){toast('⚠️ Nenhum comprovante anexado','#c0392b');return;}
-  if(navigator.clipboard && window.ClipboardItem){
-    navigator.clipboard.write([new ClipboardItem({'image/png':_vfComprovanteBlob})]).then(function(){
-      toast('Comprovante copiado! Cole (Ctrl+V) no grupo 📋');
-    }).catch(function(){
-      _baixarImagemFallback(_vfComprovanteBlob,'comprovante_'+(v('vf_nome')||'cliente'));
-    });
-  } else {
-    _baixarImagemFallback(_vfComprovanteBlob,'comprovante_'+(v('vf_nome')||'cliente'));
-  }
-}
-function copiarCardComComprovante(){
-  if(!_vfExigirComprovante())return;
-  var cardCanvas=document.getElementById('vf-canvas');
-  if(!cardCanvas)return;
-  var img=new Image();
-  img.onload=function(){
-    var faixaW=cardCanvas.width;
-    var compH=Math.round(img.height*(faixaW/img.width));
-    var divisor=6;
-    var combo=document.createElement('canvas');
-    combo.width=faixaW;
-    combo.height=cardCanvas.height+divisor+compH;
-    var ctx=combo.getContext('2d');
-    ctx.fillStyle='#ffffff';
-    ctx.fillRect(0,0,combo.width,combo.height);
-    ctx.drawImage(cardCanvas,0,0);
-    ctx.fillStyle='#e5e7eb';
-    ctx.fillRect(0,cardCanvas.height,faixaW,divisor);
-    ctx.drawImage(img,0,cardCanvas.height+divisor,faixaW,compH);
-    combo.toBlob(function(blob){
-      if(!blob){toast('Não foi possível gerar a imagem combinada.','#c0392b');return;}
-      if(navigator.clipboard && window.ClipboardItem){
-        navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
-          toast('Card + comprovante copiados juntos! Cole (Ctrl+V) no grupo 📋');
-        }).catch(function(){
-          _baixarImagemFallback(blob,'venda_completa_'+(v('vf_nome')||'cliente'));
-        });
-      } else {
-        _baixarImagemFallback(blob,'venda_completa_'+(v('vf_nome')||'cliente'));
-      }
-    },'image/png');
-  };
-  img.onerror=function(){toast('Erro ao carregar o comprovante.','#c0392b');};
-  img.src=URL.createObjectURL(_vfComprovanteBlob);
+function copiarComprovanteEmoldurado(){
+  var canvas=document.getElementById('vf-frame-canvas');
+  if(!canvas||!_vfComprovanteBlob){toast('⚠️ Nenhum comprovante anexado','#c0392b');return;}
+  canvas.toBlob(function(blob){
+    if(!blob){toast('Não foi possível copiar.','#c0392b');return;}
+    if(navigator.clipboard && window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+        toast('Comprovante copiado! Cole (Ctrl+V) no grupo 📋');
+      }).catch(function(){
+        _baixarImagemFallback(blob,'comprovante_'+(v('vf_nome')||'cliente'));
+      });
+    } else {
+      _baixarImagemFallback(blob,'comprovante_'+(v('vf_nome')||'cliente'));
+    }
+  },'image/png');
 }
 document.addEventListener('paste',function(e){
   var drop=document.getElementById('vf-drop');
@@ -2712,7 +2630,6 @@ document.addEventListener('paste',function(e){
   }
 });
 
-// ===== ESTUDOS =====
 // ===== ESTUDOS =====
 var MODULOS=[
 {

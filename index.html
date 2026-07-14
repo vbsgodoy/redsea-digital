@@ -333,11 +333,11 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
     <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;" class="hall-cols">
       <div class="fc">
-        <div class="sh"><div class="si">🕓</div>Atividade Recente</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Four%20oclock/3D/four_oclock_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Atividade Recente</div>
         <div id="hall-recentes" style="padding:8px 0;"></div>
       </div>
       <div class="fc">
-        <div class="sh"><div class="si">📌</div>Lembrete do Dia</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pushpin/3D/pushpin_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lembrete do Dia</div>
         <div style="padding:16px 20px;">
           <textarea id="hall-lembrete" placeholder="Escreva algo pra lembrar hoje..." style="width:100%;min-height:120px;border:1px solid var(--cb);border-radius:8px;background:var(--p);color:var(--t);padding:12px;font-family:inherit;font-size:13px;line-height:1.6;resize:vertical;outline:none;" oninput="hallSalvarLembrete()"></textarea>
           <div style="font-size:10px;color:var(--tm);margin-top:6px;">Salva sozinho enquanto você digita.</div>
@@ -386,7 +386,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="estudos-quiz" style="display:none;">
       <button class="btn bl" style="margin-bottom:16px;" onclick="estVoltarModulo()">← Voltar ao módulo</button>
       <div class="fc">
-        <div class="sh"><div class="si">📝</div>Prova — <span id="est-quiz-titulo"></span></div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Memo/3D/memo_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prova — <span id="est-quiz-titulo"></span></div>
         <div id="est-quiz-perguntas" style="padding:20px 26px;"></div>
         <div style="padding:0 26px 22px;">
           <button class="btn be" style="width:100%;" onclick="estCorrigirProva()">Corrigir prova</button>
@@ -424,14 +424,14 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div id="lance-pf">
   <div class="pt"><h2>Gerador de Aprovação</h2><p>Preencha os dados e <span class="hl">gere o PDF de aprovação</span> do lance</p></div>
     <div class="fc">
-      <div class="sh"><div class="si">🏆</div>Lance Aprovado</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lance Aprovado</div>
       <div class="lh">
         <div class="ll">Valor do Lance Aprovado pela Kawasaki + Âncora</div>
         <div class="liw"><div class="lp">R$</div><input type="text" id="lance_valor" placeholder="0.000,00" oninput="fL(this)"/></div>
         <div class="lhi">Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente</div>
       </div>
       <div class="sd"></div>
-      <div class="sh"><div class="si">👤</div>Dados do Cliente</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Cliente</div>
       <div class="fg">
         <div class="fi fw"><label>Nome completo</label><input type="text" id="nome" placeholder="Nome completo"/></div>
         <div class="fi"><label>CPF</label><input type="text" id="cpf" placeholder="000.000.000-00" oninput="fCPF(this)" maxlength="14"/></div>
@@ -440,7 +440,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         <div class="fi"><label>WhatsApp</label><input type="text" id="tel" placeholder="(11) 99999-9999" oninput="fFone(this)" maxlength="15"/></div>
       </div>
       <div class="sd"></div>
-      <div class="sh"><div class="si">🏍</div>Moto e Plano</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Moto e Plano</div>
       <div class="fg">
         <div class="fi" id="modelo-wrap-kw-pf"><label>Modelo</label><select id="modelo"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 TR</option><option>Versys 650</option><option>Versys 650 TR</option><option>Versys 1000</option><option>Versys 1100</option><option>Versys 1000 GT</option><option>Versys 1100 TR</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja 650</option><option>Ninja ZX-4RR</option><option>Ninja ZX-4R</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650 Novo Grafismo</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 R Edition</option><option>Z900 SE</option><option>Z900 RS</option><option>Z900 RS Café</option><option>Z900 RS Edition</option><option>Z1100</option><option>Z1100 SE</option><option>Z1000</option><option>Z1000 R</option><option>Z H2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Eliminator 500</option><option>Eliminator 500 SE</option><option>Vulcan S</option><option>Vulcan S Café</option></optgroup><optgroup label="Off-Road (KX / KLX)"><option>KX 450X</option><option>KX 450</option><option>KX 250X</option><option>KX 250</option><option>KX 112</option><option>KLX 300R</option><option>KLX 110R</option></optgroup></select></div>
         <div class="fi" id="modelo-wrap-gen-pf" style="display:none;"><label>Bem / Produto</label><input type="text" id="modelo_gen_pf" placeholder="Ex: Imovel, Veiculo..."/></div>
@@ -451,7 +451,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         <div class="fi"><label>Crédito total</label><input type="text" id="credito" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
       </div>
       <div class="sd"></div>
-      <div class="sh"><div class="si">💼</div>Consultor</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Briefcase/3D/briefcase_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Consultor</div>
       <div class="fg">
         <div class="fi"><label>Nome do consultor</label><input type="text" id="consultor" value="Vitor Godoy"/></div>
         <div class="fi"><label>WhatsApp do consultor</label><input type="text" id="consultor_whats" placeholder="(11) 99999-9999" oninput="fFone(this)" maxlength="15"/></div>
@@ -460,7 +460,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         <div class="fi"><label>Validade da análise</label><input type="text" id="validade" placeholder="Ex: 72 horas"/></div>
       </div>
       <div class="sd"></div>
-      <div class="sh"><div class="si">✏️</div>Observação Personalizada (opcional)</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pencil/3D/pencil_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Observação Personalizada (opcional)</div>
       <div class="fg c1"><div class="fi"><label>Aparece no documento antes da assinatura</label><textarea id="obs" rows="3" style="resize:vertical" placeholder="Ex: Fico à disposição para qualquer dúvida..."></textarea></div></div>
       <div class="sd"></div>
       <div class="aa">
@@ -474,7 +474,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   </div>
 <div id="lance-pj" style="display:none;">
   <div class="fc">
-      <div class="sh"><div class="si">🏆</div>Lance Aprovado</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lance Aprovado</div>
       <div class="lh">
         <div class="ll">Valor do Lance Aprovado pela Kawasaki + Âncora</div>
         <div class="liw"><div class="lp">R$</div><input type="text" id="cnpj_lance_valor" placeholder="0.000,00" oninput="fL(this)"/></div>
@@ -607,7 +607,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
     <div id="stab-bemvindo" class="stp ac">
       <div class="fc">
-        <div class="sh"><div class="si">👤</div>Dados do Consorciado</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Consorciado</div>
         <div class="fg">
           <div class="fi fw"><label>Nome completo</label><input type="text" id="bv_nome" placeholder="Nome do cliente"/></div>
           <div class="fi"><label>Modelo da moto</label><select id="bv_mod"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 Tourer</option><option>Versys 650</option><option>Versys 650 Tourer</option><option>Versys 1100</option><option>Versys 1100 GT</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja ZX-4R</option><option>Ninja ZX-4RR</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 RS Café</option><option>Z900 RS SE</option><option>Z1100</option><option>Z1100 SE</option><option>ZH2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Vulcan S</option><option>Vulcan S Café</option><option>Eliminator 500</option><option>Eliminator 500 SE</option></optgroup></select></div>
@@ -640,7 +640,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
             </div>
           </div>
         </div>
-        <div class="sh"><div class="si">👤</div>Dados do Cliente</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Cliente</div>
         <div class="fg">
           <div class="fi fw"><label>Nome completo</label><input type="text" id="pv_nome" placeholder="Nome do cliente"/></div>
           <div class="fi"><label>E-mail do cliente</label><input type="email" id="pv_email" placeholder="email@cliente.com.br"/></div>
@@ -674,7 +674,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
             </div>
           </div>
         </div>
-        <div class="sh"><div class="si">👤</div>Dados do Cliente</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Cliente</div>
         <div class="fg">
           <div class="fi fw"><label>Nome completo</label><input type="text" id="cb_nome" placeholder="Nome do cliente"/></div>
           <div class="fi"><label>Valor da parcela em atraso</label><input type="text" id="cb_valor" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
@@ -702,7 +702,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="page-content">
   <div class="pt"><h2>Campanhas de Remarketing</h2><p>Modelos prontos e editáveis para <span class="hl">reativar e conquistar clientes</span></p></div>
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">🎯</div>Selecione o Perfil</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bullseye/3D/bullseye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Selecione o Perfil</div>
       <div id="camp-grid" style="padding:18px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
         <button class="cc" onclick="selCamp('followup',this)"><div class="ci">🔄</div><div class="cn">Follow-up</div><div class="cd">Recebeu análise mas não fechou</div></button>
         <button class="cc" onclick="selCamp('reconquista',this)"><div class="ci">💔</div><div class="cn">Reconquista</div><div class="cd">Ex-cliente que saiu</div></button>
@@ -724,7 +724,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
           <div class="fi"><label>WhatsApp do consultor</label><input type="text" id="c_wcons" placeholder="(11) 99999-9999" oninput="fFone(this);updCamp()" maxlength="15"/></div>
         </div>
         <div class="sd"></div>
-        <div class="sh"><div class="si">✏️</div>Texto — edite à vontade</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pencil/3D/pencil_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Texto — edite à vontade</div>
         <div style="padding:16px 24px;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div class="fi"><label>WhatsApp</label><textarea id="c_whtxt" rows="10" style="resize:vertical;font-size:12px;line-height:1.6;"></textarea></div>
@@ -764,12 +764,12 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
     <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:20px;" class="hall-cols">
       <div class="fc">
-        <div class="sh"><div class="si">🏆</div>Ranking</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Ranking</div>
         <div id="equipe-ranking" style="padding:8px 0;"><div class="hem" style="padding:20px;">Carregando...</div></div>
       </div>
 
       <div class="fc">
-        <div class="sh"><div class="si">📣</div>Mural de Atividade</div>
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Megaphone/3D/megaphone_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Mural de Atividade</div>
         <div id="equipe-mural" style="padding:8px 0;max-height:520px;overflow-y:auto;"><div class="hem" style="padding:20px;">Carregando...</div></div>
       </div>
     </div>
@@ -784,7 +784,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="hall-cols">
       <div class="fc">
         <div class="sh" style="justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:10px;"><div class="si">📅</div><span id="ag-mes-titulo">Mês</span></div>
+          <div style="display:flex;align-items:center;gap:10px;"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Calendar/3D/calendar_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div><span id="ag-mes-titulo">Mês</span></div>
           <div style="display:flex;gap:6px;">
             <button class="btn bl" style="padding:5px 12px;" onclick="agMudarMes(-1)">←</button>
             <button class="btn bl" style="padding:5px 12px;" onclick="agHoje()">Hoje</button>
@@ -796,7 +796,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
       <div>
         <div class="fc" style="margin-bottom:16px;">
-          <div class="sh"><div class="si">➕</div><span id="ag-form-titulo">Novo compromisso</span></div>
+          <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Plus/3D/plus_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div><span id="ag-form-titulo">Novo compromisso</span></div>
           <div style="padding:16px 20px;">
             <div class="fi" style="margin-bottom:10px;"><label>O que fazer</label><input type="text" id="ag-titulo" placeholder="Ex: Ligar pro João"/></div>
             <div class="fg" style="margin-bottom:10px;">
@@ -808,7 +808,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
           </div>
         </div>
         <div class="fc">
-          <div class="sh"><div class="si">🔔</div>Próximos compromissos</div>
+          <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bell/3D/bell_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Próximos compromissos</div>
           <div id="ag-proximos" style="padding:8px 0;max-height:320px;overflow-y:auto;"></div>
         </div>
       </div>
@@ -822,7 +822,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="pt"><h2>Projeção</h2><p>Sua <span class="hl">meta, produção e comissão</span> do mês, tudo num lugar só</p></div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">🎯</div>Meta do Mês</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bullseye/3D/bullseye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Meta do Mês</div>
       <div class="fg">
         <div class="fi"><label>Meta de produção (R$)</label><div class="liw"><div class="lp">R$</div><input type="text" id="pj-meta" placeholder="0.000,00" oninput="fL(this);renderProjecao();"/></div></div>
         <div class="fi"><label>Dias úteis no mês</label><input type="number" id="pj-dias-uteis" placeholder="Ex: 22" oninput="renderProjecao()"/></div>
@@ -835,7 +835,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">🏍️</div>Lançar Vendas do Mês</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lançar Vendas do Mês</div>
       <div style="padding:16px 24px;">
         <div class="fg" style="margin-bottom:10px;">
           <div class="fi"><label>Tipo</label><select id="pj-tipo"><option value="moto">Moto</option><option value="imovel">Imóvel</option></select></div>
@@ -848,7 +848,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">💰</div>Resultado da Comissão</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20bag/3D/money_bag_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Resultado da Comissão</div>
       <div id="pj-resultado" style="padding:8px 0;"></div>
       <div style="padding:16px 24px;border-top:1px solid var(--cb);">
         <button class="btn bl" style="width:100%;" onclick="pjFecharMes()">📁 Fechar mês e começar um novo</button>
@@ -857,7 +857,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc">
-      <div class="sh"><div class="si">📊</div>Histórico de Meses</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Histórico de Meses</div>
       <div id="pj-historico-meses" style="padding:8px 0;"></div>
     </div>
 
@@ -868,7 +868,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="page-content">
   <div class="pt"><h2>Scripts de Abordagem</h2><p>Roteiros prontos para <span class="hl">Insta/WhatsApp e Ligação</span></p></div>
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">✏️</div>Preencher antes de usar</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pencil/3D/pencil_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Preencher antes de usar</div>
       <div class="fg">
         <div class="fi"><label>Nome do cliente</label><input type="text" id="script_cliente" placeholder="Ex: João" oninput="renderScripts()"/></div>
         <div class="fi"><label>Nome do consultor</label><input type="text" id="script_consultor" value="Vitor Godoy" oninput="renderScripts()"/></div>
@@ -892,7 +892,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="script-ligacao" style="display:none;">
       <div class="fc">
         <div class="sh">
-          <div class="si">📞</div>
+          <div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Telephone%20receiver/3D/telephone_receiver_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>
           <span id="lig-titulo">Etapa 1 — Apresentação e Modelo da Moto</span>
         </div>
         <div style="padding:28px 32px;">
@@ -914,7 +914,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="pt"><h2>Proposta para o Cliente</h2><p>Gere o <span class="hl">texto formatado + a foto da moto</span> pra mandar no Insta ou WhatsApp</p></div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">🏍️</div>Dados da Proposta</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados da Proposta</div>
       <div class="fg">
         <div class="fi"><label>Modelo</label><select id="prop_modelo" onchange="propModeloChange()"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 TR</option><option>Versys 650</option><option>Versys 650 TR</option><option>Versys 1000</option><option>Versys 1100</option><option>Versys 1000 GT</option><option>Versys 1100 TR</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja 650</option><option>Ninja ZX-4RR</option><option>Ninja ZX-4R</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650 Novo Grafismo</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 R Edition</option><option>Z900 SE</option><option>Z900 RS</option><option>Z900 RS Café</option><option>Z900 RS Edition</option><option>Z1100</option><option>Z1100 SE</option><option>Z1000</option><option>Z1000 R</option><option>Z H2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Eliminator 500</option><option>Eliminator 500 SE</option><option>Vulcan S</option><option>Vulcan S Café</option></optgroup><optgroup label="Off-Road (KX / KLX)"><option>KX 450X</option><option>KX 450</option><option>KX 250X</option><option>KX 250</option><option>KX 112</option><option>KLX 300R</option><option>KLX 110R</option></optgroup></select></div>
         <div class="fi"><label>Ano</label><input type="text" id="prop_ano" placeholder="2025" oninput="renderProposta()"/></div>
@@ -928,7 +928,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc">
-      <div class="sh"><div class="si">👁️</div>Prévia</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prévia</div>
       <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
         <div id="prop-img-wrap" style="flex:0 0 220px;">
           <div id="prop-img-box" style="width:220px;height:170px;border-radius:10px;background:var(--p);border:1px solid var(--cb);display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -954,7 +954,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="pt"><h2>Agendamento de Análise</h2><p>Gere o <span class="hl">texto + card de confirmação</span> pra passar segurança ao cliente</p></div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si">🗓️</div>Dados do Agendamento</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Spiral%20calendar/3D/spiral_calendar_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Agendamento</div>
       <div class="fg">
         <div class="fi"><label>Nome do cliente</label><input type="text" id="agd_cliente" placeholder="Nome do cliente" oninput="renderAgendamento()"/></div>
         <div class="fi"><label>Nome do analista</label><input type="text" id="agd_analista" placeholder="Quem vai atender" oninput="renderAgendamento()"/></div>
@@ -965,7 +965,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc">
-      <div class="sh"><div class="si">👁️</div>Prévia</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prévia</div>
       <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
         <div style="flex:0 0 260px;">
           <canvas id="agd-canvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid var(--cb);display:block;"></canvas>
@@ -2868,7 +2868,7 @@ function renderScripts(){
   var host=document.getElementById('script-digital-cards');
   if(host){
     host.innerHTML=SCRIPT_DIGITAL.map(function(b,i){
-      return '<div class="fc" style="margin-bottom:14px;"><div class="sh"><div class="si">💬</div>'+b.t+'</div><div style="padding:18px 24px;"><div id="script-d-'+i+'" contenteditable="true" style="font-size:13px;line-height:1.8;color:var(--t);white-space:pre-wrap;outline:none;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:14px 16px;">'+_scriptFill(b.c,v)+'</div></div><div class="aa"><button class="btn bs2" onclick="copyEtapa(\'script-d-'+i+'\')">📋 Copiar</button></div></div>';
+      return '<div class="fc" style="margin-bottom:14px;"><div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Speech%20balloon/3D/speech_balloon_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>'+b.t+'</div><div style="padding:18px 24px;"><div id="script-d-'+i+'" contenteditable="true" style="font-size:13px;line-height:1.8;color:var(--t);white-space:pre-wrap;outline:none;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:14px 16px;">'+_scriptFill(b.c,v)+'</div></div><div class="aa"><button class="btn bs2" onclick="copyEtapa(\'script-d-'+i+'\')">📋 Copiar</button></div></div>';
     }).join('');
   }
   renderLigacao();

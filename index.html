@@ -712,6 +712,27 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         </div>
       </div>
 
+      <div class="fc" style="margin-bottom:20px;">
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Receipt/3D/receipt_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Comprovante de Pagamento <span style="color:#c0392b;margin-left:4px;">*obrigatório</span></div>
+        <div style="padding:16px 24px;">
+          <div id="vf-drop" tabindex="0" onclick="document.getElementById('vf-file-input').click()" style="border:2px dashed var(--cb);border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:var(--p);outline:none;">
+            <div id="vf-drop-vazio">
+              <div style="font-size:26px;margin-bottom:6px;">📎</div>
+              <div style="font-size:13px;color:var(--t);font-weight:600;">Clique aqui e cole (Ctrl+V) o print do comprovante</div>
+              <div style="font-size:11px;color:var(--tm);margin-top:4px;">ou clique pra escolher um arquivo</div>
+            </div>
+            <div id="vf-drop-preview" style="display:none;">
+              <img id="vf-comprovante-img" style="max-width:100%;max-height:220px;border-radius:8px;"/>
+            </div>
+          </div>
+          <input type="file" id="vf-file-input" accept="image/*" style="display:none;" onchange="vfArquivoSelecionado(this.files[0])"/>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn bs2" style="flex:1;" onclick="copiarComprovanteVenda()" id="vf-btn-copiar-comprovante" disabled>📋 Copiar comprovante</button>
+            <button class="btn bl" onclick="vfRemoverComprovante()">🗑️ Remover</button>
+          </div>
+        </div>
+      </div>
+
       <div class="fc">
         <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prévia</div>
         <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
@@ -2569,11 +2590,13 @@ function renderVendaFechada(){
   _vfDesenharCard();
 }
 function copiarTextoVendaFechada(){
+  if(!_vfExigirComprovante())return;
   var el=document.getElementById('vf-texto');
   if(!el)return;
   navigator.clipboard.writeText(el.innerText).then(function(){toast('Texto copiado! 📋');});
 }
 function copiarCardVendaFechada(){
+  if(!_vfExigirComprovante())return;
   var canvas=document.getElementById('vf-canvas');
   if(!canvas)return;
   canvas.toBlob(function(blob){
@@ -2589,6 +2612,66 @@ function copiarCardVendaFechada(){
     }
   },'image/png');
 }
+
+// ===== COMPROVANTE DA VENDA =====
+var _vfComprovanteBlob=null;
+function _vfExigirComprovante(){
+  if(!_vfComprovanteBlob){
+    toast('⚠️ Anexa o comprovante de pagamento antes de copiar','#c0392b');
+    var drop=document.getElementById('vf-drop');
+    if(drop){drop.style.borderColor='#c0392b';setTimeout(function(){drop.style.borderColor='var(--cb)';},1500);}
+    return false;
+  }
+  return true;
+}
+function _vfMostrarPreview(blob){
+  _vfComprovanteBlob=blob;
+  var url=URL.createObjectURL(blob);
+  document.getElementById('vf-comprovante-img').src=url;
+  document.getElementById('vf-drop-vazio').style.display='none';
+  document.getElementById('vf-drop-preview').style.display='block';
+  document.getElementById('vf-btn-copiar-comprovante').disabled=false;
+  toast('✅ Comprovante anexado!');
+}
+function vfArquivoSelecionado(file){
+  if(!file)return;
+  _vfMostrarPreview(file);
+}
+function vfRemoverComprovante(){
+  _vfComprovanteBlob=null;
+  document.getElementById('vf-drop-vazio').style.display='block';
+  document.getElementById('vf-drop-preview').style.display='none';
+  document.getElementById('vf-btn-copiar-comprovante').disabled=true;
+  document.getElementById('vf-file-input').value='';
+}
+function copiarComprovanteVenda(){
+  if(!_vfComprovanteBlob){toast('⚠️ Nenhum comprovante anexado','#c0392b');return;}
+  if(navigator.clipboard && window.ClipboardItem){
+    navigator.clipboard.write([new ClipboardItem({'image/png':_vfComprovanteBlob})]).then(function(){
+      toast('Comprovante copiado! Cole (Ctrl+V) no grupo 📋');
+    }).catch(function(){
+      _baixarImagemFallback(_vfComprovanteBlob,'comprovante_'+(v('vf_nome')||'cliente'));
+    });
+  } else {
+    _baixarImagemFallback(_vfComprovanteBlob,'comprovante_'+(v('vf_nome')||'cliente'));
+  }
+}
+document.addEventListener('paste',function(e){
+  var drop=document.getElementById('vf-drop');
+  if(!drop)return;
+  var stab=document.getElementById('stab-vendafechada');
+  if(!stab || !stab.classList.contains('ac'))return;
+  var items=(e.clipboardData||{}).items;
+  if(!items)return;
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==-1){
+      var blob=items[i].getAsFile();
+      _vfMostrarPreview(blob);
+      e.preventDefault();
+      break;
+    }
+  }
+});
 
 // ===== ESTUDOS =====
 // ===== ESTUDOS =====

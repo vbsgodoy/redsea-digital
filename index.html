@@ -1529,28 +1529,45 @@ function renderProjecao(){
   var projecaoFinal=producao+(mediaDia*diasRestantes);
   var pct=Math.min(100,Math.round((producao/metaNum)*100));
   var bateu=producao>=metaNum;
+  var necessarioPorDia=diasRestantes>0?(falta/diasRestantes):(falta>0?falta:0);
+  var pctProjecao=metaNum>0?Math.round((projecaoFinal/metaNum)*100):0;
 
-  var frase,emoji,cor;
-  if(bateu){frase='Meta batida! Você é fera! 🏆';emoji='🏆';cor='#16a34a';}
-  else if(pct>=75){frase='Reta final — falta pouco! 🔥';emoji='🔥';cor='var(--v)';}
-  else if(pct>=50){frase='Passou da metade, bora! 💪';emoji='💪';cor='var(--v)';}
-  else if(pct>=25){frase='Bom ritmo, continue firme! 🚀';emoji='🚀';cor='var(--v)';}
-  else if(pct>0){frase='Início de jornada, foco no processo! ⚡';emoji='⚡';cor='var(--v)';}
-  else{frase='Vamos começar a produzir! 🎯';emoji='🎯';cor='var(--tm)';}
+  var frase,emoji,cor,alerta='';
+  if(bateu){
+    frase='Meta batida! Você é fera! 🏆';emoji='🏆';cor='#16a34a';
+  } else if(diasTrab===0){
+    frase='Vamos começar a produzir! 🎯';emoji='🎯';cor='var(--tm)';
+  } else if(pctProjecao>=100){
+    frase='No ritmo certo pra bater a meta — mantém assim! 🎯';emoji='🎯';cor='#16a34a';
+  } else if(pctProjecao>=85){
+    frase='Quase no ritmo certo, só acelerar um pouco! ⚠️';emoji='⚠️';cor='#d97706';
+    alerta='No ritmo atual, você fecha o mês <strong>R$ '+_pjFmt(metaNum-projecaoFinal)+' abaixo da meta</strong>.';
+  } else if(pctProjecao>=50){
+    frase='Ritmo atual não bate a meta — hora de acelerar! 🔥';emoji='🔥';cor='#dc2626';
+    alerta='No ritmo atual, você fecha o mês <strong>R$ '+_pjFmt(metaNum-projecaoFinal)+' abaixo da meta</strong>.';
+  } else {
+    frase='Ritmo bem abaixo da meta — precisa agir agora! 🚨';emoji='🚨';cor='#dc2626';
+    alerta='No ritmo atual, você fecha o mês <strong>R$ '+_pjFmt(metaNum-projecaoFinal)+' abaixo da meta</strong>.';
+  }
+  if(!bateu && diasRestantes>0 && falta>0){
+    alerta+=(alerta?'<br>':'')+'Pra bater a meta, precisa produzir <strong style="color:var(--v);">R$ '+_pjFmt(necessarioPorDia)+' por dia</strong> nos '+diasRestantes+' dias úteis restantes.';
+  }
 
   host.innerHTML=
-    '<div style="text-align:center;padding:10px 0 18px;">'+
+    '<div style="text-align:center;padding:10px 0 14px;">'+
       '<div style="font-size:38px;">'+emoji+'</div>'+
       '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:32px;letter-spacing:1px;color:'+cor+';">'+pct+'% da meta</div>'+
       '<div style="font-size:13px;font-weight:700;color:var(--t);margin-top:2px;">'+frase+'</div>'+
     '</div>'+
+    (alerta?'<div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--t);line-height:1.6;text-align:center;">'+alerta+'</div>':'')+
     '<div style="height:16px;background:var(--cb);border-radius:8px;overflow:hidden;margin-bottom:18px;position:relative;">'+
       '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--v),'+cor+');transition:width .4s;"></div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px;">'+
       _pjCard('Produção atual','R$ '+_pjFmt(producao))+
       _pjCard('Falta pra meta','R$ '+_pjFmt(falta))+
-      _pjCard('Média por dia','R$ '+_pjFmt(mediaDia))+
+      _pjCard('Média por dia (real)','R$ '+_pjFmt(mediaDia))+
+      _pjCard('Necessário por dia',diasRestantes>0?'R$ '+_pjFmt(necessarioPorDia):'—',falta>0 && diasRestantes>0)+
       _pjCard('Dias restantes',diasRestantes)+
       _pjCard('Projeção final do mês','R$ '+_pjFmt(projecaoFinal),projecaoFinal>=metaNum)+
     '</div>'+

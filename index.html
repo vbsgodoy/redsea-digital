@@ -326,6 +326,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="hall-resumo" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;"></div>
 
     <div id="hall-aniversarios" style="margin-bottom:20px;"></div>
+    <div id="hall-projecao" style="margin-bottom:20px;"></div>
 
     <div class="pt" style="margin-bottom:10px;"><h2 style="font-size:22px;">Para onde vamos?</h2></div>
     <div id="hall-funil" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-bottom:24px;"></div>
@@ -1324,10 +1325,15 @@ function _fbAtualizarPerfilPublico(){
   var h=JSON.parse(localStorage.getItem(HK)||'[]');
   var prog=JSON.parse(localStorage.getItem('rsd_estudos_progresso')||'{}');
   var modulosCompletos=Object.keys(prog).filter(function(k){return prog[k]&&prog[k].provaPassada;}).length;
+  var vendas=JSON.parse(localStorage.getItem('rsd_pj_vendas')||'[]');
+  var rComissao=vendas.length?calcularComissao(vendas):{producaoMoto:0,totalGeral:0};
+  var producaoTotal=vendas.reduce(function(s,x){return s+x.valor;},0);
   var dados={
     nome:_fbNomeAtual(),
     documentos:h.length,
     modulosCompletos:modulosCompletos,
+    producaoMes:producaoTotal,
+    comissaoMes:rComissao.totalGeral,
     atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()
   };
   var aniv=localStorage.getItem('rsd_meu_aniversario');
@@ -1413,6 +1419,7 @@ function pjFecharMes(){
   _pjSetHistorico(hist);
   _pjSet([]);
   _pjSetMeta({});
+  _fbAtualizarPerfilPublico();
   document.getElementById('pj-meta').value='';
   toast('📁 Mês fechado! Comissão de R$ '+_pjFmt(r.totalGeral)+' guardada no histórico.');
   renderComissaoTab();
@@ -1579,6 +1586,7 @@ function pjAdicionarVenda(){
   _pjRenderListaVendas();
   _pjCalcularEExibir();
   renderProjecao();
+  _fbAtualizarPerfilPublico();
 }
 function pjRemoverVenda(id){
   var arr=_pjGet().filter(function(x){return x.id!==id;});
@@ -1586,6 +1594,7 @@ function pjRemoverVenda(id){
   _pjRenderListaVendas();
   _pjCalcularEExibir();
   renderProjecao();
+  _fbAtualizarPerfilPublico();
 }
 function _pjRenderListaVendas(){
   var host=document.getElementById('pj-lista-vendas');
@@ -1722,9 +1731,7 @@ function renderRanking(){
     var perfis=[];
     snap.forEach(function(doc){perfis.push(doc.data());});
     perfis.sort(function(a,b){
-      var pa=(a.documentos||0)+(a.modulosCompletos||0)*3;
-      var pb=(b.documentos||0)+(b.modulosCompletos||0)*3;
-      return pb-pa;
+      return (b.comissaoMes||0)-(a.comissaoMes||0);
     });
     if(perfis.length===0){
       host.innerHTML='<div class="hem" style="padding:20px;">Ningu\u00E9m no ranking ainda.</div>';
@@ -1735,7 +1742,9 @@ function renderRanking(){
       return '<div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--cb);">'+
         '<div style="font-size:18px;width:28px;text-align:center;">'+(medalhas[i]||(i+1)+'.')+'</div>'+
         '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+(p.nome||'Consultor')+'</div>'+
-        '<div style="font-size:10px;color:var(--tm);">'+(p.documentos||0)+' documentos \u00B7 '+(p.modulosCompletos||0)+' m\u00F3dulos conclu\u00EDdos</div></div>'+
+        '<div style="font-size:10px;color:var(--tm);">📦 R$ '+_pjFmt(p.producaoMes||0)+' produzidos · '+(p.documentos||0)+' docs · '+(p.modulosCompletos||0)+' módulos</div></div>'+
+        '<div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:800;color:#16a34a;">R$ '+_pjFmt(p.comissaoMes||0)+'</div>'+
+        '<div style="font-size:9px;color:var(--tm);">comissão do mês</div></div>'+
       '</div>';
     }).join('');
   }).catch(function(err){
@@ -1924,8 +1933,30 @@ function hallSalvarLembrete(){
   var el=document.getElementById('hall-lembrete');
   if(el)localStorage.setItem('rsd_lembrete_dia',el.value);
 }
+function renderProjecaoHall(){
+  var host=document.getElementById('hall-projecao');
+  if(!host)return;
+  var vendas=_pjGet();
+  if(vendas.length===0){
+    host.innerHTML='';
+    return;
+  }
+  var r=calcularComissao(vendas);
+  var producaoTotal=vendas.reduce(function(s,x){return s+x.valor;},0);
+  host.innerHTML='<div class="fc" style="padding:18px 22px;cursor:pointer;" onclick="irPara(\'comissao\')">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">'+
+      '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--tm);">📈 Sua projeção do mês</div>'+
+      '<div style="font-size:11px;color:var(--tm);margin-top:2px;">Clique pra ver o detalhe completo</div></div>'+
+      '<div style="display:flex;gap:22px;">'+
+        '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção</div><div style="font-size:18px;font-weight:800;color:var(--t);">R$ '+_pjFmt(producaoTotal)+'</div></div>'+
+        '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão</div><div style="font-size:18px;font-weight:800;color:#16a34a;">R$ '+_pjFmt(r.totalGeral)+'</div></div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
 function renderHall(){
   renderAniversarios();
+  renderProjecaoHall();
   var agora=new Date();
   var h=agora.getHours();
   var saud=h<12?"Bom dia":(h<18?"Boa tarde":"Boa noite");

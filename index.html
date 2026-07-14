@@ -985,8 +985,8 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 </div>
 </div>
 <div id="em"><div class="modal-box"><div class="mh"><h3>Enviar ao Cliente</h3><button class="mf" onclick="fModal()">x</button></div><div class="mb"><div class="mas">Assunto: <span id="m-assunto"></span></div><div class="mco" id="m-corpo"></div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--tm);display:block;margin-bottom:5px;">E-mail do destinatario</label><input type="email" id="m-dest-input" placeholder="email@cliente.com.br" style="width:100%;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:9px 12px;color:var(--t);font-family:inherit;font-size:13px;outline:none;" oninput="_dest=this.value.trim()"/></div><div class="mac"><button class="mbtn mg" onclick="mGmail()">Gmail</button><button class="mbtn mo" onclick="mOutlook()">Outlook</button><button class="mbtn mc" onclick="mCopy()" id="m-copy-btn">Copiar</button><button class="mbtn mw" onclick="mWhats()">WhatsApp</button></div></div></div></div>
-<div id="home-fab" class="notes-fab home-fab" onclick="irPara('hall')" title="Voltar ao Hall">🏠</div>
-<div id="notes-fab" class="notes-fab" onclick="nToggle()" title="Notas rápidas">📌</div>
+<div id="home-fab" class="notes-fab home-fab" onclick="irPara('hall')" title="Voltar ao Hall"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/House/3D/house_3d.png" style="width:28px;height:28px;" onerror="this.parentElement.textContent='🏠'"/></div>
+<div id="notes-fab" class="notes-fab" onclick="nToggle()" title="Notas rápidas"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pushpin/3D/pushpin_3d.png" style="width:26px;height:26px;" onerror="this.parentElement.textContent='📌'"/></div>
 <div id="notes-panel" class="notes-panel">
   <div class="notes-header">
     <span>📌 Notas rápidas</span>
@@ -1981,19 +1981,20 @@ function _tickGreetClock(){
 document.addEventListener('DOMContentLoaded',function(){renderGreeting();setInterval(_tickGreetClock,15000);});
 
 // ===== HALL =====
+var ICONE_BASE='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/';
 var FUNIL=[
-  {id:'estudos',label:'Estudos',icon:'📚'},
-  {id:'scripts',label:'Scripts',icon:'💬'},
-  {id:'proposta',label:'Proposta',icon:'🏍️'},
-  {id:'agendamento',label:'Agendamento',icon:'🗓️'},
-  {id:'aprovacao',label:'Análise de Lance',icon:'📋'},
-  {id:'pagamento',label:'Pagamento',icon:'💳'},
-  {id:'boasvindas',label:'Pós-Venda',icon:'🎉'},
-  {id:'campanhas',label:'Campanhas',icon:'📣'},
-  {id:'historico',label:'Histórico',icon:'🕓'},
-  {id:'equipe',label:'Equipe',icon:'🏆'},
-  {id:'agenda',label:'Agenda',icon:'📅'},
-  {id:'comissao',label:'Projeção',icon:'💰'}
+  {id:'estudos',label:'Estudos',icon:ICONE_BASE+'Books/3D/books_3d.png'},
+  {id:'scripts',label:'Scripts',icon:ICONE_BASE+'Left speech bubble/3D/left_speech_bubble_3d.png'},
+  {id:'proposta',label:'Proposta',icon:ICONE_BASE+'Motorcycle/3D/motorcycle_3d.png'},
+  {id:'agendamento',label:'Agendamento',icon:ICONE_BASE+'Spiral calendar/3D/spiral_calendar_3d.png'},
+  {id:'aprovacao',label:'Análise de Lance',icon:ICONE_BASE+'Clipboard/3D/clipboard_3d.png'},
+  {id:'pagamento',label:'Pagamento',icon:ICONE_BASE+'Credit card/3D/credit_card_3d.png'},
+  {id:'boasvindas',label:'Pós-Venda',icon:ICONE_BASE+'Party popper/3D/party_popper_3d.png'},
+  {id:'campanhas',label:'Campanhas',icon:ICONE_BASE+'Megaphone/3D/megaphone_3d.png'},
+  {id:'historico',label:'Histórico',icon:ICONE_BASE+'Four oclock/3D/four_oclock_3d.png'},
+  {id:'equipe',label:'Equipe',icon:ICONE_BASE+'Trophy/3D/trophy_3d.png'},
+  {id:'agenda',label:'Agenda',icon:ICONE_BASE+'Calendar/3D/calendar_3d.png'},
+  {id:'comissao',label:'Projeção',icon:ICONE_BASE+'Money bag/3D/money_bag_3d.png'}
 ];
 function _hallDiaChave(){
   var d=new Date();
@@ -2073,7 +2074,7 @@ function renderHall(){
   var funilEl=document.getElementById('hall-funil');
   if(funilEl){
     funilEl.innerHTML=FUNIL.map(function(f){
-      return '<div class="fc" style="flex:1 1 150px;max-width:200px;padding:20px 14px;text-align:center;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'\'" onclick="irPara(\''+f.id+'\')"><div style="font-size:26px;margin-bottom:8px;">'+f.icon+'</div><div style="font-size:12px;font-weight:700;color:var(--t);">'+f.label+'</div></div>';
+      return '<div class="fc" style="flex:1 1 150px;max-width:200px;padding:20px 14px;text-align:center;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'\'" onclick="irPara(\''+f.id+'\')"><img src="'+f.icon+'" style="width:44px;height:44px;margin-bottom:8px;" loading="lazy" onerror="this.style.display=\'none\'"/><div style="font-size:12px;font-weight:700;color:var(--t);">'+f.label+'</div></div>';
     }).join('');
   }
 

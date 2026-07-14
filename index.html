@@ -1070,6 +1070,7 @@ firebase.auth().onAuthStateChanged(function(user){
     var nomeEl=document.getElementById('sb-user-nome');
     if(nomeEl)nomeEl.textContent=user.displayName||user.email;
     _fbCarregarDados(user.uid);
+    _fbCarregarMeuAniversario(user.uid);
     _agIniciarLembretes();
   } else {
     _currentUID=null;
@@ -1346,6 +1347,14 @@ function _fbAtualizarPerfilPublico(){
   db.collection('perfis_publicos').doc(_currentUID).set(dados,{merge:true}).catch(function(err){
     _fbLog('❌ ERRO (perfil p\u00FAblico): '+err.message);
   });
+}
+function _fbCarregarMeuAniversario(uid){
+  db.collection('perfis_publicos').doc(uid).get().then(function(doc){
+    if(doc.exists && doc.data().aniversario){
+      localStorage.setItem('rsd_meu_aniversario',doc.data().aniversario);
+      renderAniversarios();
+    }
+  }).catch(function(err){_fbLog('❌ ERRO (aniversario): '+err.message);});
 }
 function agSalvarAniversario(){
   var val=v('hall-aniv-input');

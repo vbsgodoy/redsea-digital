@@ -1087,12 +1087,16 @@ function _fbCarregarDados(uid){
       if(d.estudosProgresso!==undefined)localStorage.setItem('rsd_estudos_progresso',JSON.stringify(d.estudosProgresso));
       if(d.agenda!==undefined)localStorage.setItem('rsd_agenda',JSON.stringify(d.agenda));
       if(d.comissaoHistorico!==undefined)localStorage.setItem('rsd_pj_historico',JSON.stringify(d.comissaoHistorico));
+      if(d.pjVendas!==undefined)localStorage.setItem('rsd_pj_vendas',JSON.stringify(d.pjVendas));
+      if(d.pjMeta!==undefined)localStorage.setItem('rsd_pj_meta',JSON.stringify(d.pjMeta));
     } else {
       _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
       _fbSyncHistorico();
       _fbSyncEstudos();
       _fbSyncAgenda();
+      _pjSet(_pjGet());
+      _pjSetMeta(_pjGetMeta());
     }
     _fbAtualizarPerfilPublico();
     // re-renderiza o que estiver visivel no momento
@@ -1100,6 +1104,7 @@ function _fbCarregarDados(uid){
     if(document.getElementById('tab-historico').style.display!=='none')hRender();
     if(document.getElementById('tab-equipe').style.display!=='none')renderEquipe();
     if(document.getElementById('tab-agenda').style.display!=='none')renderAgenda();
+    if(document.getElementById('tab-comissao').style.display!=='none')renderComissaoTab();
   }).catch(function(err){
     _fbLog('❌ ERRO ao carregar: '+err.code+' — '+err.message);
   });
@@ -1385,9 +1390,21 @@ function renderAniversarios(){
 
 // ===== PROJECAO / COMISSAO =====
 function _pjGet(){return JSON.parse(localStorage.getItem('rsd_pj_vendas')||'[]');}
-function _pjSet(arr){localStorage.setItem('rsd_pj_vendas',JSON.stringify(arr));}
+function _pjSet(arr){
+  localStorage.setItem('rsd_pj_vendas',JSON.stringify(arr));
+  if(!_currentUID)return;
+  db.collection('usuarios').doc(_currentUID).set({pjVendas:arr},{merge:true}).catch(function(err){
+    _fbLog('❌ ERRO (proje\u00E7\u00E3o vendas): '+err.message);
+  });
+}
 function _pjGetMeta(){return JSON.parse(localStorage.getItem('rsd_pj_meta')||'{}');}
-function _pjSetMeta(obj){localStorage.setItem('rsd_pj_meta',JSON.stringify(obj));}
+function _pjSetMeta(obj){
+  localStorage.setItem('rsd_pj_meta',JSON.stringify(obj));
+  if(!_currentUID)return;
+  db.collection('usuarios').doc(_currentUID).set({pjMeta:obj},{merge:true}).catch(function(err){
+    _fbLog('❌ ERRO (proje\u00E7\u00E3o meta): '+err.message);
+  });
+}
 function _pjGetHistorico(){return JSON.parse(localStorage.getItem('rsd_pj_historico')||'[]');}
 function _pjSetHistorico(arr){
   localStorage.setItem('rsd_pj_historico',JSON.stringify(arr));

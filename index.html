@@ -738,7 +738,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
           <div style="flex:0 0 260px;">
             <canvas id="vf-canvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid var(--cb);display:block;"></canvas>
-            <button class="btn bl" style="width:100%;margin-top:8px;" onclick="copiarCardVendaFechada()">📋 Copiar card</button>
+            <button class="btn bl" style="width:100%;margin-top:8px;font-size:11px;" onclick="copiarCardVendaFechada()">📋 Copiar só o card</button>
           </div>
           <div style="flex:1;min-width:240px;">
             <div id="vf-texto" contenteditable="true" style="font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:16px 18px;min-height:220px;outline:none;">Preencha os dados acima.</div>
@@ -746,6 +746,10 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
               <button class="btn bs2" onclick="copiarTextoVendaFechada()">📋 Copiar texto</button>
             </div>
           </div>
+        </div>
+        <div style="padding:0 24px 22px;">
+          <button class="btn be" style="width:100%;font-size:14px;padding:14px;" onclick="copiarCardComComprovante()">🖼️ Copiar card + comprovante juntos (recomendado)</button>
+          <div style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center;">Junta tudo numa imagem só — cola uma vez no grupo e já sai completo.</div>
         </div>
       </div>
     </div>
@@ -2655,6 +2659,41 @@ function copiarComprovanteVenda(){
   } else {
     _baixarImagemFallback(_vfComprovanteBlob,'comprovante_'+(v('vf_nome')||'cliente'));
   }
+}
+function copiarCardComComprovante(){
+  if(!_vfExigirComprovante())return;
+  var cardCanvas=document.getElementById('vf-canvas');
+  if(!cardCanvas)return;
+  var img=new Image();
+  img.onload=function(){
+    var faixaW=cardCanvas.width;
+    var compH=Math.round(img.height*(faixaW/img.width));
+    var divisor=6;
+    var combo=document.createElement('canvas');
+    combo.width=faixaW;
+    combo.height=cardCanvas.height+divisor+compH;
+    var ctx=combo.getContext('2d');
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,combo.width,combo.height);
+    ctx.drawImage(cardCanvas,0,0);
+    ctx.fillStyle='#e5e7eb';
+    ctx.fillRect(0,cardCanvas.height,faixaW,divisor);
+    ctx.drawImage(img,0,cardCanvas.height+divisor,faixaW,compH);
+    combo.toBlob(function(blob){
+      if(!blob){toast('Não foi possível gerar a imagem combinada.','#c0392b');return;}
+      if(navigator.clipboard && window.ClipboardItem){
+        navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+          toast('Card + comprovante copiados juntos! Cole (Ctrl+V) no grupo 📋');
+        }).catch(function(){
+          _baixarImagemFallback(blob,'venda_completa_'+(v('vf_nome')||'cliente'));
+        });
+      } else {
+        _baixarImagemFallback(blob,'venda_completa_'+(v('vf_nome')||'cliente'));
+      }
+    },'image/png');
+  };
+  img.onerror=function(){toast('Erro ao carregar o comprovante.','#c0392b');};
+  img.src=URL.createObjectURL(_vfComprovanteBlob);
 }
 document.addEventListener('paste',function(e){
   var drop=document.getElementById('vf-drop');

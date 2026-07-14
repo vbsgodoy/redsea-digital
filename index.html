@@ -827,6 +827,9 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         <div class="fi"><label>Dias úteis no mês</label><input type="number" id="pj-dias-uteis" placeholder="Ex: 22" oninput="renderProjecao()"/></div>
         <div class="fi"><label>Dias já trabalhados</label><input type="number" id="pj-dias-trabalhados" placeholder="Ex: 10" oninput="renderProjecao()"/></div>
       </div>
+      <div style="padding:0 24px 12px;">
+        <button class="btn bl" style="font-size:11px;padding:6px 12px;" onclick="pjAtualizarDiasAutomatico()">🔄 Calcular dias automaticamente (dias úteis reais do mês)</button>
+      </div>
       <div id="pj-resumo-meta" style="padding:0 24px 20px;"></div>
     </div>
 
@@ -843,9 +846,18 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
       <div id="pj-lista-vendas" style="padding:0 0 8px;"></div>
     </div>
 
-    <div class="fc">
+    <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si">💰</div>Resultado da Comissão</div>
       <div id="pj-resultado" style="padding:8px 0;"></div>
+      <div style="padding:16px 24px;border-top:1px solid var(--cb);">
+        <button class="btn bl" style="width:100%;" onclick="pjFecharMes()">📁 Fechar mês e começar um novo</button>
+        <div style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center;">Guarda o resultado desse mês no histórico e limpa a lista de vendas pra você começar o próximo mês do zero.</div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="sh"><div class="si">📊</div>Histórico de Meses</div>
+      <div id="pj-historico-meses" style="padding:8px 0;"></div>
     </div>
 
   </div><!-- /page-content -->
@@ -1073,6 +1085,7 @@ function _fbCarregarDados(uid){
       if(d.historico!==undefined)localStorage.setItem(HK,JSON.stringify(d.historico));
       if(d.estudosProgresso!==undefined)localStorage.setItem('rsd_estudos_progresso',JSON.stringify(d.estudosProgresso));
       if(d.agenda!==undefined)localStorage.setItem('rsd_agenda',JSON.stringify(d.agenda));
+      if(d.comissaoHistorico!==undefined)localStorage.setItem('rsd_pj_historico',JSON.stringify(d.comissaoHistorico));
     } else {
       _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
@@ -1369,15 +1382,94 @@ function _pjGet(){return JSON.parse(localStorage.getItem('rsd_pj_vendas')||'[]')
 function _pjSet(arr){localStorage.setItem('rsd_pj_vendas',JSON.stringify(arr));}
 function _pjGetMeta(){return JSON.parse(localStorage.getItem('rsd_pj_meta')||'{}');}
 function _pjSetMeta(obj){localStorage.setItem('rsd_pj_meta',JSON.stringify(obj));}
+function _pjGetHistorico(){return JSON.parse(localStorage.getItem('rsd_pj_historico')||'[]');}
+function _pjSetHistorico(arr){
+  localStorage.setItem('rsd_pj_historico',JSON.stringify(arr));
+  if(!_currentUID)return;
+  db.collection('usuarios').doc(_currentUID).set({comissaoHistorico:arr},{merge:true}).catch(function(err){
+    _fbLog('❌ ERRO (comiss\u00E3o hist\u00F3rico): '+err.message);
+  });
+}
+function pjFecharMes(){
+  var vendas=_pjGet();
+  if(vendas.length===0){toast('⚠️ Nenhuma venda lançada esse mês ainda.','#c0392b');return;}
+  if(!confirm('Isso vai guardar o resultado desse mês no histórico e limpar a lista de vendas pra você começar um mês novo. Confirma?'))return;
+  var r=calcularComissao(vendas);
+  var hoje=new Date();
+  var registro={
+    id:'m'+Date.now(),
+    mes:hoje.getMonth(),
+    ano:hoje.getFullYear(),
+    mesNome:MESES_PT[hoje.getMonth()],
+    totalMotos:r.totalMotos,
+    totalImovel:r.totalImovel,
+    totalGeral:r.totalGeral,
+    producaoMoto:r.producaoMoto,
+    qtdVendas:vendas.length,
+    fechadoEm:new Date().toISOString()
+  };
+  var hist=_pjGetHistorico();
+  hist.unshift(registro);
+  _pjSetHistorico(hist);
+  _pjSet([]);
+  _pjSetMeta({});
+  document.getElementById('pj-meta').value='';
+  toast('📁 Mês fechado! Comissão de R$ '+_pjFmt(r.totalGeral)+' guardada no histórico.');
+  renderComissaoTab();
+}
+function _pjRenderHistoricoMeses(){
+  var host=document.getElementById('pj-historico-meses');
+  if(!host)return;
+  var hist=_pjGetHistorico();
+  if(hist.length===0){
+    host.innerHTML='<div class="hem" style="padding:16px 24px;">Nenhum mês fechado ainda. Quando você fechar o mês, ele aparece aqui pra comparar.</div>';
+    return;
+  }
+  host.innerHTML=hist.map(function(m){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid var(--cb);">'+
+      '<div><div style="font-size:13px;font-weight:700;color:var(--t);">'+m.mesNome+' de '+m.ano+'</div>'+
+      '<div style="font-size:10px;color:var(--tm);">Produção moto: R$ '+_pjFmt(m.producaoMoto)+' · '+m.qtdVendas+' vendas</div></div>'+
+      '<div style="text-align:right;"><div style="font-size:16px;font-weight:800;color:#16a34a;">R$ '+_pjFmt(m.totalGeral)+'</div></div>'+
+    '</div>';
+  }).join('');
+}
 
+function _pjDiasUteisMes(ano,mes){
+  var dias=new Date(ano,mes+1,0).getDate();
+  var count=0;
+  for(var d=1;d<=dias;d++){
+    var dow=new Date(ano,mes,d).getDay();
+    if(dow!==0 && dow!==6)count++;
+  }
+  return count;
+}
+function _pjDiasTrabalhadosAteHoje(ano,mes){
+  var hoje=new Date();
+  var ultimoDia=(ano===hoje.getFullYear() && mes===hoje.getMonth())?hoje.getDate():new Date(ano,mes+1,0).getDate();
+  var count=0;
+  for(var d=1;d<=ultimoDia;d++){
+    var dow=new Date(ano,mes,d).getDay();
+    if(dow!==0 && dow!==6)count++;
+  }
+  return count;
+}
+function pjAtualizarDiasAutomatico(){
+  var hoje=new Date();
+  document.getElementById('pj-dias-uteis').value=_pjDiasUteisMes(hoje.getFullYear(),hoje.getMonth());
+  document.getElementById('pj-dias-trabalhados').value=_pjDiasTrabalhadosAteHoje(hoje.getFullYear(),hoje.getMonth());
+  renderProjecao();
+  toast('🔄 Dias atualizados automaticamente!');
+}
 function renderComissaoTab(){
   var meta=_pjGetMeta();
+  var hoje=new Date();
   if(meta.meta)document.getElementById('pj-meta').value=meta.meta;
-  if(meta.diasUteis)document.getElementById('pj-dias-uteis').value=meta.diasUteis;
-  if(meta.diasTrabalhados)document.getElementById('pj-dias-trabalhados').value=meta.diasTrabalhados;
+  document.getElementById('pj-dias-uteis').value=meta.diasUteis||_pjDiasUteisMes(hoje.getFullYear(),hoje.getMonth());
+  document.getElementById('pj-dias-trabalhados').value=meta.diasTrabalhados||_pjDiasTrabalhadosAteHoje(hoje.getFullYear(),hoje.getMonth());
   renderProjecao();
   _pjRenderListaVendas();
   _pjCalcularEExibir();
+  _pjRenderHistoricoMeses();
 }
 function renderProjecao(){
   _pjSetMeta({
@@ -1561,27 +1653,45 @@ function _pjCalcularEExibir(){
   }
   var r=calcularComissao(vendas);
   var html='';
-  var motosDetalhe=r.detalhes.map(function(d){
-    return '<div style="display:flex;justify-content:space-between;padding:8px 24px;border-bottom:1px solid var(--cb);font-size:12px;">'+
-      '<span style="color:var(--tm);">#'+d.ordem+' · R$ '+_pjFmt(d.valor)+' · '+d.motivo+'</span>'+
-      '<span style="font-weight:700;color:var(--t);">R$ '+_pjFmt(d.comissao+d.bonus)+(d.bonus?' <span style="color:var(--v);font-size:10px;">(+R$100 b\u00F4nus)</span>':'')+'</span>'+
-    '</div>';
-  }).join('');
-  html+='<div style="padding:12px 24px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--tm);">🏍️ Motos — produ\u00E7\u00E3o R$ '+_pjFmt(r.producaoMoto)+(r.passou500?' (passou de 500k ✅)':'')+'</div>';
-  html+=motosDetalhe||'<div class="hem" style="padding:10px 24px;">Nenhuma moto lan\u00E7ada.</div>';
-  html+='<div style="padding:10px 24px;text-align:right;font-size:13px;font-weight:800;color:var(--v);">Subtotal Motos: R$ '+_pjFmt(r.totalMotos)+'</div>';
 
-  html+='<div style="padding:14px 24px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--tm);border-top:1px solid var(--cb);">🏠 Im\u00F3vel</div>';
+  // HERO: total em destaque, primeiro que tudo
+  html+='<div style="text-align:center;padding:28px 24px;background:linear-gradient(135deg,rgba(22,163,74,0.15),rgba(8,145,178,0.10));border-bottom:1px solid var(--cb);">'+
+    '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tm);margin-bottom:4px;">💰 Sua comissão esse mês</div>'+
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:52px;letter-spacing:1px;color:#16a34a;">R$ '+_pjFmt(r.totalGeral)+'</div>'+
+    '<div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:12px;color:var(--tm);">'+
+      '<span>🏍️ Motos: <strong style="color:var(--t);">R$ '+_pjFmt(r.totalMotos)+'</strong></span>'+
+      (r.totalImovel>0?'<span>🏠 Imóvel: <strong style="color:var(--t);">R$ '+_pjFmt(r.totalImovel)+'</strong></span>':'')+
+    '</div>'+
+  '</div>';
+
+  // MOTOS
+  html+='<div style="padding:14px 24px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--tm);">🏍️ Motos — produ\u00E7\u00E3o R$ '+_pjFmt(r.producaoMoto)+(r.passou500?' <span style="color:#16a34a;">(passou de 500k ✅)</span>':'')+'</div>';
+  if(r.detalhes.length){
+    html+=r.detalhes.map(function(d){
+      var corTaxa=d.taxa>=0.005?'#16a34a':(d.taxa>=0.0025?'var(--v)':'var(--tm)');
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 24px;border-bottom:1px solid var(--cb);">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+corTaxa+';flex-shrink:0;"></div>'+
+        '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:var(--t);">#'+d.ordem+' · R$ '+_pjFmt(d.valor)+'</div>'+
+        '<div style="font-size:10px;color:var(--tm);">'+d.motivo+'</div></div>'+
+        '<div style="text-align:right;flex-shrink:0;"><div style="font-size:13px;font-weight:800;color:'+corTaxa+';">R$ '+_pjFmt(d.comissao+d.bonus)+'</div>'+
+        (d.bonus?'<div style="font-size:9px;color:#16a34a;">+R$100 bônus</div>':'')+'</div>'+
+      '</div>';
+    }).join('');
+  } else {
+    html+='<div class="hem" style="padding:10px 24px;">Nenhuma moto lan\u00E7ada.</div>';
+  }
+
+  // IMOVEL
+  html+='<div style="padding:14px 24px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--tm);border-top:1px solid var(--cb);">🏠 Im\u00F3vel</div>';
   if(r.totalImovelBruto>0){
-    html+='<div style="padding:6px 24px;font-size:12px;color:var(--t);">Parcela desse m\u00EAs (0,1% \u2014 1\u00AA de 3): R$ '+_pjFmt(r.totalImovelBruto)+'</div>';
-    html+='<div style="padding:6px 24px;font-size:12px;color:var(--t);">Teto (20% da produ\u00E7\u00E3o de moto): R$ '+_pjFmt(r.tetoImovel)+'</div>';
-    if(r.imovelCortado)html+='<div style="padding:6px 24px;font-size:11px;color:#c0392b;">⚠️ Cortado pelo teto de 20%</div>';
-    html+='<div style="padding:10px 24px;text-align:right;font-size:13px;font-weight:800;color:var(--v);">Subtotal Im\u00F3vel: R$ '+_pjFmt(r.totalImovel)+'</div>';
+    html+='<div style="padding:0 24px 10px;font-size:12px;color:var(--t);line-height:1.8;">'+
+      'Parcela desse m\u00EAs (0,1% \u2014 1\u00AA de 3): <strong>R$ '+_pjFmt(r.totalImovelBruto)+'</strong><br>'+
+      'Teto (20% da produ\u00E7\u00E3o de moto): <strong>R$ '+_pjFmt(r.tetoImovel)+'</strong>'+
+      (r.imovelCortado?'<br><span style="color:#c0392b;">⚠️ Cortado pelo teto de 20%</span>':'')+
+    '</div>';
   } else {
     html+='<div class="hem" style="padding:10px 24px;">Nenhum im\u00F3vel lan\u00E7ado.</div>';
   }
-
-  html+='<div style="padding:16px 24px;text-align:right;font-size:20px;font-weight:800;color:var(--t);border-top:2px solid var(--v);margin-top:8px;">Total Geral: R$ '+_pjFmt(r.totalGeral)+'</div>';
 
   host.innerHTML=html;
 }

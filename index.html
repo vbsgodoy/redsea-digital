@@ -1393,8 +1393,9 @@ function renderProjecao(){
 
   var host=document.getElementById('pj-resumo-meta');
   if(!host)return;
+  var vendasAtuais=_pjGet();
   if(!metaNum || !diasUteis){
-    host.innerHTML='<div class="hem">Preencha a meta e os dias úteis pra ver a projeção.</div>';
+    host.innerHTML='<div class="hem" style="margin-bottom:14px;">Preencha a meta e os dias úteis pra ver a projeção completa.</div>'+_pjCardProximaFaixa(vendasAtuais);
     return;
   }
   var falta=Math.max(0,metaNum-producao);
@@ -1402,16 +1403,59 @@ function renderProjecao(){
   var diasRestantes=Math.max(0,diasUteis-diasTrab);
   var projecaoFinal=producao+(mediaDia*diasRestantes);
   var pct=Math.min(100,Math.round((producao/metaNum)*100));
+  var bateu=producao>=metaNum;
+
+  var frase,emoji,cor;
+  if(bateu){frase='Meta batida! Você é fera! 🏆';emoji='🏆';cor='#16a34a';}
+  else if(pct>=75){frase='Reta final — falta pouco! 🔥';emoji='🔥';cor='var(--v)';}
+  else if(pct>=50){frase='Passou da metade, bora! 💪';emoji='💪';cor='var(--v)';}
+  else if(pct>=25){frase='Bom ritmo, continue firme! 🚀';emoji='🚀';cor='var(--v)';}
+  else if(pct>0){frase='Início de jornada, foco no processo! ⚡';emoji='⚡';cor='var(--v)';}
+  else{frase='Vamos começar a produzir! 🎯';emoji='🎯';cor='var(--tm)';}
 
   host.innerHTML=
-    '<div style="height:8px;background:var(--cb);border-radius:4px;overflow:hidden;margin-bottom:14px;"><div style="height:100%;width:'+pct+'%;background:var(--v);"></div></div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">'+
+    '<div style="text-align:center;padding:10px 0 18px;">'+
+      '<div style="font-size:38px;">'+emoji+'</div>'+
+      '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:32px;letter-spacing:1px;color:'+cor+';">'+pct+'% da meta</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--t);margin-top:2px;">'+frase+'</div>'+
+    '</div>'+
+    '<div style="height:16px;background:var(--cb);border-radius:8px;overflow:hidden;margin-bottom:18px;position:relative;">'+
+      '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--v),'+cor+');transition:width .4s;"></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px;">'+
       _pjCard('Produção atual','R$ '+_pjFmt(producao))+
       _pjCard('Falta pra meta','R$ '+_pjFmt(falta))+
       _pjCard('Média por dia','R$ '+_pjFmt(mediaDia))+
       _pjCard('Dias restantes',diasRestantes)+
       _pjCard('Projeção final do mês','R$ '+_pjFmt(projecaoFinal),projecaoFinal>=metaNum)+
+    '</div>'+
+    _pjCardProximaFaixa(vendas);
+}
+function _pjCardProximaFaixa(vendas){
+  var motos=vendas.filter(function(x){return x.tipo==='moto';});
+  var producaoMoto=motos.reduce(function(s,x){return s+x.valor;},0);
+  var faixas=[
+    {limite:350000,texto:'faixa de 0,25% em todas as vendas normais'},
+    {limite:500000,texto:'faixa de 0,5% + bônus de R$100 por venda Premium'}
+  ];
+  var proxima=null;
+  for(var i=0;i<faixas.length;i++){
+    if(producaoMoto<faixas[i].limite){proxima=faixas[i];break;}
+  }
+  if(!proxima){
+    return '<div class="fc" style="padding:16px 20px;background:linear-gradient(135deg,rgba(22,163,74,0.12),transparent);text-align:center;">'+
+      '<div style="font-size:13px;font-weight:700;color:#16a34a;">🏆 Você já está na melhor faixa de comissão do mês!</div>'+
     '</div>';
+  }
+  var falta=proxima.limite-producaoMoto;
+  var atual=calcularComissao(vendas).totalGeral;
+  var simulado=calcularComissao(vendas.concat([{tipo:'moto',premium:false,valor:falta}])).totalGeral;
+  var ganhoExtra=simulado-atual;
+  return '<div class="fc" style="padding:18px 20px;background:linear-gradient(135deg,rgba(8,145,178,0.14),transparent);border:1.5px solid var(--v);">'+
+    '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--v);margin-bottom:6px;">⚡ Próxima faixa de comissão (moto)</div>'+
+    '<div style="font-size:14px;color:var(--t);line-height:1.6;">Faltam <strong style="color:var(--v);">R$ '+_pjFmt(falta)+'</strong> em produção de moto pra desbloquear a <strong>'+proxima.texto+'</strong>.</div>'+
+    '<div style="font-size:13px;color:var(--t);margin-top:6px;">Isso pode aumentar sua comissão do mês em até <strong style="color:#16a34a;font-size:16px;">+R$ '+_pjFmt(ganhoExtra)+'</strong> 🚀</div>'+
+  '</div>';
 }
 function _pjCard(label,valor,destaque){
   return '<div style="background:var(--p);border:1px solid var(--cb);border-radius:8px;padding:10px 12px;'+(destaque?'border-color:var(--v);':'')+'">'+

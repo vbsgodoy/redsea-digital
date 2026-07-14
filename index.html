@@ -1560,8 +1560,9 @@ function _pjCardProximaFaixa(vendas){
   var motos=vendas.filter(function(x){return x.tipo==='moto';});
   var producaoMoto=motos.reduce(function(s,x){return s+x.valor;},0);
   var faixas=[
-    {limite:350000,texto:'faixa de 0,25% em todas as vendas normais'},
-    {limite:500000,texto:'faixa de 0,5% + bônus de R$100 por venda Premium'}
+    {limite:200000,texto:'suas vendas passarem a gerar comissão de verdade (sair de 0%)'},
+    {limite:350000,texto:'faixa seguinte de comissão'},
+    {limite:500000,texto:'faixa máxima de comissão + bônus de R$100 por venda Premium (mín. 4 no mês)'}
   ];
   var proxima=null;
   for(var i=0;i<faixas.length;i++){
@@ -1605,7 +1606,7 @@ function pjAdicionarVenda(){
   var valor=_propNum2('pj-valor');
   if(!valor){toast('⚠️ Informe o valor da venda','#c0392b');return;}
   var arr=_pjGet();
-  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor});
+  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null});
   _pjSet(arr);
   document.getElementById('pj-valor').value='';
   toast('✅ Venda adicionada!');
@@ -1632,13 +1633,52 @@ function _pjRenderListaVendas(){
   }
   host.innerHTML=arr.map(function(x,i){
     var rotulo=x.tipo==='moto'?(x.premium?'Moto Premium':'Moto'):'Imóvel';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;border-bottom:1px solid var(--cb);font-size:12px;">'+
-      '<span style="color:var(--tm);">#'+(i+1)+'</span>'+
-      '<span style="flex:1;padding:0 10px;color:var(--t);">'+rotulo+'</span>'+
-      '<span style="font-weight:700;color:var(--t);">R$ '+_pjFmt(x.valor)+'</span>'+
-      '<button onclick="pjRemoverVenda(\''+x.id+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:10px;">✕</button>'+
+    var marcador='';
+    if(x.tipo==='moto'){
+      marcador='<div style="display:flex;gap:4px;flex-shrink:0;">'+
+        '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'1\')" title="Marcar como 1ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='1'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='1'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">1ª</button>'+
+        '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'2\')" title="Marcar como 2ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='2'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='2'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">2ª</button>'+
+      '</div>';
+    }
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;border-bottom:1px solid var(--cb);font-size:12px;gap:8px;">'+
+      '<span style="color:var(--tm);flex-shrink:0;">#'+(i+1)+'</span>'+
+      '<span style="flex:1;padding:0 6px;color:var(--t);">'+rotulo+(x.ordemEspecial?' <strong style="color:var(--v);">('+(x.ordemEspecial==='1'?'1ª venda':'2ª venda')+')</strong>':'')+'</span>'+
+      marcador+
+      '<span style="font-weight:700;color:var(--t);flex-shrink:0;">R$ '+_pjFmt(x.valor)+'</span>'+
+      '<button onclick="pjRemoverVenda(\''+x.id+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:4px;flex-shrink:0;">✕</button>'+
     '</div>';
   }).join('');
+}
+function pjMarcarOrdem(id,ordem){
+  var arr=_pjGet();
+  var alvo=arr.find(function(x){return x.id===id;});
+  if(!alvo)return;
+  var jaEstavaMarcado=alvo.ordemEspecial===ordem;
+  arr.forEach(function(x){if(x.ordemEspecial===ordem)x.ordemEspecial=null;});
+  if(!jaEstavaMarcado)alvo.ordemEspecial=ordem;
+  _pjSet(arr);
+  _pjRenderListaVendas();
+  _pjCalcularEExibir();
+  renderProjecao();
+  _fbAtualizarPerfilPublico();
+}
+function _taxaNormal(producao){
+  if(producao<200000)return 0;
+  if(producao<350000)return 0.0005;
+  if(producao<500000)return 0.0015;
+  return 0.0025;
+}
+function _taxaPremium(producao){
+  if(producao<200000)return 0;
+  if(producao<350000)return 0.0010;
+  if(producao<500000)return 0.0030;
+  return 0.0050;
+}
+function _faixaLabel(producao){
+  if(producao<200000)return '< 200k';
+  if(producao<350000)return '200k–349k';
+  if(producao<500000)return '350k–499k';
+  return '≥ 500k';
 }
 function calcularComissao(vendas){
   var motos=vendas.filter(function(x){return x.tipo==='moto';});
@@ -1651,19 +1691,21 @@ function calcularComissao(vendas){
   var detalhes=[],totalMotos=0;
   motos.forEach(function(x,i){
     var taxa,motivo;
-    if(i<2 && passou500){
-      taxa=0.005;motivo='1ª/2ª venda do mês (produção ≥ 500k)';
+    var especial=x.ordemEspecial==='1'||x.ordemEspecial==='2';
+    if(especial){
+      taxa=_taxaPremium(producaoMoto);
+      motivo=(x.ordemEspecial==='1'?'1ª':'2ª')+' venda do mês (tabela Premium, produção '+_faixaLabel(producaoMoto)+')';
     } else if(x.premium){
-      taxa=passou500?0.005:0.0025;
-      motivo=passou500?'Premium (produção ≥ 500k)':'Premium (produção < 500k)';
+      taxa=_taxaPremium(producaoMoto);
+      motivo='Premium (produção '+_faixaLabel(producaoMoto)+')';
     } else {
-      if(producaoMoto<350000){taxa=0.001;motivo='Normal (produção < 350k)';}
-      else{taxa=0.0025;motivo='Normal (produção ≥ 350k)';}
+      taxa=_taxaNormal(producaoMoto);
+      motivo='Normal (produção '+_faixaLabel(producaoMoto)+')';
     }
     var comissao=x.valor*taxa;
     var bonus=(x.premium && bonusAtivo)?100:0;
     totalMotos+=comissao+bonus;
-    detalhes.push({valor:x.valor,taxa:taxa,motivo:motivo,comissao:comissao,bonus:bonus,ordem:i+1});
+    detalhes.push({valor:x.valor,taxa:taxa,motivo:motivo,comissao:comissao,bonus:bonus,ordem:i+1,ordemEspecial:x.ordemEspecial||null});
   });
 
   var totalImovelBruto=imoveis.reduce(function(s,x){return s+x.valor*0.001;},0);

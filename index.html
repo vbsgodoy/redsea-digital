@@ -604,6 +604,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
       <button class="stb ac g" onclick="suba('bemvindo',this)">🎉 Boas-vindas</button>
       <button class="stb" onclick="suba('posvendas',this)">⚠️ Alerta Pós-vendas</button>
       <button class="stb" onclick="suba('cobranca',this)">💰 Cobrança</button>
+      <button class="stb" onclick="suba('vendafechada',this);renderVendaFechada();">🎊 Anunciar Venda</button>
     </div>
     <div id="stab-bemvindo" class="stp ac">
       <div class="fc">
@@ -695,6 +696,39 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
       </div>
       <div id="pv-cb" class="pva"><div class="pvh">📄 Pre-visualizacao — Cobranca</div><div id="pv-cb-ct" style="padding:28px;background:#fff;"></div></div>
     </div>
+
+    <div id="stab-vendafechada" class="stp">
+      <div class="fc" style="margin-bottom:20px;">
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Anunciar Venda Fechada</div>
+        <div class="fg">
+          <div class="fi fw"><label>Nome do cliente</label><input type="text" id="vf_nome" placeholder="Nome do cliente" oninput="renderVendaFechada()"/></div>
+          <div class="fi"><label>CPF</label><input type="text" id="vf_cpf" placeholder="000.000.000-00" oninput="fCPF(this);renderVendaFechada();"/></div>
+          <div class="fi"><label>Telefone</label><input type="text" id="vf_tel" placeholder="(11) 99999-9999" oninput="fFone(this);renderVendaFechada();"/></div>
+          <div class="fi"><label>Modelo</label><input type="text" id="vf_modelo" placeholder="Ex: Ninja 300" oninput="renderVendaFechada()"/></div>
+          <div class="fi"><label>Valor</label><div class="liw"><div class="lp">R$</div><input type="text" id="vf_valor" placeholder="0.000,00" oninput="fL(this);renderVendaFechada();"/></div></div>
+          <div class="fi"><label>Plano</label><select id="vf_plano" onchange="renderVendaFechada()"><option>Plano Normal</option><option>Plano Premium</option></select></div>
+          <div class="fi"><label>Contrato / Protocolo</label><input type="text" id="vf_contrato" placeholder="Número do contrato" oninput="renderVendaFechada()"/></div>
+          <div class="fi"><label>Consultor responsável</label><input type="text" id="vf_consultor" value="Vitor Godoy" oninput="renderVendaFechada()"/></div>
+        </div>
+      </div>
+
+      <div class="fc">
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prévia</div>
+        <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+          <div style="flex:0 0 260px;">
+            <canvas id="vf-canvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid var(--cb);display:block;"></canvas>
+            <button class="btn bl" style="width:100%;margin-top:8px;" onclick="copiarCardVendaFechada()">📋 Copiar card</button>
+          </div>
+          <div style="flex:1;min-width:240px;">
+            <div id="vf-texto" contenteditable="true" style="font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:16px 18px;min-height:220px;outline:none;">Preencha os dados acima.</div>
+            <div class="aa" style="margin-top:12px;">
+              <button class="btn bs2" onclick="copiarTextoVendaFechada()">📋 Copiar texto</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /page-content -->
 </div>
 <div id="tab-campanhas" class="tp" style="display:none;">
@@ -2431,6 +2465,127 @@ function copiarCardAgendamento(){
       });
     } else {
       _baixarImagemFallback(blob,'agendamento_'+(v('agd_cliente')||'cliente'));
+    }
+  },'image/png');
+}
+
+// ===== ANUNCIAR VENDA FECHADA =====
+function _vfDesenharCard(){
+  var canvas=document.getElementById('vf-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W=canvas.width,H=canvas.height;
+
+  var grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0B1F14');
+  grad.addColorStop(1,'#0F2C1B');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle='#16a34a';
+  ctx.fillRect(0,0,W,14);
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#16a34a';
+  ctx.font='bold 30px Arial';
+  ctx.fillText('RED SEA DIGITAL',W/2,90);
+
+  ctx.font='130px Arial';
+  ctx.fillText('🎉',W/2,290);
+
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='bold 56px Arial';
+  ctx.fillText('VENDA FECHADA!',W/2,370);
+
+  var cliente=v('vf_nome')||'Cliente';
+  var modelo=v('vf_modelo')||'Modelo';
+  var valor=v('vf_valor')||'0,00';
+  var plano=v('vf_plano')||'Plano Normal';
+  var consultor=v('vf_consultor')||'Consultor';
+
+  ctx.font='34px Arial';
+  ctx.fillStyle='#94A3B8';
+  ctx.fillText('Parabéns',W/2,440);
+  ctx.font='bold 46px Arial';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText(cliente,W/2,498);
+
+  ctx.fillStyle='rgba(22,163,74,0.15)';
+  _agdRoundRect(ctx,90,555,W-180,210,16);
+  ctx.fill();
+  ctx.strokeStyle='#16a34a';
+  ctx.lineWidth=2;
+  _agdRoundRect(ctx,90,555,W-180,210,16);
+  ctx.stroke();
+
+  ctx.font='bold 38px Arial';
+  ctx.fillStyle='#16a34a';
+  ctx.fillText(modelo,W/2,625);
+  ctx.font='bold 58px Arial';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText('R$ '+valor,W/2,700);
+  ctx.font='26px Arial';
+  ctx.fillStyle='#94A3B8';
+  ctx.fillText(plano,W/2,745);
+
+  ctx.font='26px Arial';
+  ctx.fillStyle='#94A3B8';
+  ctx.fillText('Consultor respons\u00E1vel',W/2,835);
+  ctx.font='bold 34px Arial';
+  ctx.fillStyle='#FFFFFF';
+  ctx.fillText(consultor,W/2,878);
+
+  ctx.font='24px Arial';
+  ctx.fillStyle='#CBD5E1';
+  _agdWrapCentered(ctx,'Mais um sonho realizado com o time Tubarões! 🦈',W/2,955,W-180,32);
+
+  ctx.font='20px Arial';
+  ctx.fillStyle='#64748B';
+  ctx.fillText('Digital Consórcio · Kawasaki',W/2,1045);
+}
+function renderVendaFechada(){
+  var cliente=v('vf_nome')||'(Cliente)';
+  var cpf=v('vf_cpf')||'(CPF)';
+  var tel=v('vf_tel')||'(Telefone)';
+  var modelo=v('vf_modelo')||'(Modelo)';
+  var valor=v('vf_valor')||'0,00';
+  var plano=v('vf_plano')||'Plano Normal';
+  var contrato=v('vf_contrato')||'(Contrato)';
+  var consultor=v('vf_consultor')||'(Consultor)';
+
+  var texto='🎉 *VENDA FECHADA!* 🎉\n\n'+
+    '👤 *Cliente:* '+cliente+'\n'+
+    '🪪 *CPF:* '+cpf+'\n'+
+    '📞 *Telefone:* '+tel+'\n'+
+    '🏍️ *Modelo:* '+modelo+'\n'+
+    '💰 *Valor:* R$ '+valor+'\n'+
+    '📋 *Plano:* '+plano+'\n'+
+    '📄 *Contrato:* '+contrato+'\n\n'+
+    '👨‍💼 *Consultor:* '+consultor+'\n\n'+
+    'Mais um sonho realizado! 🦈🏍️';
+
+  var el=document.getElementById('vf-texto');
+  if(el)el.textContent=texto;
+  _vfDesenharCard();
+}
+function copiarTextoVendaFechada(){
+  var el=document.getElementById('vf-texto');
+  if(!el)return;
+  navigator.clipboard.writeText(el.innerText).then(function(){toast('Texto copiado! 📋');});
+}
+function copiarCardVendaFechada(){
+  var canvas=document.getElementById('vf-canvas');
+  if(!canvas)return;
+  canvas.toBlob(function(blob){
+    if(!blob){toast('Não foi possível copiar.','#c0392b');return;}
+    if(navigator.clipboard && window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+        toast('Card copiado! Cole (Ctrl+V) no grupo 📋');
+      }).catch(function(){
+        _baixarImagemFallback(blob,'venda_'+(v('vf_nome')||'cliente'));
+      });
+    } else {
+      _baixarImagemFallback(blob,'venda_'+(v('vf_nome')||'cliente'));
     }
   },'image/png');
 }

@@ -2537,7 +2537,7 @@ function _vfDesenharCard(){
 
   ctx.font='24px Arial';
   ctx.fillStyle='#CBD5E1';
-  _agdWrapCentered(ctx,'Mais um sonho realizado com o time Tubarões! 🦈',W/2,955,W-180,32);
+  _agdWrapCentered(ctx,'Pra cima, Tubarões! 🦈',W/2,955,W-180,32);
 
   ctx.font='20px Arial';
   ctx.fillStyle='#64748B';
@@ -2553,16 +2553,16 @@ function renderVendaFechada(){
   var contrato=v('vf_contrato')||'(Contrato)';
   var consultor=v('vf_consultor')||'(Consultor)';
 
-  var texto='🎉 *VENDA FECHADA!* 🎉\n\n'+
-    '👤 *Cliente:* '+cliente+'\n'+
-    '🪪 *CPF:* '+cpf+'\n'+
-    '📞 *Telefone:* '+tel+'\n'+
-    '🏍️ *Modelo:* '+modelo+'\n'+
-    '💰 *Valor:* R$ '+valor+'\n'+
-    '📋 *Plano:* '+plano+'\n'+
-    '📄 *Contrato:* '+contrato+'\n\n'+
-    '👨‍💼 *Consultor:* '+consultor+'\n\n'+
-    'Mais um sonho realizado! 🦈🏍️';
+  var texto='🎉 *VENDA FECHADA!*\n\n'+
+    '*Cliente:* '+cliente+'\n'+
+    '*CPF:* '+cpf+'\n'+
+    '*Telefone:* '+tel+'\n'+
+    '*Modelo:* '+modelo+'\n'+
+    '*Valor:* R$ '+valor+'\n'+
+    '*Plano:* '+plano+'\n'+
+    '*Contrato:* '+contrato+'\n\n'+
+    '*Consultor:* '+consultor+'\n\n'+
+    'Pra cima, Tubarões! 🦈';
 
   var el=document.getElementById('vf-texto');
   if(el)el.textContent=texto;

@@ -1442,12 +1442,14 @@ function pjAdicionarVenda(){
   toast('✅ Venda adicionada!');
   _pjRenderListaVendas();
   _pjCalcularEExibir();
+  renderProjecao();
 }
 function pjRemoverVenda(id){
   var arr=_pjGet().filter(function(x){return x.id!==id;});
   _pjSet(arr);
   _pjRenderListaVendas();
   _pjCalcularEExibir();
+  renderProjecao();
 }
 function _pjRenderListaVendas(){
   var host=document.getElementById('pj-lista-vendas');
@@ -1493,7 +1495,7 @@ function calcularComissao(vendas){
     detalhes.push({valor:x.valor,taxa:taxa,motivo:motivo,comissao:comissao,bonus:bonus,ordem:i+1});
   });
 
-  var totalImovelBruto=imoveis.reduce(function(s,x){return s+x.valor*0.003;},0);
+  var totalImovelBruto=imoveis.reduce(function(s,x){return s+x.valor*0.001;},0);
   var tetoImovel=producaoMoto*0.20;
   var totalImovel=Math.min(totalImovelBruto,tetoImovel);
   var imovelCortado=totalImovelBruto>tetoImovel;
@@ -1527,7 +1529,7 @@ function _pjCalcularEExibir(){
 
   html+='<div style="padding:14px 24px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--tm);border-top:1px solid var(--cb);">🏠 Im\u00F3vel</div>';
   if(r.totalImovelBruto>0){
-    html+='<div style="padding:6px 24px;font-size:12px;color:var(--t);">Comiss\u00E3o bruta (0,3%): R$ '+_pjFmt(r.totalImovelBruto)+'</div>';
+    html+='<div style="padding:6px 24px;font-size:12px;color:var(--t);">Parcela desse m\u00EAs (0,1% \u2014 1\u00AA de 3): R$ '+_pjFmt(r.totalImovelBruto)+'</div>';
     html+='<div style="padding:6px 24px;font-size:12px;color:var(--t);">Teto (20% da produ\u00E7\u00E3o de moto): R$ '+_pjFmt(r.tetoImovel)+'</div>';
     if(r.imovelCortado)html+='<div style="padding:6px 24px;font-size:11px;color:#c0392b;">⚠️ Cortado pelo teto de 20%</div>';
     html+='<div style="padding:10px 24px;text-align:right;font-size:13px;font-weight:800;color:var(--v);">Subtotal Im\u00F3vel: R$ '+_pjFmt(r.totalImovel)+'</div>';

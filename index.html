@@ -947,17 +947,44 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="page-content">
   <div class="pt"><h2>Painel do Gestor</h2><p>Acompanhe a <span class="hl">produção, comissão e ritmo</span> de cada consultor</p></div>
 
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bullseye/3D/bullseye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Meta do Time</div>
+      <div style="padding:16px 24px;">
+        <div class="fi" style="max-width:260px;"><label>Meta de produção do time (R$)</label><div class="liw"><div class="lp">R$</div><input type="text" id="gestor-meta-time" placeholder="0.000,00" oninput="fL(this);gestorSalvarMetaTime();"/></div></div>
+      </div>
+      <div id="gestor-meta-resumo" style="padding:0 24px 20px;"></div>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Spiral%20calendar/3D/spiral_calendar_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Por Quinzena</div>
+      <div id="gestor-quinzena" style="padding:16px 24px;"></div>
+    </div>
+
     <div id="gestor-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
+
+    <div id="gestor-alertas" style="margin-bottom:20px;"></div>
 
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Time — Produção, Comissão e Ritmo</div>
       <div id="gestor-tabela" style="padding:8px 0;"></div>
     </div>
 
-    <div class="fc">
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Distribuição por Tipo de Venda (Time)</div>
+      <div id="gestor-distribuicao" style="padding:16px 24px;"></div>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Evolução Mês a Mês (Time)</div>
+      <div id="gestor-evolucao" style="padding:16px 24px;"></div>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Four%20oclock/3D/four_oclock_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Histórico do Time (todos os consultores)</div>
       <div id="gestor-historico" style="padding:8px 0;max-height:600px;overflow-y:auto;"></div>
     </div>
+
+    <button class="btn be" style="width:100%;font-size:14px;padding:14px;" onclick="gestorExportarPDF()">🖨️ Exportar relatório do time em PDF</button>
 
   </div><!-- /page-content -->
 </div>
@@ -1193,6 +1220,7 @@ function _fbCarregarDados(uid){
       if(d.comissaoHistorico!==undefined)localStorage.setItem('rsd_pj_historico',JSON.stringify(d.comissaoHistorico));
       if(d.pjVendas!==undefined)localStorage.setItem('rsd_pj_vendas',JSON.stringify(d.pjVendas));
       if(d.pjMeta!==undefined)localStorage.setItem('rsd_pj_meta',JSON.stringify(d.pjMeta));
+      if(d.metaTime!==undefined)localStorage.setItem('rsd_gestor_meta_time',d.metaTime);
     } else {
       _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
@@ -1558,15 +1586,38 @@ function _parseDataBR(str){
   if(!m)return 0;
   return new Date(m[3],m[2]-1,m[1],m[4],m[5],m[6]).getTime();
 }
+function _gestorGetMetaTime(){return localStorage.getItem('rsd_gestor_meta_time')||'';}
+function gestorSalvarMetaTime(){
+  var val=v('gestor-meta-time');
+  localStorage.setItem('rsd_gestor_meta_time',val);
+  if(_currentUID===GESTOR_UID){
+    db.collection('usuarios').doc(GESTOR_UID).set({metaTime:val},{merge:true}).catch(function(err){
+      _fbLog('❌ ERRO (meta time): '+err.message);
+    });
+  }
+  renderGestor();
+}
+function _gestorQuinzenaDe(dataISO){
+  var d=dataISO?new Date(dataISO):new Date();
+  if(isNaN(d.getTime()))d=new Date();
+  return d.getDate()<=15?1:2;
+}
 function renderGestor(){
   var resumoHost=document.getElementById('gestor-resumo');
   var tabelaHost=document.getElementById('gestor-tabela');
   var histHost=document.getElementById('gestor-historico');
+  var metaResumoHost=document.getElementById('gestor-meta-resumo');
+  var quinzenaHost=document.getElementById('gestor-quinzena');
+  var alertasHost=document.getElementById('gestor-alertas');
+  var distribHost=document.getElementById('gestor-distribuicao');
+  var evolHost=document.getElementById('gestor-evolucao');
   if(!resumoHost)return;
   if(_currentUID!==GESTOR_UID){
     resumoHost.innerHTML='<div class="hem">Acesso restrito ao gestor.</div>';
     return;
   }
+  var metaTimeInput=document.getElementById('gestor-meta-time');
+  if(metaTimeInput && !metaTimeInput.value)metaTimeInput.value=_gestorGetMetaTime();
   resumoHost.innerHTML='<div class="hem">Carregando...</div>';
   tabelaHost.innerHTML='';
   histHost.innerHTML='';
@@ -1582,6 +1633,9 @@ function renderGestor(){
     var linhas=[];
     var historicoTodos=[];
     var producaoTotal=0, comissaoTotal=0;
+    var producaoQ1=0, producaoQ2=0;
+    var distrib={motoNormal:0,motoPremium:0,imovel:0};
+    var evolucaoPorMes={}; // "AAAA-M" -> total comissao
 
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
@@ -1594,6 +1648,18 @@ function renderGestor(){
       producaoTotal+=producao;
       comissaoTotal+=r.totalGeral;
 
+      vendas.forEach(function(x){
+        if(_gestorQuinzenaDe(x.data)===1)producaoQ1+=x.valor;else producaoQ2+=x.valor;
+        if(x.tipo==='imovel')distrib.imovel+=x.valor;
+        else if(x.premium)distrib.motoPremium+=x.valor;
+        else distrib.motoNormal+=x.valor;
+      });
+
+      (d.comissaoHistorico||[]).forEach(function(m){
+        var chave=m.ano+'-'+String(m.mes+1).padStart(2,'0');
+        evolucaoPorMes[chave]=(evolucaoPorMes[chave]||0)+(m.totalGeral||0);
+      });
+
       var metaNum=parseFloat((meta.meta||'').replace(/\./g,'').replace(',','.'))||0;
       var diasUteis=parseInt(meta.diasUteis)||0;
       var diasTrab=parseInt(meta.diasTrabalhados)||0;
@@ -1601,11 +1667,19 @@ function renderGestor(){
       var diasRestantes=Math.max(0,diasUteis-diasTrab);
       var projecaoFinal=producao+(mediaDia*diasRestantes);
       var noRitmo=metaNum>0?(projecaoFinal>=metaNum):null;
+      var pct=metaNum>0?Math.min(100,Math.round((producao/metaNum)*100)):null;
+
+      var ultimaVendaTs=0;
+      vendas.forEach(function(x){var t=x.data?new Date(x.data).getTime():0;if(t>ultimaVendaTs)ultimaVendaTs=t;});
+      (d.historico||[]).forEach(function(h){var t=_parseDataBR(h.data);if(t>ultimaVendaTs)ultimaVendaTs=t;});
+      var diasSemVenda=ultimaVendaTs>0?Math.floor((Date.now()-ultimaVendaTs)/86400000):null;
 
       linhas.push({
-        nome:nome,producao:producao,comissao:r.totalGeral,noRitmo:noRitmo,metaNum:metaNum,
+        nome:nome,producao:producao,comissao:r.totalGeral,noRitmo:noRitmo,metaNum:metaNum,pct:pct,
+        projecaoFinal:metaNum>0?projecaoFinal:producao,
         documentos:(perfis[uid]&&perfis[uid].documentos)||0,
-        modulos:(perfis[uid]&&perfis[uid].modulosCompletos)||0
+        modulos:(perfis[uid]&&perfis[uid].modulosCompletos)||0,
+        diasSemVenda:diasSemVenda
       });
 
       (d.historico||[]).forEach(function(h){
@@ -1616,24 +1690,129 @@ function renderGestor(){
     linhas.sort(function(a,b){return b.comissao-a.comissao;});
     historicoTodos.sort(function(a,b){return _parseDataBR(b.data)-_parseDataBR(a.data);});
 
+    // ===== META DO TIME =====
+    var metaTimeNum=_propNum2('gestor-meta-time');
+    if(metaTimeNum>0){
+      var faltaTime=Math.max(0,metaTimeNum-producaoTotal);
+      var projecaoTime=linhas.reduce(function(s,l){return s+l.projecaoFinal;},0);
+      var pctTime=Math.min(100,Math.round((producaoTotal/metaTimeNum)*100));
+      var bateTime=projecaoTime>=metaTimeNum;
+      metaResumoHost.innerHTML=
+        '<div style="height:14px;background:var(--cb);border-radius:7px;overflow:hidden;margin-bottom:14px;"><div style="height:100%;width:'+pctTime+'%;background:linear-gradient(90deg,var(--v),'+(bateTime?'#16a34a':'#dc2626')+');"></div></div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">'+
+          _pjCard('Produção do time','R$ '+_pjFmt(producaoTotal))+
+          _pjCard('Falta pra meta do time','R$ '+_pjFmt(faltaTime))+
+          _pjCard('Projeção do time','R$ '+_pjFmt(projecaoTime),bateTime)+
+          _pjCard('% da meta',pctTime+'%')+
+        '</div>'+
+        (bateTime?'<div style="margin-top:10px;font-size:12px;color:#16a34a;font-weight:700;">🟢 No ritmo atual, o time bate a meta.</div>':
+          '<div style="margin-top:10px;font-size:12px;color:#dc2626;font-weight:700;">🔴 No ritmo atual, o time fecha R$ '+_pjFmt(metaTimeNum-projecaoTime)+' abaixo da meta.</div>');
+    } else {
+      metaResumoHost.innerHTML='<div class="hem">Defina a meta do time acima pra ver o progresso.</div>';
+    }
+
+    // ===== QUINZENA =====
+    var totalQuinzenas=producaoQ1+producaoQ2;
+    var pctQ1=totalQuinzenas>0?Math.round((producaoQ1/totalQuinzenas)*100):0;
+    var pctQ2=100-pctQ1;
+    var hoje=new Date();
+    var quinzenaAtual=hoje.getDate()<=15?1:2;
+    quinzenaHost.innerHTML=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+        '<div style="background:var(--p);border:1px solid var(--cb);border-radius:10px;padding:14px;'+(quinzenaAtual===1?'border-color:var(--v);':'')+'">'+
+          '<div style="font-size:10px;color:var(--tm);text-transform:uppercase;">1ª Quinzena (dias 1–15)'+(quinzenaAtual===1?' <span style="color:var(--v);">· atual</span>':'')+'</div>'+
+          '<div style="font-size:20px;font-weight:800;color:var(--t);margin-top:4px;">R$ '+_pjFmt(producaoQ1)+'</div>'+
+          '<div style="font-size:11px;color:var(--tm);">'+pctQ1+'% da produção do mês</div>'+
+        '</div>'+
+        '<div style="background:var(--p);border:1px solid var(--cb);border-radius:10px;padding:14px;'+(quinzenaAtual===2?'border-color:var(--v);':'')+'">'+
+          '<div style="font-size:10px;color:var(--tm);text-transform:uppercase;">2ª Quinzena (dias 16+)'+(quinzenaAtual===2?' <span style="color:var(--v);">· atual</span>':'')+'</div>'+
+          '<div style="font-size:20px;font-weight:800;color:var(--t);margin-top:4px;">R$ '+_pjFmt(producaoQ2)+'</div>'+
+          '<div style="font-size:11px;color:var(--tm);">'+pctQ2+'% da produção do mês</div>'+
+        '</div>'+
+      '</div>';
+
+    // ===== RESUMO GERAL =====
     resumoHost.innerHTML=
       _pjCard('Produção do time','R$ '+_pjFmt(producaoTotal))+
       _pjCard('Comissão do time','R$ '+_pjFmt(comissaoTotal))+
       _pjCard('Consultores ativos',linhas.length);
 
+    // ===== ALERTAS =====
+    var semMeta=linhas.filter(function(l){return l.metaNum===0;});
+    var parados=linhas.filter(function(l){return l.diasSemVenda!==null && l.diasSemVenda>=5;});
+    if(semMeta.length===0 && parados.length===0){
+      alertasHost.innerHTML='';
+    } else {
+      var htmlAlertas='';
+      if(semMeta.length>0){
+        htmlAlertas+='<div class="fc" style="padding:14px 20px;margin-bottom:10px;border:1.5px solid #d97706;background:rgba(217,119,6,0.08);">'+
+          '<div style="font-size:12px;font-weight:700;color:#d97706;">⚠️ Sem meta cadastrada: '+semMeta.map(function(l){return l.nome;}).join(', ')+'</div></div>';
+      }
+      if(parados.length>0){
+        htmlAlertas+='<div class="fc" style="padding:14px 20px;border:1.5px solid #dc2626;background:rgba(220,38,38,0.08);">'+
+          '<div style="font-size:12px;font-weight:700;color:#dc2626;">🚨 Sem vender há 5+ dias: '+parados.map(function(l){return l.nome+' ('+l.diasSemVenda+'d)';}).join(', ')+'</div></div>';
+      }
+      alertasHost.innerHTML=htmlAlertas;
+    }
+
+    // ===== TABELA COM BARRA DE PROGRESSO =====
     tabelaHost.innerHTML=linhas.map(function(l){
       var statusHtml=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">🟢 No ritmo</span>':
         l.noRitmo===false?'<span style="color:#dc2626;font-weight:700;">🔴 Atrasado</span>':
         '<span style="color:var(--tm);">— sem meta</span>';
-      return '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--cb);">'+
-        '<div style="flex:1;min-width:140px;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+l.nome+'</div>'+
-        '<div style="font-size:10px;color:var(--tm);">'+l.documentos+' docs · '+l.modulos+' módulos</div></div>'+
-        '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção</div><div style="font-size:13px;font-weight:700;color:var(--t);">R$ '+_pjFmt(l.producao)+'</div></div>'+
-        '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão</div><div style="font-size:13px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(l.comissao)+'</div></div>'+
-        '<div style="text-align:right;min-width:90px;">'+statusHtml+'</div>'+
+      var barra=l.pct!==null?'<div style="height:6px;background:var(--cb);border-radius:3px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:'+l.pct+'%;background:'+(l.noRitmo?'#16a34a':'#dc2626')+';"></div></div>':'';
+      return '<div style="padding:12px 20px;border-bottom:1px solid var(--cb);">'+
+        '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">'+
+          '<div style="flex:1;min-width:140px;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+l.nome+'</div>'+
+          '<div style="font-size:10px;color:var(--tm);">'+l.documentos+' docs · '+l.modulos+' módulos'+(l.diasSemVenda!==null?' · última venda há '+l.diasSemVenda+'d':'')+'</div></div>'+
+          '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção</div><div style="font-size:13px;font-weight:700;color:var(--t);">R$ '+_pjFmt(l.producao)+'</div></div>'+
+          '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão</div><div style="font-size:13px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(l.comissao)+'</div></div>'+
+          '<div style="text-align:right;min-width:90px;">'+statusHtml+(l.pct!==null?'<div style="font-size:10px;color:var(--tm);">'+l.pct+'% da meta</div>':'')+'</div>'+
+        '</div>'+barra+
       '</div>';
     }).join('')||'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
 
+    // ===== DISTRIBUICAO POR TIPO =====
+    var totalDistrib=distrib.motoNormal+distrib.motoPremium+distrib.imovel;
+    if(totalDistrib===0){
+      distribHost.innerHTML='<div class="hem">Nenhuma venda lançada pelo time ainda esse mês.</div>';
+    } else {
+      var itens=[
+        {label:'Moto Normal',valor:distrib.motoNormal,cor:'#0891B2'},
+        {label:'Moto Premium',valor:distrib.motoPremium,cor:'#16a34a'},
+        {label:'Imóvel',valor:distrib.imovel,cor:'#d97706'}
+      ];
+      distribHost.innerHTML=itens.map(function(it){
+        var pct=Math.round((it.valor/totalDistrib)*100);
+        return '<div style="margin-bottom:12px;">'+
+          '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--t);font-weight:600;">'+it.label+'</span><span style="color:var(--tm);">R$ '+_pjFmt(it.valor)+' ('+pct+'%)</span></div>'+
+          '<div style="height:10px;background:var(--cb);border-radius:5px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:'+it.cor+';"></div></div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // ===== EVOLUCAO MES A MES =====
+    var chaves=Object.keys(evolucaoPorMes).sort();
+    if(chaves.length===0){
+      evolHost.innerHTML='<div class="hem">Ainda não há meses fechados pra comparar. Assim que alguém usar "Fechar mês" na Projeção, aparece aqui.</div>';
+    } else {
+      var maxVal=Math.max.apply(null,chaves.map(function(k){return evolucaoPorMes[k];}));
+      evolHost.innerHTML='<div style="display:flex;gap:10px;align-items:flex-end;height:140px;overflow-x:auto;padding-bottom:4px;">'+
+        chaves.map(function(k){
+          var val=evolucaoPorMes[k];
+          var h=maxVal>0?Math.max(6,Math.round((val/maxVal)*110)):6;
+          var partes=k.split('-');
+          var label=MESES_PT[parseInt(partes[1])-1].slice(0,3)+'/'+partes[0].slice(2);
+          return '<div style="flex:0 0 56px;text-align:center;">'+
+            '<div style="font-size:9px;color:var(--tm);margin-bottom:2px;">R$ '+Math.round(val/1000)+'k</div>'+
+            '<div style="height:'+h+'px;background:var(--v);border-radius:4px 4px 0 0;"></div>'+
+            '<div style="font-size:10px;color:var(--tm);margin-top:4px;">'+label+'</div>'+
+          '</div>';
+        }).join('')+
+      '</div>';
+    }
+
+    // ===== HISTORICO =====
     histHost.innerHTML=historicoTodos.slice(0,150).map(function(h){
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--cb);font-size:12px;gap:10px;">'+
         '<div><strong style="color:var(--t);">'+h.cliente+'</strong> <span style="color:var(--tm);">· '+h.tipo+'</span><br>'+
@@ -1642,10 +1821,37 @@ function renderGestor(){
       '</div>';
     }).join('')||'<div class="hem" style="padding:20px;">Nenhum registro no time ainda.</div>';
 
+    _gestorUltimoDados={linhas:linhas,producaoTotal:producaoTotal,comissaoTotal:comissaoTotal,metaTimeNum:metaTimeNum,producaoQ1:producaoQ1,producaoQ2:producaoQ2,distrib:distrib};
+
   }).catch(function(err){
     resumoHost.innerHTML='<div class="hem" style="color:#c0392b;padding:16px;">Erro ao carregar: '+err.message+'</div>';
   });
 }
+var _gestorUltimoDados=null;
+function gestorExportarPDF(){
+  if(!_gestorUltimoDados){toast('⚠️ Espera o painel carregar antes de exportar','#c0392b');return;}
+  var d=_gestorUltimoDados;
+  var hoje=new Date().toLocaleDateString('pt-BR');
+  var linhasHtml=d.linhas.map(function(l){
+    return '<tr><td style="padding:8px;border-bottom:1px solid #eee;">'+l.nome+'</td>'+
+      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">R$ '+_pjFmt(l.producao)+'</td>'+
+      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">R$ '+_pjFmt(l.comissao)+'</td>'+
+      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">'+(l.noRitmo===true?'No ritmo':l.noRitmo===false?'Atrasado':'—')+'</td></tr>';
+  }).join('');
+  var html='<h1 style="font-family:Arial;color:#0891B2;">Relatório do Time — Red Sea Digital</h1>'+
+    '<p style="font-family:Arial;color:#666;">Gerado em '+hoje+'</p>'+
+    '<h2 style="font-family:Arial;">Resumo</h2>'+
+    '<p style="font-family:Arial;">Produção do time: <strong>R$ '+_pjFmt(d.producaoTotal)+'</strong><br>'+
+    'Comissão do time: <strong>R$ '+_pjFmt(d.comissaoTotal)+'</strong><br>'+
+    (d.metaTimeNum>0?'Meta do time: <strong>R$ '+_pjFmt(d.metaTimeNum)+'</strong><br>':'')+
+    '1ª Quinzena: <strong>R$ '+_pjFmt(d.producaoQ1)+'</strong> · 2ª Quinzena: <strong>R$ '+_pjFmt(d.producaoQ2)+'</strong></p>'+
+    '<h2 style="font-family:Arial;">Por Consultor</h2>'+
+    '<table style="width:100%;border-collapse:collapse;font-family:Arial;font-size:13px;">'+
+    '<tr style="background:#f5f5f5;"><th style="padding:8px;text-align:left;">Consultor</th><th style="padding:8px;text-align:right;">Produção</th><th style="padding:8px;text-align:right;">Comissão</th><th style="padding:8px;">Ritmo</th></tr>'+
+    linhasHtml+'</table>';
+  abrirPDF(html,'Relatorio_Time','Painel_Gestor');
+}
+
 
 function _pjRenderHistoricoMeses(){
   var host=document.getElementById('pj-historico-meses');
@@ -1820,7 +2026,7 @@ function pjAdicionarVenda(){
   var valor=_propNum2('pj-valor');
   if(!valor){toast('⚠️ Informe o valor da venda','#c0392b');return;}
   var arr=_pjGet();
-  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null});
+  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:new Date().toISOString()});
   _pjSet(arr);
   document.getElementById('pj-valor').value='';
   toast('✅ Venda adicionada!');

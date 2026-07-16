@@ -1222,7 +1222,6 @@ function _fbCarregarDados(uid){
       if(d.comissaoHistorico!==undefined)localStorage.setItem('rsd_pj_historico',JSON.stringify(d.comissaoHistorico));
       if(d.pjVendas!==undefined)localStorage.setItem('rsd_pj_vendas',JSON.stringify(d.pjVendas));
       if(d.pjMeta!==undefined)localStorage.setItem('rsd_pj_meta',JSON.stringify(d.pjMeta));
-      if(d.metaTime!==undefined)localStorage.setItem('rsd_gestor_meta_time',d.metaTime);
     } else {
       _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
@@ -1593,7 +1592,7 @@ function gestorSalvarMetaTime(){
   var val=v('gestor-meta-time');
   localStorage.setItem('rsd_gestor_meta_time',val);
   if(GESTOR_UIDS.includes(_currentUID)){
-    db.collection('usuarios').doc(_currentUID).set({metaTime:val},{merge:true}).catch(function(err){
+    db.collection('config').doc('time').set({metaTime:val,atualizadoPor:_fbNomeAtual()},{merge:true}).catch(function(err){
       _fbLog('❌ ERRO (meta time): '+err.message);
     });
   }
@@ -1626,9 +1625,15 @@ function renderGestor(){
 
   Promise.all([
     db.collection('perfis_publicos').get(),
-    db.collection('usuarios').get()
+    db.collection('usuarios').get(),
+    db.collection('config').doc('time').get()
   ]).then(function(results){
-    var perfisSnap=results[0], usuariosSnap=results[1];
+    var perfisSnap=results[0], usuariosSnap=results[1], configSnap=results[2];
+    if(configSnap.exists && configSnap.data().metaTime!==undefined){
+      var valCompartilhado=configSnap.data().metaTime;
+      localStorage.setItem('rsd_gestor_meta_time',valCompartilhado);
+      if(metaTimeInput)metaTimeInput.value=valCompartilhado;
+    }
     var perfis={};
     perfisSnap.forEach(function(doc){perfis[doc.id]=doc.data();});
 

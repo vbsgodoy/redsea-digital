@@ -1691,6 +1691,7 @@ function renderGestor(){
       var meta=d.pjMeta||{};
       var r=vendas.length?calcularComissao(vendas):{totalGeral:0};
       var producao=vendas.reduce(function(s,x){return s+x.valor;},0);
+      var producaoFiltradaConsultor=vendas.filter(function(x){return _gestorVendaNoFiltro(x,filtroPeriodo);}).reduce(function(s,x){return s+x.valor;},0);
       producaoTotal+=producao;
       comissaoTotal+=r.totalGeral;
 
@@ -1731,7 +1732,7 @@ function renderGestor(){
       var totalDocs=Object.keys(contagemTipos).reduce(function(s,k){return s+contagemTipos[k];},0);
 
       linhas.push({
-        nome:nome,producao:producao,comissao:r.totalGeral,noRitmo:noRitmo,metaNum:metaNum,pct:pct,
+        nome:nome,producao:producao,producaoFiltrada:producaoFiltradaConsultor,comissao:r.totalGeral,noRitmo:noRitmo,metaNum:metaNum,pct:pct,
         projecaoFinal:metaNum>0?projecaoFinal:producao,
         documentos:totalDocs,
         modulos:(perfis[uid]&&perfis[uid].modulosCompletos)||0,
@@ -1812,20 +1813,22 @@ function renderGestor(){
 
     // ===== TABELA COM META, BARRA DE PROGRESSO =====
     var medalhas=['🥇','🥈','🥉'];
+    var labelProducaoCol=filtroPeriodo==='mes'?'Produção (mês)':'Produção · '+labelsPeriodo[filtroPeriodo];
     tabelaHost.innerHTML=linhas.map(function(l,i){
       var statusHtml=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">🟢 No ritmo</span>':
         l.noRitmo===false?'<span style="color:#dc2626;font-weight:700;">🔴 Atrasado</span>':
         '<span style="color:var(--tm);">— sem meta</span>';
       var barra=l.pct!==null?'<div style="height:6px;background:var(--cb);border-radius:3px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:'+l.pct+'%;background:'+(l.noRitmo?'#16a34a':'#dc2626')+';"></div></div>':'';
       var posicao='<div style="font-size:18px;width:30px;text-align:center;flex-shrink:0;">'+(medalhas[i]||('<span style="font-size:13px;color:var(--tm);font-weight:700;">'+(i+1)+'º</span>'))+'</div>';
+      var producaoExibida=filtroPeriodo==='mes'?l.producao:l.producaoFiltrada;
       return '<div style="padding:12px 20px;border-bottom:1px solid var(--cb);">'+
         '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">'+
           posicao+
           '<div style="flex:1;min-width:140px;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+l.nome+'</div>'+
           '<div style="font-size:10px;color:var(--tm);">'+l.documentos+' docs · '+l.modulos+' módulos'+(l.diasSemVenda!==null?' · última venda há '+l.diasSemVenda+'d':'')+'</div></div>'+
           '<div style="text-align:right;min-width:100px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Meta</div><div style="font-size:13px;font-weight:700;color:var(--t);">'+(l.metaNum>0?'R$ '+_pjFmt(l.metaNum):'—')+'</div></div>'+
-          '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção</div><div style="font-size:13px;font-weight:700;color:var(--t);">R$ '+_pjFmt(l.producao)+'</div></div>'+
-          '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão</div><div style="font-size:13px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(l.comissao)+'</div></div>'+
+          '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">'+labelProducaoCol+'</div><div style="font-size:13px;font-weight:700;color:var(--t);">R$ '+_pjFmt(producaoExibida)+'</div></div>'+
+          '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão (mês)</div><div style="font-size:13px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(l.comissao)+'</div></div>'+
           '<div style="text-align:right;min-width:90px;">'+statusHtml+(l.pct!==null?'<div style="font-size:10px;color:var(--tm);">'+l.pct+'% da meta</div>':'')+'</div>'+
         '</div>'+barra+
       '</div>';

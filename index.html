@@ -324,6 +324,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="sb-nav-item" onclick="aba('equipe',this)"><span class="sb-dot"></span>Equipe</div>
     <div class="sb-nav-item" onclick="aba('agenda',this)"><span class="sb-dot"></span>Agenda</div>
     <div class="sb-nav-item" onclick="aba('comissao',this)"><span class="sb-dot"></span>Projeção</div>
+    <div class="sb-nav-item" id="nav-gestor" style="display:none;" onclick="aba('gestor',this)"><span class="sb-dot"></span>Painel do Gestor</div>
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button class="sb-theme-btn" id="theme-toggle" onclick="alternarTema()" title="Alternar tema">&#9788;</button>
@@ -941,6 +942,25 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
   </div><!-- /page-content -->
 </div>
+<div id="tab-gestor" class="tp" style="display:none;">
+    <div class="topbar"><div class="topbar-title">Painel do Gestor</div><div class="topbar-sub">Visão completa do time</div></div>
+  <div class="page-content">
+  <div class="pt"><h2>Painel do Gestor</h2><p>Acompanhe a <span class="hl">produção, comissão e ritmo</span> de cada consultor</p></div>
+
+    <div id="gestor-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Time — Produção, Comissão e Ritmo</div>
+      <div id="gestor-tabela" style="padding:8px 0;"></div>
+    </div>
+
+    <div class="fc">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Four%20oclock/3D/four_oclock_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Histórico do Time (todos os consultores)</div>
+      <div id="gestor-historico" style="padding:8px 0;max-height:600px;overflow-y:auto;"></div>
+    </div>
+
+  </div><!-- /page-content -->
+</div>
 <div id="tab-scripts" class="tp" style="display:none;">
     <div class="topbar"><div class="topbar-title">Scripts</div><div class="topbar-sub">Roteiros de abordagem</div></div>
   <div class="page-content">
@@ -1139,6 +1159,7 @@ function _fbErroTraduzido(code){
   return mapa[code]||'Não foi possível concluir. Tente novamente.';
 }
 var _currentUID=null;
+var GESTOR_UID='PlKKgHHFTFUuMc0TrMQsZIXHpyz2'; // Vitor Godoy
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');
   var appShell=document.getElementById('app-shell');
@@ -1152,6 +1173,8 @@ firebase.auth().onAuthStateChanged(function(user){
     _fbCarregarDados(user.uid);
     _fbCarregarMeuAniversario(user.uid);
     _agIniciarLembretes();
+    var navGestor=document.getElementById('nav-gestor');
+    if(navGestor)navGestor.style.display=(user.uid===GESTOR_UID?'block':'none');
   } else {
     _currentUID=null;
     loginScreen.style.display='flex';
@@ -1530,6 +1553,100 @@ function pjFecharMes(){
   toast('📁 Mês fechado! Comissão de R$ '+_pjFmt(r.totalGeral)+' guardada no histórico.');
   renderComissaoTab();
 }
+function _parseDataBR(str){
+  var m=(str||'').match(/(\d{2})\/(\d{2})\/(\d{4}),?\s*(\d{2}):(\d{2}):(\d{2})/);
+  if(!m)return 0;
+  return new Date(m[3],m[2]-1,m[1],m[4],m[5],m[6]).getTime();
+}
+function renderGestor(){
+  var resumoHost=document.getElementById('gestor-resumo');
+  var tabelaHost=document.getElementById('gestor-tabela');
+  var histHost=document.getElementById('gestor-historico');
+  if(!resumoHost)return;
+  if(_currentUID!==GESTOR_UID){
+    resumoHost.innerHTML='<div class="hem">Acesso restrito ao gestor.</div>';
+    return;
+  }
+  resumoHost.innerHTML='<div class="hem">Carregando...</div>';
+  tabelaHost.innerHTML='';
+  histHost.innerHTML='';
+
+  Promise.all([
+    db.collection('perfis_publicos').get(),
+    db.collection('usuarios').get()
+  ]).then(function(results){
+    var perfisSnap=results[0], usuariosSnap=results[1];
+    var perfis={};
+    perfisSnap.forEach(function(doc){perfis[doc.id]=doc.data();});
+
+    var linhas=[];
+    var historicoTodos=[];
+    var producaoTotal=0, comissaoTotal=0;
+
+    usuariosSnap.forEach(function(doc){
+      var uid=doc.id;
+      var d=doc.data();
+      var nome=(perfis[uid]&&perfis[uid].nome)||'Consultor';
+      var vendas=d.pjVendas||[];
+      var meta=d.pjMeta||{};
+      var r=vendas.length?calcularComissao(vendas):{totalGeral:0};
+      var producao=vendas.reduce(function(s,x){return s+x.valor;},0);
+      producaoTotal+=producao;
+      comissaoTotal+=r.totalGeral;
+
+      var metaNum=parseFloat((meta.meta||'').replace(/\./g,'').replace(',','.'))||0;
+      var diasUteis=parseInt(meta.diasUteis)||0;
+      var diasTrab=parseInt(meta.diasTrabalhados)||0;
+      var mediaDia=diasTrab>0?(producao/diasTrab):0;
+      var diasRestantes=Math.max(0,diasUteis-diasTrab);
+      var projecaoFinal=producao+(mediaDia*diasRestantes);
+      var noRitmo=metaNum>0?(projecaoFinal>=metaNum):null;
+
+      linhas.push({
+        nome:nome,producao:producao,comissao:r.totalGeral,noRitmo:noRitmo,metaNum:metaNum,
+        documentos:(perfis[uid]&&perfis[uid].documentos)||0,
+        modulos:(perfis[uid]&&perfis[uid].modulosCompletos)||0
+      });
+
+      (d.historico||[]).forEach(function(h){
+        historicoTodos.push({cliente:h.nome,tipo:h.tipo,modelo:h.modelo,data:h.data,consultor:nome});
+      });
+    });
+
+    linhas.sort(function(a,b){return b.comissao-a.comissao;});
+    historicoTodos.sort(function(a,b){return _parseDataBR(b.data)-_parseDataBR(a.data);});
+
+    resumoHost.innerHTML=
+      _pjCard('Produção do time','R$ '+_pjFmt(producaoTotal))+
+      _pjCard('Comissão do time','R$ '+_pjFmt(comissaoTotal))+
+      _pjCard('Consultores ativos',linhas.length);
+
+    tabelaHost.innerHTML=linhas.map(function(l){
+      var statusHtml=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">🟢 No ritmo</span>':
+        l.noRitmo===false?'<span style="color:#dc2626;font-weight:700;">🔴 Atrasado</span>':
+        '<span style="color:var(--tm);">— sem meta</span>';
+      return '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--cb);">'+
+        '<div style="flex:1;min-width:140px;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+l.nome+'</div>'+
+        '<div style="font-size:10px;color:var(--tm);">'+l.documentos+' docs · '+l.modulos+' módulos</div></div>'+
+        '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção</div><div style="font-size:13px;font-weight:700;color:var(--t);">R$ '+_pjFmt(l.producao)+'</div></div>'+
+        '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão</div><div style="font-size:13px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(l.comissao)+'</div></div>'+
+        '<div style="text-align:right;min-width:90px;">'+statusHtml+'</div>'+
+      '</div>';
+    }).join('')||'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
+
+    histHost.innerHTML=historicoTodos.slice(0,150).map(function(h){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--cb);font-size:12px;gap:10px;">'+
+        '<div><strong style="color:var(--t);">'+h.cliente+'</strong> <span style="color:var(--tm);">· '+h.tipo+'</span><br>'+
+        '<span style="color:var(--tm);font-size:10px;">'+h.modelo+' · consultor: '+h.consultor+'</span></div>'+
+        '<div style="text-align:right;color:var(--tm);font-size:10px;white-space:nowrap;">'+h.data+'</div>'+
+      '</div>';
+    }).join('')||'<div class="hem" style="padding:20px;">Nenhum registro no time ainda.</div>';
+
+  }).catch(function(err){
+    resumoHost.innerHTML='<div class="hem" style="color:#c0392b;padding:16px;">Erro ao carregar: '+err.message+'</div>';
+  });
+}
+
 function _pjRenderHistoricoMeses(){
   var host=document.getElementById('pj-historico-meses');
   if(!host)return;
@@ -1976,6 +2093,7 @@ function aba(id,el){
   if(id==='equipe')renderEquipe();
   if(id==='agenda')renderAgenda();
   if(id==='comissao')renderComissaoTab();
+  if(id==='gestor')renderGestor();
   if(id==='agendamento')renderAgendamento();
 }
 function irPara(id){

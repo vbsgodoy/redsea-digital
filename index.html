@@ -980,7 +980,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Four%20oclock/3D/four_oclock_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Histórico do Time (todos os consultores)</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Atividade por Tipo de Documento (Esforço)</div>
       <div id="gestor-historico" style="padding:8px 0;max-height:600px;overflow-y:auto;"></div>
     </div>
 
@@ -1605,7 +1605,7 @@ function _gestorQuinzenaDe(dataISO){
 function renderGestor(){
   var resumoHost=document.getElementById('gestor-resumo');
   var tabelaHost=document.getElementById('gestor-tabela');
-  var histHost=document.getElementById('gestor-historico');
+  var atividadeHost=document.getElementById('gestor-historico');
   var metaResumoHost=document.getElementById('gestor-meta-resumo');
   var quinzenaHost=document.getElementById('gestor-quinzena');
   var alertasHost=document.getElementById('gestor-alertas');
@@ -1620,7 +1620,7 @@ function renderGestor(){
   if(metaTimeInput && !metaTimeInput.value)metaTimeInput.value=_gestorGetMetaTime();
   resumoHost.innerHTML='<div class="hem">Carregando...</div>';
   tabelaHost.innerHTML='';
-  histHost.innerHTML='';
+  atividadeHost.innerHTML='';
 
   Promise.all([
     db.collection('perfis_publicos').get(),
@@ -1631,11 +1631,12 @@ function renderGestor(){
     perfisSnap.forEach(function(doc){perfis[doc.id]=doc.data();});
 
     var linhas=[];
-    var historicoTodos=[];
     var producaoTotal=0, comissaoTotal=0;
     var producaoQ1=0, producaoQ2=0;
     var distrib={motoNormal:0,motoPremium:0,imovel:0};
-    var evolucaoPorMes={}; // "AAAA-M" -> total comissao
+    var evolucaoPorMes={};
+    var TIPOS_DOC=['Análise de Lance','Analise de Lance CNPJ','Boas-vindas','Alerta Pós-vendas','Cobranca'];
+    var TIPOS_LABEL={'Análise de Lance':'Análise PF','Analise de Lance CNPJ':'Análise PJ','Boas-vindas':'Boas-vindas','Alerta Pós-vendas':'Alerta','Cobranca':'Cobrança'};
 
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
@@ -1674,21 +1675,25 @@ function renderGestor(){
       (d.historico||[]).forEach(function(h){var t=_parseDataBR(h.data);if(t>ultimaVendaTs)ultimaVendaTs=t;});
       var diasSemVenda=ultimaVendaTs>0?Math.floor((Date.now()-ultimaVendaTs)/86400000):null;
 
+      var contagemTipos={};
+      TIPOS_DOC.forEach(function(t){contagemTipos[t]=0;});
+      (d.historico||[]).forEach(function(h){
+        if(contagemTipos[h.tipo]!==undefined)contagemTipos[h.tipo]++;
+      });
+      var totalDocs=Object.keys(contagemTipos).reduce(function(s,k){return s+contagemTipos[k];},0);
+
       linhas.push({
         nome:nome,producao:producao,comissao:r.totalGeral,noRitmo:noRitmo,metaNum:metaNum,pct:pct,
         projecaoFinal:metaNum>0?projecaoFinal:producao,
-        documentos:(perfis[uid]&&perfis[uid].documentos)||0,
+        documentos:totalDocs,
         modulos:(perfis[uid]&&perfis[uid].modulosCompletos)||0,
-        diasSemVenda:diasSemVenda
-      });
-
-      (d.historico||[]).forEach(function(h){
-        historicoTodos.push({cliente:h.nome,tipo:h.tipo,modelo:h.modelo,data:h.data,consultor:nome});
+        diasSemVenda:diasSemVenda,
+        contagemTipos:contagemTipos,
+        qtdVendas:vendas.length
       });
     });
 
     linhas.sort(function(a,b){return b.comissao-a.comissao;});
-    historicoTodos.sort(function(a,b){return _parseDataBR(b.data)-_parseDataBR(a.data);});
 
     // ===== META DO TIME =====
     var metaTimeNum=_propNum2('gestor-meta-time');
@@ -1755,7 +1760,7 @@ function renderGestor(){
       alertasHost.innerHTML=htmlAlertas;
     }
 
-    // ===== TABELA COM BARRA DE PROGRESSO =====
+    // ===== TABELA COM META, BARRA DE PROGRESSO =====
     tabelaHost.innerHTML=linhas.map(function(l){
       var statusHtml=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">🟢 No ritmo</span>':
         l.noRitmo===false?'<span style="color:#dc2626;font-weight:700;">🔴 Atrasado</span>':
@@ -1765,6 +1770,7 @@ function renderGestor(){
         '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">'+
           '<div style="flex:1;min-width:140px;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+l.nome+'</div>'+
           '<div style="font-size:10px;color:var(--tm);">'+l.documentos+' docs · '+l.modulos+' módulos'+(l.diasSemVenda!==null?' · última venda há '+l.diasSemVenda+'d':'')+'</div></div>'+
+          '<div style="text-align:right;min-width:100px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Meta</div><div style="font-size:13px;font-weight:700;color:var(--t);">'+(l.metaNum>0?'R$ '+_pjFmt(l.metaNum):'—')+'</div></div>'+
           '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção</div><div style="font-size:13px;font-weight:700;color:var(--t);">R$ '+_pjFmt(l.producao)+'</div></div>'+
           '<div style="text-align:right;min-width:110px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão</div><div style="font-size:13px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(l.comissao)+'</div></div>'+
           '<div style="text-align:right;min-width:90px;">'+statusHtml+(l.pct!==null?'<div style="font-size:10px;color:var(--tm);">'+l.pct+'% da meta</div>':'')+'</div>'+
@@ -1772,7 +1778,7 @@ function renderGestor(){
       '</div>';
     }).join('')||'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
 
-    // ===== DISTRIBUICAO POR TIPO =====
+    // ===== DISTRIBUICAO POR TIPO DE VENDA =====
     var totalDistrib=distrib.motoNormal+distrib.motoPremium+distrib.imovel;
     if(totalDistrib===0){
       distribHost.innerHTML='<div class="hem">Nenhuma venda lançada pelo time ainda esse mês.</div>';
@@ -1812,16 +1818,24 @@ function renderGestor(){
       '</div>';
     }
 
-    // ===== HISTORICO =====
-    histHost.innerHTML=historicoTodos.slice(0,150).map(function(h){
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--cb);font-size:12px;gap:10px;">'+
-        '<div><strong style="color:var(--t);">'+h.cliente+'</strong> <span style="color:var(--tm);">· '+h.tipo+'</span><br>'+
-        '<span style="color:var(--tm);font-size:10px;">'+h.modelo+' · consultor: '+h.consultor+'</span></div>'+
-        '<div style="text-align:right;color:var(--tm);font-size:10px;white-space:nowrap;">'+h.data+'</div>'+
-      '</div>';
-    }).join('')||'<div class="hem" style="padding:20px;">Nenhum registro no time ainda.</div>';
+    // ===== ATIVIDADE POR TIPO DE DOCUMENTO (esforco) =====
+    var maiorAnalisePF=linhas.slice().sort(function(a,b){return (b.contagemTipos['Análise de Lance']||0)-(a.contagemTipos['Análise de Lance']||0);})[0];
+    var atividadeTabela='<div style="padding:0 20px 10px;font-size:11px;color:var(--tm);">Indicador de esforço/atividade — não significa necessariamente que a venda foi creditada pra essa pessoa (às vezes um consultor analisa um cliente que outro fecha).</div>'+
+      '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:520px;">'+
+      '<tr style="border-bottom:2px solid var(--cb);"><th style="text-align:left;padding:8px 20px;color:var(--tm);font-size:10px;text-transform:uppercase;">Consultor</th>'+
+      TIPOS_DOC.map(function(t){return '<th style="text-align:center;padding:8px 6px;color:var(--tm);font-size:10px;text-transform:uppercase;">'+TIPOS_LABEL[t]+'</th>';}).join('')+
+      '<th style="text-align:center;padding:8px 20px;color:var(--tm);font-size:10px;text-transform:uppercase;">Total</th></tr>'+
+      linhas.map(function(l){
+        return '<tr style="border-bottom:1px solid var(--cb);">'+
+          '<td style="padding:8px 20px;color:var(--t);font-weight:600;">'+l.nome+(maiorAnalisePF&&l.nome===maiorAnalisePF.nome&&(l.contagemTipos['Análise de Lance']||0)>0?' 🏅':'')+'</td>'+
+          TIPOS_DOC.map(function(t){return '<td style="text-align:center;padding:8px 6px;color:var(--t);">'+(l.contagemTipos[t]||0)+'</td>';}).join('')+
+          '<td style="text-align:center;padding:8px 20px;color:var(--v);font-weight:700;">'+l.documentos+'</td>'+
+        '</tr>';
+      }).join('')+
+      '</table></div>';
+    atividadeHost.innerHTML=linhas.length?atividadeTabela:'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
 
-    _gestorUltimoDados={linhas:linhas,producaoTotal:producaoTotal,comissaoTotal:comissaoTotal,metaTimeNum:metaTimeNum,producaoQ1:producaoQ1,producaoQ2:producaoQ2,distrib:distrib};
+    _gestorUltimoDados={linhas:linhas,producaoTotal:producaoTotal,comissaoTotal:comissaoTotal,metaTimeNum:metaTimeNum,producaoQ1:producaoQ1,producaoQ2:producaoQ2,distrib:distrib,evolucaoPorMes:evolucaoPorMes,TIPOS_DOC:TIPOS_DOC,TIPOS_LABEL:TIPOS_LABEL};
 
   }).catch(function(err){
     resumoHost.innerHTML='<div class="hem" style="color:#c0392b;padding:16px;">Erro ao carregar: '+err.message+'</div>';
@@ -1831,26 +1845,84 @@ var _gestorUltimoDados=null;
 function gestorExportarPDF(){
   if(!_gestorUltimoDados){toast('⚠️ Espera o painel carregar antes de exportar','#c0392b');return;}
   var d=_gestorUltimoDados;
-  var hoje=new Date().toLocaleDateString('pt-BR');
-  var linhasHtml=d.linhas.map(function(l){
-    return '<tr><td style="padding:8px;border-bottom:1px solid #eee;">'+l.nome+'</td>'+
-      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">R$ '+_pjFmt(l.producao)+'</td>'+
-      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">R$ '+_pjFmt(l.comissao)+'</td>'+
-      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">'+(l.noRitmo===true?'No ritmo':l.noRitmo===false?'Atrasado':'—')+'</td></tr>';
+  var hoje=new Date().toLocaleString('pt-BR');
+
+  var linhasConsultor=d.linhas.map(function(l){
+    var statusTxt=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">No ritmo</span>':l.noRitmo===false?'<span style="color:#c0392b;font-weight:700;">Atrasado</span>':'<span style="color:#999;">Sem meta</span>';
+    return '<tr>'+
+      '<td style="padding:9px 10px;border-bottom:1px solid #eee;font-weight:600;">'+l.nome+'</td>'+
+      '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:right;">'+(l.metaNum>0?'R$ '+_pjFmt(l.metaNum):'—')+'</td>'+
+      '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:right;">R$ '+_pjFmt(l.producao)+'</td>'+
+      '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:right;color:#16a34a;font-weight:700;">R$ '+_pjFmt(l.comissao)+'</td>'+
+      '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:center;">'+statusTxt+'</td></tr>';
   }).join('');
-  var html='<h1 style="font-family:Arial;color:#0891B2;">Relatório do Time — Red Sea Digital</h1>'+
-    '<p style="font-family:Arial;color:#666;">Gerado em '+hoje+'</p>'+
-    '<h2 style="font-family:Arial;">Resumo</h2>'+
-    '<p style="font-family:Arial;">Produção do time: <strong>R$ '+_pjFmt(d.producaoTotal)+'</strong><br>'+
-    'Comissão do time: <strong>R$ '+_pjFmt(d.comissaoTotal)+'</strong><br>'+
-    (d.metaTimeNum>0?'Meta do time: <strong>R$ '+_pjFmt(d.metaTimeNum)+'</strong><br>':'')+
-    '1ª Quinzena: <strong>R$ '+_pjFmt(d.producaoQ1)+'</strong> · 2ª Quinzena: <strong>R$ '+_pjFmt(d.producaoQ2)+'</strong></p>'+
-    '<h2 style="font-family:Arial;">Por Consultor</h2>'+
-    '<table style="width:100%;border-collapse:collapse;font-family:Arial;font-size:13px;">'+
-    '<tr style="background:#f5f5f5;"><th style="padding:8px;text-align:left;">Consultor</th><th style="padding:8px;text-align:right;">Produção</th><th style="padding:8px;text-align:right;">Comissão</th><th style="padding:8px;">Ritmo</th></tr>'+
-    linhasHtml+'</table>';
-  abrirPDF(html,'Relatorio_Time','Painel_Gestor');
+
+  var linhasAtividade=d.linhas.map(function(l){
+    return '<tr>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:600;">'+l.nome+'</td>'+
+      d.TIPOS_DOC.map(function(t){return '<td style="padding:8px 6px;border-bottom:1px solid #eee;text-align:center;">'+(l.contagemTipos[t]||0)+'</td>';}).join('')+
+      '<td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:700;color:#0891B2;">'+l.documentos+'</td></tr>';
+  }).join('');
+
+  var totalDistrib=d.distrib.motoNormal+d.distrib.motoPremium+d.distrib.imovel;
+  var linhaDistrib=totalDistrib>0?
+    '<tr><td style="padding:8px 10px;">Moto Normal</td><td style="padding:8px 10px;text-align:right;">R$ '+_pjFmt(d.distrib.motoNormal)+'</td><td style="padding:8px 10px;text-align:right;">'+Math.round(d.distrib.motoNormal/totalDistrib*100)+'%</td></tr>'+
+    '<tr><td style="padding:8px 10px;">Moto Premium</td><td style="padding:8px 10px;text-align:right;">R$ '+_pjFmt(d.distrib.motoPremium)+'</td><td style="padding:8px 10px;text-align:right;">'+Math.round(d.distrib.motoPremium/totalDistrib*100)+'%</td></tr>'+
+    '<tr><td style="padding:8px 10px;">Imóvel</td><td style="padding:8px 10px;text-align:right;">R$ '+_pjFmt(d.distrib.imovel)+'</td><td style="padding:8px 10px;text-align:right;">'+Math.round(d.distrib.imovel/totalDistrib*100)+'%</td></tr>'
+    :'<tr><td colspan="3" style="padding:8px 10px;color:#999;">Nenhuma venda lançada ainda.</td></tr>';
+
+  var chavesMeses=Object.keys(d.evolucaoPorMes||{}).sort();
+  var linhasEvolucao=chavesMeses.length?chavesMeses.map(function(k){
+    var partes=k.split('-');
+    var label=MESES_PT[parseInt(partes[1])-1]+' de '+partes[0];
+    return '<tr><td style="padding:8px 10px;">'+label+'</td><td style="padding:8px 10px;text-align:right;">R$ '+_pjFmt(d.evolucaoPorMes[k])+'</td></tr>';
+  }).join(''):'<tr><td colspan="2" style="padding:8px 10px;color:#999;">Nenhum mês fechado ainda.</td></tr>';
+
+  var thStyle='padding:9px 10px;text-align:left;background:#111;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;';
+
+  var html=topoPDF()+
+    '<div style="padding:26px 32px 6px;font-family:Arial,sans-serif;">'+
+      '<h1 style="font-size:22px;color:#111;margin:0 0 2px;">Relatório do Time — Tubarões</h1>'+
+      '<div style="font-size:11px;color:#888;margin-bottom:22px;">Gerado em '+hoje+' · Red Sea Digital</div>'+
+
+      '<div style="display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;">'+
+        '<div style="flex:1;min-width:140px;background:#f4f4f4;border-radius:8px;padding:12px 16px;"><div style="font-size:9px;color:#888;text-transform:uppercase;">Produção do Time</div><div style="font-size:18px;font-weight:700;color:#111;">R$ '+_pjFmt(d.producaoTotal)+'</div></div>'+
+        '<div style="flex:1;min-width:140px;background:#f4f4f4;border-radius:8px;padding:12px 16px;"><div style="font-size:9px;color:#888;text-transform:uppercase;">Comissão do Time</div><div style="font-size:18px;font-weight:700;color:#16a34a;">R$ '+_pjFmt(d.comissaoTotal)+'</div></div>'+
+        (d.metaTimeNum>0?'<div style="flex:1;min-width:140px;background:#f4f4f4;border-radius:8px;padding:12px 16px;"><div style="font-size:9px;color:#888;text-transform:uppercase;">Meta do Time</div><div style="font-size:18px;font-weight:700;color:#111;">R$ '+_pjFmt(d.metaTimeNum)+'</div></div>':'')+
+        '<div style="flex:1;min-width:140px;background:#f4f4f4;border-radius:8px;padding:12px 16px;"><div style="font-size:9px;color:#888;text-transform:uppercase;">Consultores</div><div style="font-size:18px;font-weight:700;color:#111;">'+d.linhas.length+'</div></div>'+
+      '</div>'+
+
+      '<div style="display:flex;gap:14px;margin-bottom:24px;">'+
+        '<div style="flex:1;border:1px solid #eee;border-radius:8px;padding:12px 16px;"><div style="font-size:9px;color:#888;text-transform:uppercase;">1ª Quinzena (dias 1–15)</div><div style="font-size:16px;font-weight:700;color:#111;">R$ '+_pjFmt(d.producaoQ1)+'</div></div>'+
+        '<div style="flex:1;border:1px solid #eee;border-radius:8px;padding:12px 16px;"><div style="font-size:9px;color:#888;text-transform:uppercase;">2ª Quinzena (dias 16+)</div><div style="font-size:16px;font-weight:700;color:#111;">R$ '+_pjFmt(d.producaoQ2)+'</div></div>'+
+      '</div>'+
+
+      '<h2 style="font-size:14px;color:#111;border-left:4px solid #0891B2;padding-left:10px;margin:26px 0 10px;">Desempenho por Consultor</h2>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">'+
+      '<tr><th style="'+thStyle+'">Consultor</th><th style="'+thStyle+'text-align:right;">Meta</th><th style="'+thStyle+'text-align:right;">Produção</th><th style="'+thStyle+'text-align:right;">Comissão</th><th style="'+thStyle+'text-align:center;">Ritmo</th></tr>'+
+      linhasConsultor+'</table>'+
+
+      '<h2 style="font-size:14px;color:#111;border-left:4px solid #0891B2;padding-left:10px;margin:26px 0 6px;">Atividade por Tipo de Documento</h2>'+
+      '<div style="font-size:10px;color:#999;margin-bottom:10px;">Indicador de esforço — não implica que a venda foi creditada pra essa pessoa.</div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;">'+
+      '<tr><th style="'+thStyle+'">Consultor</th>'+d.TIPOS_DOC.map(function(t){return '<th style="'+thStyle+'text-align:center;">'+d.TIPOS_LABEL[t]+'</th>';}).join('')+'<th style="'+thStyle+'text-align:center;">Total</th></tr>'+
+      linhasAtividade+'</table>'+
+
+      '<h2 style="font-size:14px;color:#111;border-left:4px solid #0891B2;padding-left:10px;margin:26px 0 10px;">Distribuição por Tipo de Venda (Time)</h2>'+
+      '<table style="width:60%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">'+
+      '<tr><th style="'+thStyle+'">Tipo</th><th style="'+thStyle+'text-align:right;">Valor</th><th style="'+thStyle+'text-align:right;">%</th></tr>'+
+      linhaDistrib+'</table>'+
+
+      '<h2 style="font-size:14px;color:#111;border-left:4px solid #0891B2;padding-left:10px;margin:26px 0 10px;">Evolução Mês a Mês (Comissão do Time)</h2>'+
+      '<table style="width:60%;border-collapse:collapse;font-size:12px;">'+
+      '<tr><th style="'+thStyle+'">Mês</th><th style="'+thStyle+'text-align:right;">Comissão</th></tr>'+
+      linhasEvolucao+'</table>'+
+
+    '</div>'+rodapePDF();
+
+  abrirPDF(html,'Relatorio_Time_Tubaroes','Painel_Gestor');
 }
+
 
 
 function _pjRenderHistoricoMeses(){

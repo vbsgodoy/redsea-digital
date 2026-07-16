@@ -324,7 +324,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="sb-nav-item" onclick="aba('equipe',this)"><span class="sb-dot"></span>Equipe</div>
     <div class="sb-nav-item" onclick="aba('agenda',this)"><span class="sb-dot"></span>Agenda</div>
     <div class="sb-nav-item" onclick="aba('comissao',this)"><span class="sb-dot"></span>Projeção</div>
-    <div class="sb-nav-item" id="nav-gestor" style="display:none;" onclick="aba('gestor',this)"><span class="sb-dot"></span>Painel do Gestor</div>
+    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span>👑 Painel do Gestor</div>
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button class="sb-theme-btn" id="theme-toggle" onclick="alternarTema()" title="Alternar tema">&#9788;</button>
@@ -1761,13 +1761,16 @@ function renderGestor(){
     }
 
     // ===== TABELA COM META, BARRA DE PROGRESSO =====
-    tabelaHost.innerHTML=linhas.map(function(l){
+    var medalhas=['🥇','🥈','🥉'];
+    tabelaHost.innerHTML=linhas.map(function(l,i){
       var statusHtml=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">🟢 No ritmo</span>':
         l.noRitmo===false?'<span style="color:#dc2626;font-weight:700;">🔴 Atrasado</span>':
         '<span style="color:var(--tm);">— sem meta</span>';
       var barra=l.pct!==null?'<div style="height:6px;background:var(--cb);border-radius:3px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:'+l.pct+'%;background:'+(l.noRitmo?'#16a34a':'#dc2626')+';"></div></div>':'';
+      var posicao='<div style="font-size:18px;width:30px;text-align:center;flex-shrink:0;">'+(medalhas[i]||('<span style="font-size:13px;color:var(--tm);font-weight:700;">'+(i+1)+'º</span>'))+'</div>';
       return '<div style="padding:12px 20px;border-bottom:1px solid var(--cb);">'+
         '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">'+
+          posicao+
           '<div style="flex:1;min-width:140px;"><div style="font-size:13px;font-weight:700;color:var(--t);">'+l.nome+'</div>'+
           '<div style="font-size:10px;color:var(--tm);">'+l.documentos+' docs · '+l.modulos+' módulos'+(l.diasSemVenda!==null?' · última venda há '+l.diasSemVenda+'d':'')+'</div></div>'+
           '<div style="text-align:right;min-width:100px;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Meta</div><div style="font-size:13px;font-weight:700;color:var(--t);">'+(l.metaNum>0?'R$ '+_pjFmt(l.metaNum):'—')+'</div></div>'+
@@ -1847,9 +1850,11 @@ function gestorExportarPDF(){
   var d=_gestorUltimoDados;
   var hoje=new Date().toLocaleString('pt-BR');
 
-  var linhasConsultor=d.linhas.map(function(l){
+  var medalhasPdf=['🥇','🥈','🥉'];
+  var linhasConsultor=d.linhas.map(function(l,i){
     var statusTxt=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">No ritmo</span>':l.noRitmo===false?'<span style="color:#c0392b;font-weight:700;">Atrasado</span>':'<span style="color:#999;">Sem meta</span>';
     return '<tr>'+
+      '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:center;">'+(medalhasPdf[i]||(i+1)+'º')+'</td>'+
       '<td style="padding:9px 10px;border-bottom:1px solid #eee;font-weight:600;">'+l.nome+'</td>'+
       '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:right;">'+(l.metaNum>0?'R$ '+_pjFmt(l.metaNum):'—')+'</td>'+
       '<td style="padding:9px 10px;border-bottom:1px solid #eee;text-align:right;">R$ '+_pjFmt(l.producao)+'</td>'+
@@ -1899,7 +1904,7 @@ function gestorExportarPDF(){
 
       '<h2 style="font-size:14px;color:#111;border-left:4px solid #0891B2;padding-left:10px;margin:26px 0 10px;">Desempenho por Consultor</h2>'+
       '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">'+
-      '<tr><th style="'+thStyle+'">Consultor</th><th style="'+thStyle+'text-align:right;">Meta</th><th style="'+thStyle+'text-align:right;">Produção</th><th style="'+thStyle+'text-align:right;">Comissão</th><th style="'+thStyle+'text-align:center;">Ritmo</th></tr>'+
+      '<tr><th style="'+thStyle+'text-align:center;">#</th><th style="'+thStyle+'">Consultor</th><th style="'+thStyle+'text-align:right;">Meta</th><th style="'+thStyle+'text-align:right;">Produção</th><th style="'+thStyle+'text-align:right;">Comissão</th><th style="'+thStyle+'text-align:center;">Ritmo</th></tr>'+
       linhasConsultor+'</table>'+
 
       '<h2 style="font-size:14px;color:#111;border-left:4px solid #0891B2;padding-left:10px;margin:26px 0 6px;">Atividade por Tipo de Documento</h2>'+

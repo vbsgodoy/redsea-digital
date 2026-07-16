@@ -1742,9 +1742,10 @@ function renderGestor(){
       });
     });
 
-    linhas.sort(function(a,b){return b.comissao-a.comissao;});
-
-    // ===== META DO TIME =====
+    linhas.sort(function(a,b){
+      if(filtroPeriodo==='mes')return b.comissao-a.comissao;
+      return b.producaoFiltrada-a.producaoFiltrada;
+    });
     var metaTimeNum=_propNum2('gestor-meta-time');
     if(metaTimeNum>0){
       var faltaTime=Math.max(0,metaTimeNum-producaoTotal);

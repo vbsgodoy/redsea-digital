@@ -921,6 +921,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
           <div class="fi"><label>Tipo</label><select id="pj-tipo"><option value="moto">Moto</option><option value="imovel">Imóvel</option></select></div>
           <div class="fi" id="pj-premium-wrap"><label>É Plano Premium?</label><select id="pj-premium"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
           <div class="fi"><label>Valor da venda</label><div class="liw"><div class="lp">R$</div><input type="text" id="pj-valor" placeholder="0.000,00" oninput="fL(this)"/></div></div>
+          <div class="fi"><label>Data da venda</label><input type="date" id="pj-data"/></div>
         </div>
         <button class="btn be" style="width:100%;" onclick="pjAdicionarVenda()">+ Adicionar venda</button>
       </div>
@@ -948,6 +949,17 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="page-content">
   <div class="pt"><h2>Painel do Gestor</h2><p>Acompanhe a <span class="hl">produção, comissão e ritmo</span> de cada consultor</p></div>
 
+    <div class="fc" style="margin-bottom:20px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <label style="font-size:12px;font-weight:700;color:var(--t);">Ver período:</label>
+      <select id="gestor-filtro-periodo" onchange="renderGestor()" style="max-width:220px;">
+        <option value="mes">Mês inteiro</option>
+        <option value="q1">1ª Quinzena (dias 1–15)</option>
+        <option value="q2">2ª Quinzena (dias 16+)</option>
+        <option value="semana">Semana atual</option>
+      </select>
+      <span style="font-size:10px;color:var(--tm);">Filtra os números abaixo — não afeta o cálculo oficial da comissão, que é sempre por mês.</span>
+    </div>
+
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bullseye/3D/bullseye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Meta do Time</div>
       <div style="padding:16px 24px;">
@@ -971,7 +983,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Distribuição por Tipo de Venda (Time)</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Distribuição por Tipo de Venda (Time) <span id="gestor-distrib-periodo" style="font-weight:400;color:var(--tm);font-size:11px;margin-left:6px;"></span></div>
       <div id="gestor-distribuicao" style="padding:16px 24px;"></div>
     </div>
 
@@ -1598,10 +1610,33 @@ function gestorSalvarMetaTime(){
   }
   renderGestor();
 }
-function _gestorQuinzenaDe(dataISO){
-  var d=dataISO?new Date(dataISO):new Date();
-  if(isNaN(d.getTime()))d=new Date();
-  return d.getDate()<=15?1:2;
+function _gestorQuinzenaDe(dataStr){
+  if(!dataStr || dataStr.indexOf('-')===-1)return (new Date().getDate()<=15?1:2);
+  var partes=dataStr.split('-');
+  if(partes.length<3)return (new Date().getDate()<=15?1:2);
+  var dia=parseInt(partes[2],10);
+  return dia<=15?1:2;
+}
+function _gestorMesDe(dataStr){
+  if(!dataStr)return _hojeLocalISO().slice(0,7);
+  var partes=dataStr.split('-');
+  return partes.length>=2?(partes[0]+'-'+partes[1]):_hojeLocalISO().slice(0,7);
+}
+function _gestorSemanaAtual(dataStr){
+  // numero da semana do mes (1a=dias 1-7, 2a=8-14, 3a=15-21, 4a=22-28, 5a=29+)
+  if(!dataStr)return null;
+  var partes=dataStr.split('-');
+  var dia=parseInt(partes[2],10);
+  return Math.ceil(dia/7);
+}
+function _gestorVendaNoFiltro(venda,filtro){
+  var dataStr=venda.data||_hojeLocalISO();
+  var hoje=_hojeLocalISO();
+  if(filtro==='mes')return true;
+  if(filtro==='q1')return _gestorQuinzenaDe(dataStr)===1;
+  if(filtro==='q2')return _gestorQuinzenaDe(dataStr)===2;
+  if(filtro==='semana')return _gestorSemanaAtual(dataStr)===_gestorSemanaAtual(hoje);
+  return true;
 }
 function renderGestor(){
   var resumoHost=document.getElementById('gestor-resumo');
@@ -1640,6 +1675,8 @@ function renderGestor(){
     var linhas=[];
     var producaoTotal=0, comissaoTotal=0;
     var producaoQ1=0, producaoQ2=0;
+    var producaoPeriodo=0;
+    var filtroPeriodo=(document.getElementById('gestor-filtro-periodo')||{}).value||'mes';
     var distrib={motoNormal:0,motoPremium:0,imovel:0};
     var evolucaoPorMes={};
     var TIPOS_DOC=['Análise de Lance','Analise de Lance CNPJ','Boas-vindas','Alerta Pós-vendas','Cobranca'];
@@ -1659,9 +1696,12 @@ function renderGestor(){
 
       vendas.forEach(function(x){
         if(_gestorQuinzenaDe(x.data)===1)producaoQ1+=x.valor;else producaoQ2+=x.valor;
-        if(x.tipo==='imovel')distrib.imovel+=x.valor;
-        else if(x.premium)distrib.motoPremium+=x.valor;
-        else distrib.motoNormal+=x.valor;
+        if(_gestorVendaNoFiltro(x,filtroPeriodo)){
+          producaoPeriodo+=x.valor;
+          if(x.tipo==='imovel')distrib.imovel+=x.valor;
+          else if(x.premium)distrib.motoPremium+=x.valor;
+          else distrib.motoNormal+=x.valor;
+        }
       });
 
       (d.comissaoHistorico||[]).forEach(function(m){
@@ -1745,10 +1785,12 @@ function renderGestor(){
       '</div>';
 
     // ===== RESUMO GERAL =====
+    var labelsPeriodo={mes:'Mês inteiro',q1:'1ª Quinzena',q2:'2ª Quinzena',semana:'Semana atual'};
     resumoHost.innerHTML=
-      _pjCard('Produção do time','R$ '+_pjFmt(producaoTotal))+
-      _pjCard('Comissão do time','R$ '+_pjFmt(comissaoTotal))+
-      _pjCard('Consultores ativos',linhas.length);
+      _pjCard('Produção do time (mês)','R$ '+_pjFmt(producaoTotal))+
+      _pjCard('Comissão do time (mês)','R$ '+_pjFmt(comissaoTotal))+
+      _pjCard('Consultores ativos',linhas.length)+
+      (filtroPeriodo!=='mes'?_pjCard('Produção — '+labelsPeriodo[filtroPeriodo],'R$ '+_pjFmt(producaoPeriodo),true):'');
 
     // ===== ALERTAS =====
     var semMeta=linhas.filter(function(l){return l.metaNum===0;});
@@ -1790,9 +1832,11 @@ function renderGestor(){
     }).join('')||'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
 
     // ===== DISTRIBUICAO POR TIPO DE VENDA =====
+    var elDistribPeriodo=document.getElementById('gestor-distrib-periodo');
+    if(elDistribPeriodo)elDistribPeriodo.textContent='· '+labelsPeriodo[filtroPeriodo];
     var totalDistrib=distrib.motoNormal+distrib.motoPremium+distrib.imovel;
     if(totalDistrib===0){
-      distribHost.innerHTML='<div class="hem">Nenhuma venda lançada pelo time ainda esse mês.</div>';
+      distribHost.innerHTML='<div class="hem">Nenhuma venda lançada pelo time nesse período.</div>';
     } else {
       var itens=[
         {label:'Moto Normal',valor:distrib.motoNormal,cor:'#0891B2'},
@@ -1987,6 +2031,7 @@ function renderComissaoTab(){
   if(meta.meta)document.getElementById('pj-meta').value=meta.meta;
   document.getElementById('pj-dias-uteis').value=meta.diasUteis||_pjDiasUteisMes(hoje.getFullYear(),hoje.getMonth());
   document.getElementById('pj-dias-trabalhados').value=meta.diasTrabalhados||_pjDiasTrabalhadosAteHoje(hoje.getFullYear(),hoje.getMonth());
+  document.getElementById('pj-data').value=_hojeLocalISO();
   renderProjecao();
   _pjRenderListaVendas();
   _pjCalcularEExibir();
@@ -2105,15 +2150,21 @@ document.addEventListener('change',function(e){
     document.getElementById('pj-premium-wrap').style.display=(e.target.value==='imovel')?'none':'block';
   }
 });
+function _hojeLocalISO(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function pjAdicionarVenda(){
   var tipo=v('pj-tipo');
   var premium=v('pj-premium')==='sim';
   var valor=_propNum2('pj-valor');
+  var dataVenda=v('pj-data')||_hojeLocalISO();
   if(!valor){toast('⚠️ Informe o valor da venda','#c0392b');return;}
   var arr=_pjGet();
-  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:new Date().toISOString()});
+  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:dataVenda});
   _pjSet(arr);
   document.getElementById('pj-valor').value='';
+  document.getElementById('pj-data').value=_hojeLocalISO();
   toast('✅ Venda adicionada!');
   _pjRenderListaVendas();
   _pjCalcularEExibir();
@@ -2149,10 +2200,21 @@ function _pjRenderListaVendas(){
       '<span style="color:var(--tm);flex-shrink:0;">#'+(i+1)+'</span>'+
       '<span style="flex:1;padding:0 6px;color:var(--t);">'+rotulo+(x.ordemEspecial?' <strong style="color:var(--v);">('+(x.ordemEspecial==='1'?'1ª venda':'2ª venda')+')</strong>':'')+'</span>'+
       marcador+
+      '<input type="date" value="'+(x.data||_hojeLocalISO())+'" onchange="pjEditarDataVenda(\''+x.id+'\',this.value)" style="font-size:10px;padding:3px 5px;max-width:118px;flex-shrink:0;"/>'+
       '<span style="font-weight:700;color:var(--t);flex-shrink:0;">R$ '+_pjFmt(x.valor)+'</span>'+
       '<button onclick="pjRemoverVenda(\''+x.id+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:4px;flex-shrink:0;">✕</button>'+
     '</div>';
   }).join('');
+}
+function pjEditarDataVenda(id,novaData){
+  var arr=_pjGet();
+  var alvo=arr.find(function(x){return x.id===id;});
+  if(!alvo)return;
+  alvo.data=novaData;
+  _pjSet(arr);
+  toast('📅 Data atualizada!');
+  _pjRenderListaVendas();
+  _fbAtualizarPerfilPublico();
 }
 function pjMarcarOrdem(id,ordem){
   var arr=_pjGet();

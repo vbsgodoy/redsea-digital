@@ -311,6 +311,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="greet-ref" class="greet-ref"></div>
   </div>
   <nav class="sb-nav">
+    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span>👑 Painel do Gestor</div>
     <div class="sb-nav-item active" onclick="aba('hall',this)"><span class="sb-dot"></span>Hall</div>
     <div class="sb-nav-item" onclick="aba('estudos',this)"><span class="sb-dot"></span>Estudos</div>
     <div class="sb-nav-item" onclick="aba('scripts',this)"><span class="sb-dot"></span>Scripts</div>
@@ -324,7 +325,6 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="sb-nav-item" onclick="aba('equipe',this)"><span class="sb-dot"></span>Equipe</div>
     <div class="sb-nav-item" onclick="aba('agenda',this)"><span class="sb-dot"></span>Agenda</div>
     <div class="sb-nav-item" onclick="aba('comissao',this)"><span class="sb-dot"></span>Projeção</div>
-    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span>👑 Painel do Gestor</div>
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button class="sb-theme-btn" id="theme-toggle" onclick="alternarTema()" title="Alternar tema">&#9788;</button>
@@ -350,6 +350,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="hall-resumo" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;"></div>
 
     <div id="hall-aniversarios" style="margin-bottom:20px;"></div>
+    <div id="hall-gestor" style="margin-bottom:20px;"></div>
     <div id="hall-projecao" style="margin-bottom:20px;"></div>
 
     <div class="pt" style="margin-bottom:10px;"><h2 style="font-size:22px;">Para onde vamos?</h2></div>
@@ -1186,7 +1187,8 @@ function _fbErroTraduzido(code){
   return mapa[code]||'Não foi possível concluir. Tente novamente.';
 }
 var _currentUID=null;
-var GESTOR_UID='PlKKgHHFTFUuMc0TrMQsZIXHpyz2'; // Vitor Godoy
+var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','T5Ss7dm8gBWESd4KwJkoXfcVBKE2']; // Vitor Godoy, Victor Gabriel Gomes Pradal
+var NAO_VENDEDOR_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2']; // supervisao, nao aparece em ranking/tabela de vendas
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');
   var appShell=document.getElementById('app-shell');
@@ -1201,7 +1203,7 @@ firebase.auth().onAuthStateChanged(function(user){
     _fbCarregarMeuAniversario(user.uid);
     _agIniciarLembretes();
     var navGestor=document.getElementById('nav-gestor');
-    if(navGestor)navGestor.style.display=(user.uid===GESTOR_UID?'block':'none');
+    if(navGestor)navGestor.style.display=(GESTOR_UIDS.includes(user.uid)?'block':'none');
   } else {
     _currentUID=null;
     loginScreen.style.display='flex';
@@ -1590,8 +1592,8 @@ function _gestorGetMetaTime(){return localStorage.getItem('rsd_gestor_meta_time'
 function gestorSalvarMetaTime(){
   var val=v('gestor-meta-time');
   localStorage.setItem('rsd_gestor_meta_time',val);
-  if(_currentUID===GESTOR_UID){
-    db.collection('usuarios').doc(GESTOR_UID).set({metaTime:val},{merge:true}).catch(function(err){
+  if(GESTOR_UIDS.includes(_currentUID)){
+    db.collection('usuarios').doc(_currentUID).set({metaTime:val},{merge:true}).catch(function(err){
       _fbLog('❌ ERRO (meta time): '+err.message);
     });
   }
@@ -1612,7 +1614,7 @@ function renderGestor(){
   var distribHost=document.getElementById('gestor-distribuicao');
   var evolHost=document.getElementById('gestor-evolucao');
   if(!resumoHost)return;
-  if(_currentUID!==GESTOR_UID){
+  if(!GESTOR_UIDS.includes(_currentUID)){
     resumoHost.innerHTML='<div class="hem">Acesso restrito ao gestor.</div>';
     return;
   }
@@ -1640,6 +1642,7 @@ function renderGestor(){
 
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
+      if(NAO_VENDEDOR_UIDS.includes(uid))return;
       var d=doc.data();
       var nome=(perfis[uid]&&perfis[uid].nome)||'Consultor';
       var vendas=d.pjVendas||[];
@@ -2294,7 +2297,7 @@ function renderRanking(){
   if(!host)return;
   db.collection('perfis_publicos').get().then(function(snap){
     var perfis=[];
-    snap.forEach(function(doc){perfis.push(doc.data());});
+    snap.forEach(function(doc){if(!NAO_VENDEDOR_UIDS.includes(doc.id))perfis.push(doc.data());});
     perfis.sort(function(a,b){
       return (b.comissaoMes||0)-(a.comissaoMes||0);
     });
@@ -2500,6 +2503,49 @@ function hallSalvarLembrete(){
   var el=document.getElementById('hall-lembrete');
   if(el)localStorage.setItem('rsd_lembrete_dia',el.value);
 }
+function renderPainelGestorHall(){
+  var host=document.getElementById('hall-gestor');
+  if(!host)return;
+  if(!GESTOR_UIDS.includes(_currentUID)){host.innerHTML='';return;}
+  host.innerHTML='<div class="fc" style="padding:18px 22px;"><div class="hem">Carregando resumo do time...</div></div>';
+
+  Promise.all([
+    db.collection('perfis_publicos').get(),
+    db.collection('usuarios').get()
+  ]).then(function(results){
+    var perfisSnap=results[0], usuariosSnap=results[1];
+    var perfis={};
+    perfisSnap.forEach(function(doc){perfis[doc.id]=doc.data();});
+    var producaoTotal=0, comissaoTotal=0, linhas=[];
+    usuariosSnap.forEach(function(doc){
+      var uid=doc.id;
+      if(NAO_VENDEDOR_UIDS.includes(uid))return;
+      var d=doc.data();
+      var vendas=d.pjVendas||[];
+      var r=vendas.length?calcularComissao(vendas):{totalGeral:0};
+      var producao=vendas.reduce(function(s,x){return s+x.valor;},0);
+      producaoTotal+=producao;
+      comissaoTotal+=r.totalGeral;
+      linhas.push({nome:(perfis[uid]&&perfis[uid].nome)||'Consultor',comissao:r.totalGeral});
+    });
+    linhas.sort(function(a,b){return b.comissao-a.comissao;});
+    var lider=linhas.length?linhas[0]:null;
+
+    host.innerHTML='<div class="fc" style="padding:18px 22px;cursor:pointer;border:1.5px solid var(--v);" onclick="irPara(\'gestor\')">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">'+
+        '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--v);">👑 Painel do Gestor — Resumo do Time</div>'+
+        '<div style="font-size:11px;color:var(--tm);margin-top:2px;">'+(lider?'🥇 Líder do mês: '+lider.nome:'Clique pra ver o detalhe completo')+'</div></div>'+
+        '<div style="display:flex;gap:22px;">'+
+          '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção Time</div><div style="font-size:18px;font-weight:800;color:var(--t);">R$ '+_pjFmt(producaoTotal)+'</div></div>'+
+          '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão Time</div><div style="font-size:18px;font-weight:800;color:#16a34a;">R$ '+_pjFmt(comissaoTotal)+'</div></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).catch(function(err){
+    host.innerHTML='';
+    _fbLog('❌ ERRO (resumo gestor hall): '+err.message);
+  });
+}
 function renderProjecaoHall(){
   var host=document.getElementById('hall-projecao');
   if(!host)return;
@@ -2524,6 +2570,7 @@ function renderProjecaoHall(){
 function renderHall(){
   renderAniversarios();
   renderProjecaoHall();
+  renderPainelGestorHall();
   var agora=new Date();
   var h=agora.getHours();
   var saud=h<12?"Bom dia":(h<18?"Boa tarde":"Boa noite");

@@ -951,11 +951,10 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
     <div class="fc" style="margin-bottom:20px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="font-size:12px;font-weight:700;color:var(--t);">Ver período:</label>
-      <select id="gestor-filtro-periodo" onchange="renderGestor()" style="max-width:220px;">
+      <select id="gestor-filtro-periodo" onchange="renderGestor()" style="max-width:260px;">
         <option value="mes">Mês inteiro</option>
         <option value="q1">1ª Quinzena (dias 1–15)</option>
         <option value="q2">2ª Quinzena (dias 16+)</option>
-        <option value="semana">Semana atual</option>
       </select>
       <span style="font-size:10px;color:var(--tm);">Filtra os números abaixo — não afeta o cálculo oficial da comissão, que é sempre por mês.</span>
     </div>
@@ -1622,21 +1621,74 @@ function _gestorMesDe(dataStr){
   var partes=dataStr.split('-');
   return partes.length>=2?(partes[0]+'-'+partes[1]):_hojeLocalISO().slice(0,7);
 }
-function _gestorSemanaAtual(dataStr){
-  // numero da semana do mes (1a=dias 1-7, 2a=8-14, 3a=15-21, 4a=22-28, 5a=29+)
-  if(!dataStr)return null;
+function _gestorSemanaDoMes(dataStr){
+  // semana alinhada aos dias reais: semana 1 = a que contém o dia 1, mesmo que parcial
+  if(!dataStr)return 1;
   var partes=dataStr.split('-');
-  var dia=parseInt(partes[2],10);
-  return Math.ceil(dia/7);
+  var ano=parseInt(partes[0],10),mes=parseInt(partes[1],10)-1,dia=parseInt(partes[2],10);
+  var primeiroDiaSemana=new Date(ano,mes,1).getDay(); // 0=domingo
+  return Math.ceil((dia+primeiroDiaSemana)/7);
+}
+function _gestorRangeSemana(ano,mes,numSemana){
+  // retorna {inicio, fim} (dia do mes) daquela semana, respeitando o comeco/fim do mes
+  var primeiroDiaSemana=new Date(ano,mes,1).getDay();
+  var ultimoDiaMes=new Date(ano,mes+1,0).getDate();
+  var inicio=Math.max(1,(numSemana-1)*7-primeiroDiaSemana+1);
+  var fim=Math.min(ultimoDiaMes,numSemana*7-primeiroDiaSemana);
+  return {inicio:inicio,fim:fim};
 }
 function _gestorVendaNoFiltro(venda,filtro){
   var dataStr=venda.data||_hojeLocalISO();
-  var hoje=_hojeLocalISO();
   if(filtro==='mes')return true;
   if(filtro==='q1')return _gestorQuinzenaDe(dataStr)===1;
   if(filtro==='q2')return _gestorQuinzenaDe(dataStr)===2;
-  if(filtro==='semana')return _gestorSemanaAtual(dataStr)===_gestorSemanaAtual(hoje);
+  if(filtro.indexOf('sem')===0){
+    var numSemana=parseInt(filtro.replace('sem',''),10);
+    return _gestorSemanaDoMes(dataStr)===numSemana;
+  }
   return true;
+}
+function _gestorAtualizarOpcoesSemana(){
+  var sel=document.getElementById('gestor-filtro-periodo');
+  if(!sel)return;
+  var hoje=new Date();
+  var ano=hoje.getFullYear(),mes=hoje.getMonth();
+  var chaveMes=ano+'-'+mes;
+  if(sel.getAttribute('data-mes-populado')===chaveMes)return;
+  var valorAtual=sel.value;
+  var ultimoDiaMes=new Date(ano,mes+1,0).getDate();
+  var primeiroDiaSemana=new Date(ano,mes,1).getDay();
+  var totalSemanas=Math.ceil((ultimoDiaMes+primeiroDiaSemana)/7);
+  var opcoesSemana='';
+  for(var i=1;i<=totalSemanas;i++){
+    var range=_gestorRangeSemana(ano,mes,i);
+    opcoesSemana+='<option value="sem'+i+'">Semana '+i+' ('+String(range.inicio).padStart(2,'0')+'–'+String(range.fim).padStart(2,'0')+'/'+String(mes+1).padStart(2,'0')+')</option>';
+  }
+  sel.innerHTML='<option value="mes">Mês inteiro</option>'+
+    '<option value="q1">1ª Quinzena (dias 1–15)</option>'+
+    '<option value="q2">2ª Quinzena (dias 16+)</option>'+
+    opcoesSemana;
+  sel.setAttribute('data-mes-populado',chaveMes);
+  if(valorAtual){
+    var existe=false;
+    for(var j=0;j<sel.options.length;j++){if(sel.options[j].value===valorAtual)existe=true;}
+    if(existe)sel.value=valorAtual;
+  }
+}
+function _gestorLabelPeriodo(filtro){
+  if(filtro==='mes')return 'Mês inteiro';
+  if(filtro==='q1')return '1ª Quinzena';
+  if(filtro==='q2')return '2ª Quinzena';
+  if(filtro && filtro.indexOf('sem')===0){
+    var sel=document.getElementById('gestor-filtro-periodo');
+    if(sel){
+      for(var i=0;i<sel.options.length;i++){
+        if(sel.options[i].value===filtro)return sel.options[i].textContent;
+      }
+    }
+    return 'Semana '+filtro.replace('sem','');
+  }
+  return filtro;
 }
 function renderGestor(){
   var resumoHost=document.getElementById('gestor-resumo');
@@ -1652,6 +1704,7 @@ function renderGestor(){
     resumoHost.innerHTML='<div class="hem">Acesso restrito ao gestor.</div>';
     return;
   }
+  _gestorAtualizarOpcoesSemana();
   var metaTimeInput=document.getElementById('gestor-meta-time');
   if(metaTimeInput && !metaTimeInput.value)metaTimeInput.value=_gestorGetMetaTime();
   resumoHost.innerHTML='<div class="hem">Carregando...</div>';
@@ -1787,12 +1840,11 @@ function renderGestor(){
       '</div>';
 
     // ===== RESUMO GERAL =====
-    var labelsPeriodo={mes:'Mês inteiro',q1:'1ª Quinzena',q2:'2ª Quinzena',semana:'Semana atual'};
     resumoHost.innerHTML=
       _pjCard('Produção do time (mês)','R$ '+_pjFmt(producaoTotal))+
       _pjCard('Comissão do time (mês)','R$ '+_pjFmt(comissaoTotal))+
       _pjCard('Consultores ativos',linhas.length)+
-      (filtroPeriodo!=='mes'?_pjCard('Produção — '+labelsPeriodo[filtroPeriodo],'R$ '+_pjFmt(producaoPeriodo),true):'');
+      (filtroPeriodo!=='mes'?_pjCard('Produção — '+_gestorLabelPeriodo(filtroPeriodo),'R$ '+_pjFmt(producaoPeriodo),true):'');
 
     // ===== ALERTAS =====
     var semMeta=linhas.filter(function(l){return l.metaNum===0;});
@@ -1814,7 +1866,7 @@ function renderGestor(){
 
     // ===== TABELA COM META, BARRA DE PROGRESSO =====
     var medalhas=['🥇','🥈','🥉'];
-    var labelProducaoCol=filtroPeriodo==='mes'?'Produção (mês)':'Produção · '+labelsPeriodo[filtroPeriodo];
+    var labelProducaoCol=filtroPeriodo==='mes'?'Produção (mês)':'Produção · '+_gestorLabelPeriodo(filtroPeriodo);
     tabelaHost.innerHTML=linhas.map(function(l,i){
       var statusHtml=l.noRitmo===true?'<span style="color:#16a34a;font-weight:700;">🟢 No ritmo</span>':
         l.noRitmo===false?'<span style="color:#dc2626;font-weight:700;">🔴 Atrasado</span>':
@@ -1837,7 +1889,7 @@ function renderGestor(){
 
     // ===== DISTRIBUICAO POR TIPO DE VENDA =====
     var elDistribPeriodo=document.getElementById('gestor-distrib-periodo');
-    if(elDistribPeriodo)elDistribPeriodo.textContent='· '+labelsPeriodo[filtroPeriodo];
+    if(elDistribPeriodo)elDistribPeriodo.textContent='· '+_gestorLabelPeriodo(filtroPeriodo);
     var totalDistrib=distrib.motoNormal+distrib.motoPremium+distrib.imovel;
     if(totalDistrib===0){
       distribHost.innerHTML='<div class="hem">Nenhuma venda lançada pelo time nesse período.</div>';

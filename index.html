@@ -266,6 +266,14 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <button class="btn be" id="fs-next" onclick="fsNav(1)" style="flex:0 0 auto;">Próxima →</button>
   </div>
 </div>
+<div id="aguardando-screen" class="login-screen" style="display:none;">
+  <div class="login-box" style="text-align:center;">
+    <div style="font-size:44px;margin-bottom:10px;">⏳</div>
+    <h2 class="login-title">Aguardando aprovação</h2>
+    <p style="font-size:13px;color:#94A3B8;line-height:1.7;margin-bottom:20px;">Seu cadastro foi recebido! Assim que o gestor liberar seu acesso, essa tela libera sozinha — sem precisar recarregar a página.</p>
+    <button class="btn bl" style="width:100%;" onclick="fbLogout()">Sair</button>
+  </div>
+</div>
 <div id="login-screen" class="login-screen">
   <div class="login-box">
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;">
@@ -949,6 +957,13 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="page-content">
   <div class="pt"><h2>Painel do Gestor</h2><p>Acompanhe a <span class="hl">produção, comissão e ritmo</span> de cada consultor</p></div>
 
+    <div id="gestor-pendentes-wrap" style="margin-bottom:20px;"></div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Gerenciar Acesso</div>
+      <div id="gestor-acesso" style="padding:8px 0;"></div>
+    </div>
+
     <div class="fc" style="margin-bottom:20px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="font-size:12px;font-weight:700;color:var(--t);">Ver período:</label>
       <select id="gestor-filtro-periodo" onchange="renderGestor()" style="max-width:260px;">
@@ -1166,7 +1181,14 @@ function fbCadastrar(){
   if(!nome||!email||!senha){erroEl.textContent='Preencha todos os campos.';return;}
   if(senha.length<6){erroEl.textContent='Senha precisa ter no mínimo 6 caracteres.';return;}
   firebase.auth().createUserWithEmailAndPassword(email,senha).then(function(cred){
-    return cred.user.updateProfile({displayName:nome});
+    return cred.user.updateProfile({displayName:nome}).then(function(){
+      return db.collection('usuarios').doc(cred.user.uid).set({
+        aprovado:GESTOR_UIDS.includes(cred.user.uid),
+        nomeCadastro:nome,
+        emailCadastro:email,
+        solicitadoEm:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+    });
   }).catch(function(err){
     erroEl.textContent=_fbErroTraduzido(err.code);
   });
@@ -1198,29 +1220,60 @@ function _fbErroTraduzido(code){
   return mapa[code]||'Não foi possível concluir. Tente novamente.';
 }
 var _currentUID=null;
-var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','T5Ss7dm8gBWESd4KwJkoXfcVBKE2']; // Vitor Godoy, Victor Gabriel Gomes Pradal
-var NAO_VENDEDOR_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2']; // supervisao, nao aparece em ranking/tabela de vendas
+var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2']; // Vitor Godoy
+var NAO_VENDEDOR_UIDS=[];
+var _unsubAprovacao=null;
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');
   var appShell=document.getElementById('app-shell');
+  var aguardandoScreen=document.getElementById('aguardando-screen');
+  if(_unsubAprovacao){_unsubAprovacao();_unsubAprovacao=null;}
   if(user){
     _currentUID=user.uid;
     _fbLog('Login OK. UID='+user.uid+' email='+user.email);
     loginScreen.style.display='none';
-    appShell.style.display='flex';
-    var nomeEl=document.getElementById('sb-user-nome');
-    if(nomeEl)nomeEl.textContent=user.displayName||user.email;
-    _fbCarregarDados(user.uid);
-    _fbCarregarMeuAniversario(user.uid);
-    _agIniciarLembretes();
-    var navGestor=document.getElementById('nav-gestor');
-    if(navGestor)navGestor.style.display=(GESTOR_UIDS.includes(user.uid)?'block':'none');
+    if(GESTOR_UIDS.includes(user.uid)){
+      aguardandoScreen.style.display='none';
+      _liberarAcessoApp(user);
+    } else {
+      _unsubAprovacao=db.collection('usuarios').doc(user.uid).onSnapshot(function(doc){
+        var d=doc.exists?doc.data():{};
+        if(d.bloqueado===true){
+          appShell.style.display='none';
+          aguardandoScreen.style.display='none';
+          alert('Seu acesso foi removido pelo gestor.');
+          firebase.auth().signOut();
+          return;
+        }
+        if(d.aprovado===true || d.aprovado===undefined){
+          aguardandoScreen.style.display='none';
+          _liberarAcessoApp(user);
+        } else {
+          appShell.style.display='none';
+          aguardandoScreen.style.display='flex';
+        }
+      },function(err){
+        _fbLog('❌ ERRO (checar aprova\u00E7\u00E3o): '+err.message);
+      });
+    }
   } else {
     _currentUID=null;
     loginScreen.style.display='flex';
     appShell.style.display='none';
+    aguardandoScreen.style.display='none';
   }
 });
+function _liberarAcessoApp(user){
+  var appShell=document.getElementById('app-shell');
+  appShell.style.display='flex';
+  var nomeEl=document.getElementById('sb-user-nome');
+  if(nomeEl)nomeEl.textContent=user.displayName||user.email;
+  _fbCarregarDados(user.uid);
+  _fbCarregarMeuAniversario(user.uid);
+  _agIniciarLembretes();
+  var navGestor=document.getElementById('nav-gestor');
+  if(navGestor)navGestor.style.display=(GESTOR_UIDS.includes(user.uid)?'block':'none');
+}
 function _fbCarregarDados(uid){
   _fbLog('Buscando documento na nuvem para UID='+uid+'...');
   db.collection('usuarios').doc(uid).get().then(function(doc){
@@ -1735,10 +1788,20 @@ function renderGestor(){
     var TIPOS_DOC=['Análise de Lance','Analise de Lance CNPJ','Boas-vindas','Alerta Pós-vendas','Cobranca'];
     var TIPOS_LABEL={'Análise de Lance':'Análise PF','Analise de Lance CNPJ':'Análise PJ','Boas-vindas':'Boas-vindas','Alerta Pós-vendas':'Alerta','Cobranca':'Cobrança'};
 
+    var pendentes=[];
+    var acessoAtivo=[];
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
-      if(NAO_VENDEDOR_UIDS.includes(uid))return;
       var d=doc.data();
+      if(!GESTOR_UIDS.includes(uid)){
+        var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
+        if(d.aprovado===false){
+          pendentes.push({uid:uid,nome:nomeCad,email:d.emailCadastro||''});
+        } else if(d.bloqueado!==true){
+          acessoAtivo.push({uid:uid,nome:nomeCad});
+        }
+      }
+      if(NAO_VENDEDOR_UIDS.includes(uid))return;
       var nome=(perfis[uid]&&perfis[uid].nome)||'Consultor';
       var vendas=d.pjVendas||[];
       var meta=d.pjMeta||{};
@@ -1946,6 +2009,38 @@ function renderGestor(){
       '</table></div>';
     atividadeHost.innerHTML=linhas.length?atividadeTabela:'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
 
+    // ===== APROVACOES PENDENTES =====
+    var pendentesHost=document.getElementById('gestor-pendentes-wrap');
+    if(pendentesHost){
+      if(pendentes.length===0){
+        pendentesHost.innerHTML='';
+      } else {
+        pendentesHost.innerHTML='<div class="fc" style="border:1.5px solid #d97706;">'+
+          '<div class="sh" style="color:#d97706;">⏳ Aprovações Pendentes ('+pendentes.length+')</div>'+
+          pendentes.map(function(p){
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--cb);gap:10px;flex-wrap:wrap;">'+
+              '<div><div style="font-size:13px;font-weight:700;color:var(--t);">'+p.nome+'</div><div style="font-size:11px;color:var(--tm);">'+p.email+'</div></div>'+
+              '<div style="display:flex;gap:8px;">'+
+                '<button class="btn be" style="padding:6px 14px;font-size:12px;" onclick="gestorAprovar(\''+p.uid+'\')">✅ Aprovar</button>'+
+                '<button class="btn bl" style="padding:6px 14px;font-size:12px;color:#c0392b;" onclick="gestorRejeitar(\''+p.uid+'\',\''+p.nome.replace(/'/g,"\\'")+'\')">❌ Rejeitar</button>'+
+              '</div>'+
+            '</div>';
+          }).join('')+
+        '</div>';
+      }
+    }
+
+    // ===== GERENCIAR ACESSO =====
+    var acessoHost=document.getElementById('gestor-acesso');
+    if(acessoHost){
+      acessoHost.innerHTML=acessoAtivo.length?acessoAtivo.map(function(a){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--cb);gap:10px;">'+
+          '<span style="font-size:13px;color:var(--t);font-weight:600;">'+a.nome+'</span>'+
+          '<button class="btn bl" style="padding:5px 12px;font-size:11px;color:#c0392b;" onclick="gestorRemoverAcesso(\''+a.uid+'\',\''+a.nome.replace(/'/g,"\\'")+'\')">🚫 Remover acesso</button>'+
+        '</div>';
+      }).join(''):'<div class="hem" style="padding:20px;">Nenhum consultor ativo ainda.</div>';
+    }
+
     _gestorUltimoDados={linhas:linhas,producaoTotal:producaoTotal,comissaoTotal:comissaoTotal,metaTimeNum:metaTimeNum,producaoQ1:producaoQ1,producaoQ2:producaoQ2,distrib:distrib,evolucaoPorMes:evolucaoPorMes,TIPOS_DOC:TIPOS_DOC,TIPOS_LABEL:TIPOS_LABEL};
 
   }).catch(function(err){
@@ -1953,6 +2048,35 @@ function renderGestor(){
   });
 }
 var _gestorUltimoDados=null;
+function gestorAprovar(uid){
+  if(!GESTOR_UIDS.includes(_currentUID))return;
+  db.collection('usuarios').doc(uid).set({aprovado:true},{merge:true}).then(function(){
+    toast('✅ Acesso aprovado!');
+    renderGestor();
+  }).catch(function(err){
+    toast('⚠️ Erro ao aprovar: '+err.message,'#c0392b');
+  });
+}
+function gestorRejeitar(uid,nome){
+  if(!GESTOR_UIDS.includes(_currentUID))return;
+  if(!confirm('Rejeitar o cadastro de '+nome+'? Ele não vai conseguir usar a ferramenta.'))return;
+  db.collection('usuarios').doc(uid).set({aprovado:false,bloqueado:true},{merge:true}).then(function(){
+    toast('❌ Cadastro rejeitado.');
+    renderGestor();
+  }).catch(function(err){
+    toast('⚠️ Erro: '+err.message,'#c0392b');
+  });
+}
+function gestorRemoverAcesso(uid,nome){
+  if(!GESTOR_UIDS.includes(_currentUID))return;
+  if(!confirm('Remover o acesso de '+nome+'? Ele vai ser desconectado imediatamente e não vai conseguir mais entrar.'))return;
+  db.collection('usuarios').doc(uid).set({bloqueado:true},{merge:true}).then(function(){
+    toast('🚫 Acesso removido.');
+    renderGestor();
+  }).catch(function(err){
+    toast('⚠️ Erro: '+err.message,'#c0392b');
+  });
+}
 function gestorExportarPDF(){
   if(!_gestorUltimoDados){toast('⚠️ Espera o painel carregar antes de exportar','#c0392b');return;}
   var d=_gestorUltimoDados;

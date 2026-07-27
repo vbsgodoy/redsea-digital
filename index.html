@@ -1222,6 +1222,7 @@ function _fbErroTraduzido(code){
 var _currentUID=null;
 var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2']; // Vitor Godoy
 var NAO_VENDEDOR_UIDS=[];
+var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2']; // Victor Gabriel - saiu da empresa, nao aparece em nada no painel
 var _unsubAprovacao=null;
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');
@@ -1792,6 +1793,7 @@ function renderGestor(){
     var acessoAtivo=[];
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
+      if(OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       if(!GESTOR_UIDS.includes(uid)){
         var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
@@ -2544,7 +2546,7 @@ function renderRanking(){
   if(!host)return;
   db.collection('perfis_publicos').get().then(function(snap){
     var perfis=[];
-    snap.forEach(function(doc){if(!NAO_VENDEDOR_UIDS.includes(doc.id))perfis.push(doc.data());});
+    snap.forEach(function(doc){if(!NAO_VENDEDOR_UIDS.includes(doc.id)&&!OCULTO_PAINEL_UIDS.includes(doc.id))perfis.push(doc.data());});
     perfis.sort(function(a,b){
       return (b.comissaoMes||0)-(a.comissaoMes||0);
     });
@@ -2766,7 +2768,7 @@ function renderPainelGestorHall(){
     var producaoTotal=0, comissaoTotal=0, linhas=[];
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
-      if(NAO_VENDEDOR_UIDS.includes(uid))return;
+      if(NAO_VENDEDOR_UIDS.includes(uid)||OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       var vendas=d.pjVendas||[];
       var r=vendas.length?calcularComissao(vendas):{totalGeral:0};

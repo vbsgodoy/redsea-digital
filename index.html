@@ -270,7 +270,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="login-box" style="text-align:center;">
     <div style="font-size:44px;margin-bottom:10px;">⏳</div>
     <h2 class="login-title">Aguardando aprovação</h2>
-    <p style="font-size:13px;color:#94A3B8;line-height:1.7;margin-bottom:20px;">Seu cadastro foi recebido! Assim que o gestor liberar seu acesso, essa tela libera sozinha — sem precisar recarregar a página.</p>
+    <p style="font-size:13px;color:#94A3B8;line-height:1.7;margin-bottom:20px;">Seu cadastro foi recebido! Assim que o gestor liberar seu acesso, essa tela libera sozinha — sem precisar recarregar a página.<br><br>📧 Também enviamos um e-mail de confirmação — confere sua caixa de entrada (e o spam).</p>
     <button class="btn bl" style="width:100%;" onclick="fbLogout()">Sair</button>
   </div>
 </div>
@@ -319,7 +319,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="greet-ref" class="greet-ref"></div>
   </div>
   <nav class="sb-nav">
-    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span>👑 Painel do Gestor</div>
+    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span>👑 Painel do Gestor<span id="nav-gestor-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:8px;"></span></div>
     <div class="sb-nav-item active" onclick="aba('hall',this)"><span class="sb-dot"></span>Hall</div>
     <div class="sb-nav-item" onclick="aba('estudos',this)"><span class="sb-dot"></span>Estudos</div>
     <div class="sb-nav-item" onclick="aba('scripts',this)"><span class="sb-dot"></span>Scripts</div>
@@ -358,6 +358,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="hall-resumo" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;"></div>
 
     <div id="hall-aniversarios" style="margin-bottom:20px;"></div>
+    <div id="hall-onboarding" style="margin-bottom:20px;"></div>
     <div id="hall-gestor" style="margin-bottom:20px;"></div>
     <div id="hall-projecao" style="margin-bottom:20px;"></div>
 
@@ -839,7 +840,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="fc">
       <div class="hhr">
         <h3><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-right:4px;" onerror="this.outerHTML='📋';"/>Documentos Gerados</h3>
-        <div style="display:flex;gap:10px;align-items:center;"><span id="h-cnt" style="font-size:11px;color:var(--tm);">0 registros</span><button class="he dg" onclick="hLimpar()"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wastebasket/3D/wastebasket_3d.png" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;margin-right:3px;" onerror="this.outerHTML='🗑';"/>Limpar tudo</button></div>
+        <div style="display:flex;gap:10px;align-items:center;"><span id="h-cnt" style="font-size:11px;color:var(--tm);">0 registros</span><button class="he" onclick="hExportarCSV()">📥 Exportar CSV</button><button class="he dg" onclick="hLimpar()"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wastebasket/3D/wastebasket_3d.png" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;margin-right:3px;" onerror="this.outerHTML='🗑';"/>Limpar tudo</button></div>
       </div>
       <div style="padding:12px 20px;border-bottom:1px solid var(--cb);">
         <input type="text" id="h-busca" placeholder="🔎 Buscar por nome ou CPF..." oninput="hRender()" style="width:100%;"/>
@@ -871,6 +872,8 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="topbar"><div class="topbar-title">Agenda</div><div class="topbar-sub">Compromissos e lembretes</div></div>
   <div class="page-content">
   <div class="pt"><h2>Agenda</h2><p>Seus <span class="hl">compromissos e lembretes</span> — sincronizados na nuvem</p></div>
+
+    <div id="ag-aviso-permissao"></div>
 
     <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;" class="hall-cols">
       <div class="fc">
@@ -959,6 +962,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20bag/3D/money_bag_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Resultado da Comissão</div>
       <div id="pj-resultado" style="padding:8px 0;"></div>
       <div style="padding:16px 24px;border-top:1px solid var(--cb);">
+        <button class="btn bs2" style="width:100%;margin-bottom:8px;" onclick="pjExportarCSV()">📥 Exportar vendas em CSV</button>
         <button class="btn bl" style="width:100%;" onclick="pjFecharMes()">📁 Fechar mês e começar um novo</button>
         <div style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center;">Guarda o resultado desse mês no histórico e limpa a lista de vendas pra você começar o próximo mês do zero.</div>
       </div>
@@ -1033,7 +1037,10 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
       <div id="gestor-acesso" style="padding:8px 0;display:none;"></div>
     </div>
 
-    <button class="btn be" style="width:100%;font-size:14px;padding:14px;" onclick="gestorExportarPDF()">🖨️ Exportar relatório do time em PDF</button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn be" style="flex:1;font-size:14px;padding:14px;" onclick="gestorExportarPDF()">🖨️ Exportar PDF</button>
+      <button class="btn bs2" style="flex:1;font-size:14px;padding:14px;" onclick="gestorExportarCSV()">📥 Exportar CSV</button>
+    </div>
 
   </div><!-- /page-content -->
 </div>
@@ -1203,6 +1210,7 @@ function fbCadastrar(){
   if(!nome||!email||!senha){erroEl.textContent='Preencha todos os campos.';return;}
   if(senha.length<6){erroEl.textContent='Senha precisa ter no mínimo 6 caracteres.';return;}
   firebase.auth().createUserWithEmailAndPassword(email,senha).then(function(cred){
+    cred.user.sendEmailVerification().catch(function(){});
     return cred.user.updateProfile({displayName:nome}).then(function(){
       return db.collection('usuarios').doc(cred.user.uid).set({
         aprovado:GESTOR_UIDS.includes(cred.user.uid),
@@ -1296,6 +1304,20 @@ function _liberarAcessoApp(user){
   _agIniciarLembretes();
   var navGestor=document.getElementById('nav-gestor');
   if(navGestor)navGestor.style.display=(GESTOR_UIDS.includes(user.uid)?'block':'none');
+  if(GESTOR_UIDS.includes(user.uid))_gestorEscutarPendentes();
+}
+var _unsubPendentes=null;
+function _gestorEscutarPendentes(){
+  if(_unsubPendentes)_unsubPendentes();
+  _unsubPendentes=db.collection('usuarios').where('aprovado','==',false).onSnapshot(function(snap){
+    var qtd=0;
+    snap.forEach(function(doc){if(!OCULTO_PAINEL_UIDS.includes(doc.id))qtd++;});
+    var badge=document.getElementById('nav-gestor-badge');
+    if(badge){
+      if(qtd>0){badge.textContent=qtd;badge.style.display='inline-block';}
+      else{badge.style.display='none';}
+    }
+  },function(err){_fbLog('❌ ERRO (pendentes badge): '+err.message);});
 }
 function _fbCarregarDados(uid){
   _fbLog('Buscando documento na nuvem para UID='+uid+'...');
@@ -1382,6 +1404,7 @@ function _agGet(){return JSON.parse(localStorage.getItem('rsd_agenda')||'[]');}
 function _agSet(arr){localStorage.setItem('rsd_agenda',JSON.stringify(arr));_fbSyncAgenda();}
 
 function renderAgenda(){
+  _agRenderAvisoPermissao();
   _agRenderCalendario();
   _agRenderProximos();
 }
@@ -1537,12 +1560,25 @@ function _agVerificarLembretes(){
   if(mudou)_agSet(arr);
 }
 function _agIniciarLembretes(){
-  if(window.Notification && Notification.permission==='default'){
-    Notification.requestPermission();
-  }
   if(_agIntervalId)clearInterval(_agIntervalId);
   _agIntervalId=setInterval(_agVerificarLembretes,30000);
   _agVerificarLembretes();
+}
+function agPedirPermissaoNotificacao(){
+  if(!window.Notification){toast('⚠️ Seu navegador não suporta notificações.','#c0392b');return;}
+  Notification.requestPermission().then(function(){
+    _agRenderAvisoPermissao();
+    if(Notification.permission==='granted')toast('🔔 Notificações ativadas!');
+  });
+}
+function _agRenderAvisoPermissao(){
+  var host=document.getElementById('ag-aviso-permissao');
+  if(!host)return;
+  if(!window.Notification || Notification.permission!=='default'){host.innerHTML='';return;}
+  host.innerHTML='<div class="fc" style="padding:14px 20px;margin-bottom:16px;border:1.5px solid #d97706;background:rgba(217,119,6,0.08);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">'+
+    '<span style="font-size:12px;color:var(--t);">🔔 Ative as notificações pra não perder nenhum compromisso (mesmo em outra aba, com a ferramenta aberta).</span>'+
+    '<button class="btn be" style="padding:6px 14px;font-size:12px;flex-shrink:0;" onclick="agPedirPermissaoNotificacao()">Ativar</button>'+
+  '</div>';
 }
 
 function _fbAtualizarPerfilPublico(){
@@ -2901,9 +2937,10 @@ function renderPainelGestorHall(){
     var perfisSnap=results[0], usuariosSnap=results[1];
     var perfis={};
     perfisSnap.forEach(function(doc){perfis[doc.id]=doc.data();});
-    var producaoTotal=0, comissaoTotal=0, linhas=[];
+    var producaoTotal=0, comissaoTotal=0, linhas=[], pendentesQtd=0;
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
+      if(!GESTOR_UIDS.includes(uid) && !OCULTO_PAINEL_UIDS.includes(uid) && doc.data().aprovado===false)pendentesQtd++;
       if(NAO_VENDEDOR_UIDS.includes(uid)||OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       var vendas=d.pjVendas||[];
@@ -2916,7 +2953,9 @@ function renderPainelGestorHall(){
     linhas.sort(function(a,b){return b.comissao-a.comissao;});
     var lider=linhas.length?linhas[0]:null;
 
-    host.innerHTML='<div class="fc" style="padding:18px 22px;cursor:pointer;border:1.5px solid var(--v);" onclick="irPara(\'gestor\')">'+
+    host.innerHTML=
+      (pendentesQtd>0?'<div class="fc" style="padding:12px 22px;margin-bottom:10px;border:1.5px solid #d97706;background:rgba(217,119,6,0.1);cursor:pointer;" onclick="irPara(\'gestor\')"><span style="font-size:13px;font-weight:700;color:#d97706;">⏳ '+pendentesQtd+' cadastro(s) esperando sua aprovação</span></div>':'')+
+      '<div class="fc" style="padding:18px 22px;cursor:pointer;border:1.5px solid var(--v);" onclick="irPara(\'gestor\')">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">'+
         '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--v);">👑 Painel do Gestor — Resumo do Time</div>'+
         '<div style="font-size:11px;color:var(--tm);margin-top:2px;">'+(lider?'🥇 Líder do mês: '+lider.nome:'Clique pra ver o detalhe completo')+'</div></div>'+
@@ -2930,6 +2969,35 @@ function renderPainelGestorHall(){
     host.innerHTML='';
     _fbLog('❌ ERRO (resumo gestor hall): '+err.message);
   });
+}
+function renderOnboarding(){
+  var host=document.getElementById('hall-onboarding');
+  if(!host)return;
+  if(localStorage.getItem('rsd_onboarding_visto')==='1'){host.innerHTML='';return;}
+  var metaFeita=!!_pjGetMeta().meta;
+  var aniversarioFeito=!!localStorage.getItem('rsd_meu_aniversario');
+  var itens=[
+    {ok:metaFeita,texto:'Cadastre sua meta de produção do mês',aba:'comissao'},
+    {ok:aniversarioFeito,texto:'Cadastre seu aniversário',aba:'hall'},
+    {ok:false,texto:'Dê uma olhada nos Scripts de abordagem',aba:'scripts'},
+    {ok:false,texto:'Comece os módulos de Estudos',aba:'estudos'}
+  ];
+  host.innerHTML='<div class="fc" style="padding:18px 22px;border:1.5px solid var(--v);background:linear-gradient(135deg,rgba(8,145,178,0.10),transparent);">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'+
+      '<div style="font-size:13px;font-weight:800;color:var(--v);">🚀 Primeiros passos no Red Sea Digital</div>'+
+      '<a onclick="hallDispensarOnboarding()" style="font-size:11px;color:var(--tm);cursor:pointer;">✕ Não mostrar de novo</a>'+
+    '</div>'+
+    itens.map(function(it){
+      return '<div onclick="irPara(\''+it.aba+'\')" style="display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer;">'+
+        '<span style="font-size:14px;">'+(it.ok?'✅':'⬜')+'</span>'+
+        '<span style="font-size:12px;color:'+(it.ok?'var(--tm)':'var(--t)')+';text-decoration:'+(it.ok?'line-through':'none')+';">'+it.texto+'</span>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+}
+function hallDispensarOnboarding(){
+  localStorage.setItem('rsd_onboarding_visto','1');
+  renderOnboarding();
 }
 function renderProjecaoHall(){
   var host=document.getElementById('hall-projecao');
@@ -2953,6 +3021,7 @@ function renderProjecaoHall(){
   '</div>';
 }
 function renderHall(){
+  renderOnboarding();
   renderAniversarios();
   renderProjecaoHall();
   renderPainelGestorHall();
@@ -3188,6 +3257,49 @@ function copiarImagemMoto(){
   };
   img.onerror=function(){toast('Erro ao carregar a imagem.','#c0392b');};
   img.src=MOTO_IMG[modelo];
+}
+function _gerarCSV(headers,rows,nomeArquivo){
+  var linhas=[headers].concat(rows);
+  var csv=linhas.map(function(linha){
+    return linha.map(function(campo){
+      var texto=String(campo===null||campo===undefined?'':campo).replace(/"/g,'""');
+      return '"'+texto+'"';
+    }).join(';');
+  }).join('\r\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download=nomeArquivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function hExportarCSV(){
+  var h=JSON.parse(localStorage.getItem(HK)||'[]');
+  if(h.length===0){toast('⚠️ Nenhum registro pra exportar','#c0392b');return;}
+  var headers=['Cliente','CPF','Modelo','Lance','Protocolo','Data','Tipo'];
+  var rows=h.map(function(r){return [r.nome,r.cpf||'',r.modelo,r.lance,r.protocolo,r.data,r.tipo];});
+  _gerarCSV(headers,rows,'historico_'+_hojeLocalISO()+'.csv');
+  toast('📥 Histórico exportado!');
+}
+function pjExportarCSV(){
+  var arr=_pjGet();
+  if(arr.length===0){toast('⚠️ Nenhuma venda pra exportar','#c0392b');return;}
+  var headers=['Cliente','CPF','Tipo','Premium','Valor','Data','Ordem Especial'];
+  var rows=arr.map(function(x){return [x.clienteNome||'',x.clienteCpf||'',x.tipo,x.premium?'Sim':'Não',x.valor.toFixed(2).replace('.',','),x.data||'',x.ordemEspecial||''];});
+  _gerarCSV(headers,rows,'vendas_projecao_'+_hojeLocalISO()+'.csv');
+  toast('📥 Vendas exportadas!');
+}
+function gestorExportarCSV(){
+  if(!_gestorUltimoDados){toast('⚠️ Espera o painel carregar antes de exportar','#c0392b');return;}
+  var headers=['Consultor','Meta','Produção','Comissão','Ritmo','Documentos','Módulos'];
+  var rows=_gestorUltimoDados.linhas.map(function(l){
+    return [l.nome,l.metaNum||'',l.producao.toFixed(2).replace('.',','),l.comissao.toFixed(2).replace('.',','),l.noRitmo===true?'No ritmo':l.noRitmo===false?'Atrasado':'Sem meta',l.documentos,l.modulos];
+  });
+  _gerarCSV(headers,rows,'time_'+_hojeLocalISO()+'.csv');
+  toast('📥 Dados do time exportados!');
 }
 function _baixarImagemFallback(blob,modelo){
   var url=URL.createObjectURL(blob);

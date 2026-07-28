@@ -923,16 +923,32 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     </div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lançar Vendas do Mês</div>
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div><span id="pj-form-titulo">Lançar Vendas do Mês</span></div>
       <div style="padding:16px 24px;">
+        <div class="fg" style="margin-bottom:10px;">
+          <div class="fi"><label>Nome do cliente</label><input type="text" id="pj-cliente-nome" placeholder="Nome do cliente"/></div>
+          <div class="fi"><label>CPF</label><input type="text" id="pj-cliente-cpf" placeholder="000.000.000-00" oninput="fCPF(this)"/></div>
+        </div>
         <div class="fg" style="margin-bottom:10px;">
           <div class="fi"><label>Tipo</label><select id="pj-tipo"><option value="moto">Moto</option><option value="imovel">Imóvel</option></select></div>
           <div class="fi" id="pj-premium-wrap"><label>É Plano Premium?</label><select id="pj-premium"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
           <div class="fi"><label>Valor da venda</label><div class="liw"><div class="lp">R$</div><input type="text" id="pj-valor" placeholder="0.000,00" oninput="fL(this)"/></div></div>
           <div class="fi"><label>Data da venda</label><input type="date" id="pj-data"/></div>
         </div>
-        <button class="btn be" style="width:100%;" onclick="pjAdicionarVenda()">+ Adicionar venda</button>
+        <button class="btn be" style="width:100%;" id="pj-btn-salvar" onclick="pjAdicionarVenda()">+ Adicionar venda</button>
+        <div style="text-align:center;margin-top:6px;"><a id="pj-cancelar-edicao" onclick="pjCancelarEdicao()" style="display:none;font-size:11px;color:var(--tm);cursor:pointer;">✕ Cancelar edição</a></div>
+        <input type="hidden" id="pj-editando-id"/>
       </div>
+
+      <div style="padding:0 24px 14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--cb);padding-top:14px;">
+        <select id="pj-filtro-periodo" onchange="_pjRenderListaVendas();_pjCalcularEExibir();" style="max-width:230px;">
+          <option value="mes">Mês inteiro</option>
+          <option value="q1">1ª Quinzena (dias 1–15)</option>
+          <option value="q2">2ª Quinzena (dias 16+)</option>
+        </select>
+        <input type="text" id="pj-busca-cliente" placeholder="🔎 Buscar por nome ou CPF..." oninput="_pjRenderListaVendas()" style="flex:1;min-width:180px;"/>
+      </div>
+
       <div id="pj-lista-vendas" style="padding:0 0 8px;"></div>
     </div>
 
@@ -1702,8 +1718,8 @@ function _gestorVendaNoFiltro(venda,filtro){
   }
   return true;
 }
-function _gestorAtualizarOpcoesSemana(){
-  var sel=document.getElementById('gestor-filtro-periodo');
+function _popularOpcoesSemana(selId){
+  var sel=document.getElementById(selId);
   if(!sel)return;
   var hoje=new Date();
   var ano=hoje.getFullYear(),mes=hoje.getMonth();
@@ -1729,12 +1745,15 @@ function _gestorAtualizarOpcoesSemana(){
     if(existe)sel.value=valorAtual;
   }
 }
-function _gestorLabelPeriodo(filtro){
+function _gestorAtualizarOpcoesSemana(){
+  _popularOpcoesSemana('gestor-filtro-periodo');
+}
+function _labelPeriodo(filtro,selId){
   if(filtro==='mes')return 'Mês inteiro';
   if(filtro==='q1')return '1ª Quinzena';
   if(filtro==='q2')return '2ª Quinzena';
   if(filtro && filtro.indexOf('sem')===0){
-    var sel=document.getElementById('gestor-filtro-periodo');
+    var sel=document.getElementById(selId||'gestor-filtro-periodo');
     if(sel){
       for(var i=0;i<sel.options.length;i++){
         if(sel.options[i].value===filtro)return sel.options[i].textContent;
@@ -1743,6 +1762,9 @@ function _gestorLabelPeriodo(filtro){
     return 'Semana '+filtro.replace('sem','');
   }
   return filtro;
+}
+function _gestorLabelPeriodo(filtro){
+  return _labelPeriodo(filtro,'gestor-filtro-periodo');
 }
 function renderGestor(){
   var resumoHost=document.getElementById('gestor-resumo');
@@ -2341,17 +2363,53 @@ function pjAdicionarVenda(){
   var premium=v('pj-premium')==='sim';
   var valor=_propNum2('pj-valor');
   var dataVenda=v('pj-data')||_hojeLocalISO();
+  var clienteNome=v('pj-cliente-nome');
+  var clienteCpf=v('pj-cliente-cpf');
   if(!valor){toast('⚠️ Informe o valor da venda','#c0392b');return;}
+  var editandoId=v('pj-editando-id');
   var arr=_pjGet();
-  arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:dataVenda});
+  if(editandoId){
+    var alvo=arr.find(function(x){return x.id===editandoId;});
+    if(alvo){
+      alvo.tipo=tipo;alvo.premium=tipo==='moto'?premium:false;alvo.valor=valor;alvo.data=dataVenda;
+      alvo.clienteNome=clienteNome;alvo.clienteCpf=clienteCpf;
+    }
+    toast('✅ Venda atualizada!');
+  } else {
+    arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:dataVenda,clienteNome:clienteNome,clienteCpf:clienteCpf});
+    toast('✅ Venda adicionada!');
+  }
   _pjSet(arr);
-  document.getElementById('pj-valor').value='';
-  document.getElementById('pj-data').value=_hojeLocalISO();
-  toast('✅ Venda adicionada!');
+  pjCancelarEdicao();
   _pjRenderListaVendas();
   _pjCalcularEExibir();
   renderProjecao();
   _fbAtualizarPerfilPublico();
+}
+function pjEditarVenda(id){
+  var alvo=_pjGet().find(function(x){return x.id===id;});
+  if(!alvo)return;
+  document.getElementById('pj-cliente-nome').value=alvo.clienteNome||'';
+  document.getElementById('pj-cliente-cpf').value=alvo.clienteCpf||'';
+  document.getElementById('pj-tipo').value=alvo.tipo;
+  document.getElementById('pj-premium').value=alvo.premium?'sim':'nao';
+  document.getElementById('pj-valor').value=alvo.valor.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('pj-data').value=alvo.data||_hojeLocalISO();
+  document.getElementById('pj-editando-id').value=id;
+  document.getElementById('pj-btn-salvar').textContent='💾 Salvar alterações';
+  document.getElementById('pj-form-titulo').textContent='Editando Venda';
+  document.getElementById('pj-cancelar-edicao').style.display='inline';
+  document.getElementById('pj-cliente-nome').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function pjCancelarEdicao(){
+  document.getElementById('pj-cliente-nome').value='';
+  document.getElementById('pj-cliente-cpf').value='';
+  document.getElementById('pj-valor').value='';
+  document.getElementById('pj-data').value=_hojeLocalISO();
+  document.getElementById('pj-editando-id').value='';
+  document.getElementById('pj-btn-salvar').textContent='+ Adicionar venda';
+  document.getElementById('pj-form-titulo').textContent='Lançar Vendas do Mês';
+  document.getElementById('pj-cancelar-edicao').style.display='none';
 }
 function pjRemoverVenda(id){
   var arr=_pjGet().filter(function(x){return x.id!==id;});
@@ -2364,12 +2422,31 @@ function pjRemoverVenda(id){
 function _pjRenderListaVendas(){
   var host=document.getElementById('pj-lista-vendas');
   if(!host)return;
-  var arr=_pjGet();
-  if(arr.length===0){
+  _popularOpcoesSemana('pj-filtro-periodo');
+  var filtro=(document.getElementById('pj-filtro-periodo')||{}).value||'mes';
+  var busca=((document.getElementById('pj-busca-cliente')||{}).value||'').toLowerCase().replace(/[.\-\s]/g,'');
+  var arrCompleto=_pjGet();
+  var arr=arrCompleto.filter(function(x){
+    if(!_gestorVendaNoFiltro(x,filtro))return false;
+    if(busca){
+      var nomeMatch=(x.clienteNome||'').toLowerCase().indexOf(busca)!==-1;
+      var cpfMatch=(x.clienteCpf||'').replace(/[.\-\s]/g,'').indexOf(busca)!==-1;
+      if(!nomeMatch && !cpfMatch)return false;
+    }
+    return true;
+  });
+  if(arrCompleto.length===0){
     host.innerHTML='<div class="hem" style="padding:14px 24px;">Nenhuma venda lançada ainda esse mês.</div>';
     return;
   }
-  host.innerHTML=arr.map(function(x,i){
+  if(arr.length===0){
+    host.innerHTML='<div class="hem" style="padding:14px 24px;">Nenhuma venda encontrada com esse filtro/busca.</div>';
+    return;
+  }
+  var somaFiltro=arr.reduce(function(s,x){return s+x.valor;},0);
+  var cabecalho='<div style="padding:8px 24px;font-size:11px;color:var(--tm);border-bottom:1px solid var(--cb);">'+arr.length+' venda(s) · '+_labelPeriodo(filtro,'pj-filtro-periodo')+' · Soma: <strong style="color:var(--t);">R$ '+_pjFmt(somaFiltro)+'</strong></div>';
+  host.innerHTML=cabecalho+arr.map(function(x){
+    var i=arrCompleto.indexOf(x);
     var rotulo=x.tipo==='moto'?(x.premium?'Moto Premium':'Moto'):'Imóvel';
     var marcador='';
     if(x.tipo==='moto'){
@@ -2378,13 +2455,17 @@ function _pjRenderListaVendas(){
         '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'2\')" title="Marcar como 2ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='2'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='2'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">2ª</button>'+
       '</div>';
     }
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 24px;border-bottom:1px solid var(--cb);font-size:12px;gap:8px;">'+
-      '<span style="color:var(--tm);flex-shrink:0;">#'+(i+1)+'</span>'+
-      '<span style="flex:1;padding:0 6px;color:var(--t);">'+rotulo+(x.ordemEspecial?' <strong style="color:var(--v);">('+(x.ordemEspecial==='1'?'1ª venda':'2ª venda')+')</strong>':'')+'</span>'+
-      marcador+
-      '<input type="date" value="'+(x.data||_hojeLocalISO())+'" onchange="pjEditarDataVenda(\''+x.id+'\',this.value)" style="font-size:10px;padding:3px 5px;max-width:118px;flex-shrink:0;"/>'+
-      '<span style="font-weight:700;color:var(--t);flex-shrink:0;">R$ '+_pjFmt(x.valor)+'</span>'+
-      '<button onclick="pjRemoverVenda(\''+x.id+'\')" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:4px;flex-shrink:0;">✕</button>'+
+    return '<div style="padding:8px 24px;border-bottom:1px solid var(--cb);">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:8px;flex-wrap:wrap;">'+
+        '<span style="color:var(--tm);flex-shrink:0;">#'+(i+1)+'</span>'+
+        '<span style="flex:1;min-width:100px;padding:0 6px;color:var(--t);">'+rotulo+(x.ordemEspecial?' <strong style="color:var(--v);">('+(x.ordemEspecial==='1'?'1ª venda':'2ª venda')+')</strong>':'')+'</span>'+
+        marcador+
+        '<input type="date" value="'+(x.data||_hojeLocalISO())+'" onchange="pjEditarDataVenda(\''+x.id+'\',this.value)" style="font-size:10px;padding:3px 5px;max-width:118px;flex-shrink:0;"/>'+
+        '<span style="font-weight:700;color:var(--t);flex-shrink:0;">R$ '+_pjFmt(x.valor)+'</span>'+
+        '<button onclick="pjEditarVenda(\''+x.id+'\')" title="Editar" style="border:none;background:none;color:var(--v);cursor:pointer;flex-shrink:0;">✏️</button>'+
+        '<button onclick="pjRemoverVenda(\''+x.id+'\')" title="Excluir" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:2px;flex-shrink:0;">✕</button>'+
+      '</div>'+
+      (x.clienteNome||x.clienteCpf?'<div style="font-size:10px;color:var(--tm);margin-top:2px;padding-left:24px;">👤 '+(x.clienteNome||'(sem nome)')+(x.clienteCpf?' · '+x.clienteCpf:'')+'</div>':'')+
     '</div>';
   }).join('');
 }

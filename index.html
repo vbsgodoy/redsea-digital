@@ -975,11 +975,6 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
     <div id="gestor-pendentes-wrap" style="margin-bottom:20px;"></div>
 
-    <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Gerenciar Acesso</div>
-      <div id="gestor-acesso" style="padding:8px 0;"></div>
-    </div>
-
     <div class="fc" style="margin-bottom:20px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="font-size:12px;font-weight:700;color:var(--t);">Ver período:</label>
       <select id="gestor-filtro-periodo" onchange="renderGestor()" style="max-width:260px;">
@@ -1025,6 +1020,14 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Atividade por Tipo de Documento (Esforço)</div>
       <div id="gestor-historico" style="padding:8px 0;max-height:600px;overflow-y:auto;"></div>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh" style="cursor:pointer;justify-content:space-between;" onclick="gestorToggleAcesso()">
+        <div style="display:flex;align-items:center;"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Gerenciar Acesso</div>
+        <span id="gestor-acesso-seta" style="font-size:11px;color:var(--tm);">▾ ver lista</span>
+      </div>
+      <div id="gestor-acesso" style="padding:8px 0;display:none;"></div>
     </div>
 
     <button class="btn be" style="width:100%;font-size:14px;padding:14px;" onclick="gestorExportarPDF()">🖨️ Exportar relatório do time em PDF</button>
@@ -2056,6 +2059,8 @@ function renderGestor(){
 
     // ===== GERENCIAR ACESSO =====
     var acessoHost=document.getElementById('gestor-acesso');
+    var acessoSeta=document.getElementById('gestor-acesso-seta');
+    if(acessoSeta)acessoSeta.textContent=(acessoHost&&acessoHost.style.display==='block'?'▴ esconder lista':'▾ ver lista')+' ('+acessoAtivo.length+')';
     if(acessoHost){
       acessoHost.innerHTML=acessoAtivo.length?acessoAtivo.map(function(a){
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--cb);gap:10px;">'+
@@ -2090,6 +2095,17 @@ function gestorRejeitar(uid,nome){
   }).catch(function(err){
     toast('⚠️ Erro: '+err.message,'#c0392b');
   });
+}
+function gestorToggleAcesso(){
+  var box=document.getElementById('gestor-acesso');
+  var seta=document.getElementById('gestor-acesso-seta');
+  if(!box)return;
+  var abrir=box.style.display==='none';
+  box.style.display=abrir?'block':'none';
+  if(seta){
+    var qtd=(seta.textContent.match(/\((\d+)\)/)||[])[1]||'0';
+    seta.textContent=(abrir?'▴ esconder lista':'▾ ver lista')+' ('+qtd+')';
+  }
 }
 function gestorRemoverAcesso(uid,nome){
   if(!GESTOR_UIDS.includes(_currentUID))return;

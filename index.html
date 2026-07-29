@@ -1020,7 +1020,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
   <div class="page-content">
   <div class="pt"><h2>Painel do Gestor</h2><p>Acompanhe a <span class="hl">produção, comissão e ritmo</span> de cada consultor</p></div>
 
-    <div id="gestor-pendentes-wrap" style="margin-bottom:20px;"></div>
+    <div style="height:1px;"></div>
 
     <div class="fc" style="margin-bottom:20px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="font-size:12px;font-weight:700;color:var(--t);">Ver período:</label>
@@ -1081,6 +1081,8 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
       </div>
       <div id="gestor-acesso" style="padding:8px 0;display:none;"></div>
     </div>
+
+    <div id="gestor-pendentes-wrap" style="margin-bottom:20px;"></div>
 
     <div style="display:flex;gap:10px;">
       <button class="btn be" style="flex:1;font-size:14px;padding:14px;" onclick="gestorExportarPDF()">🖨️ Exportar PDF</button>
@@ -2028,7 +2030,8 @@ function renderGestor(){
       var d=doc.data();
       if(!GESTOR_UIDS.includes(uid)){
         var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
-        if(d.aguardandoAprovacao===true){
+        var ePendente=(d.aguardandoAprovacao===true)||(d.aprovado===false&&d.bloqueado!==true);
+        if(ePendente){
           pendentes.push({uid:uid,nome:nomeCad,email:d.emailCadastro||''});
         } else if(d.bloqueado!==true){
           acessoAtivo.push({uid:uid,nome:nomeCad});
@@ -2313,18 +2316,26 @@ function renderGestor(){
       if(pendentes.length===0){
         pendentesHost.innerHTML='';
       } else {
-        pendentesHost.innerHTML='<div class="fc" style="border:1.5px solid #d97706;">'+
-          '<div class="sh" style="color:#d97706;">⏳ Aprovações Pendentes ('+pendentes.length+')</div>'+
-          pendentes.map(function(p){
-            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--cb);gap:10px;flex-wrap:wrap;">'+
-              '<div><div style="font-size:13px;font-weight:700;color:var(--t);">'+p.nome+'</div><div style="font-size:11px;color:var(--tm);">'+p.email+'</div></div>'+
+        var listaPend=pendentes.map(function(p){
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-bottom:1px solid var(--cb);gap:8px;flex-wrap:wrap;">'+
+            '<div style="font-size:12px;color:var(--t);font-weight:600;">'+p.nome+'<span style="font-size:10px;color:var(--tm);font-weight:400;margin-left:6px;">'+p.email+'</span></div>'+
+            '<div style="display:flex;gap:6px;flex-shrink:0;">'+
+              '<button class="btn be" style="padding:4px 10px;font-size:11px;" onclick="gestorAprovar(\''+p.uid+'\')">✅ Aprovar</button>'+
+              '<button class="btn bl" style="padding:4px 10px;font-size:11px;color:#c0392b;" onclick="gestorRejeitar(\''+p.uid+'\',\''+p.nome.replace(/'/g,"\\'")+'\')">✕</button>'+
+            '</div>'+
+          '</div>';
+        }).join('');
+        pendentesHost.innerHTML=
+          '<div class="fc" style="border:1.5px solid #d97706;margin-bottom:4px;">'+
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;cursor:pointer;" onclick="gestorTogglePendentes()">'+
+              '<span style="font-size:12px;font-weight:700;color:#d97706;">⏳ Aprovações pendentes ('+pendentes.length+')</span>'+
               '<div style="display:flex;gap:8px;">'+
-                '<button class="btn be" style="padding:6px 14px;font-size:12px;" onclick="gestorAprovar(\''+p.uid+'\')">✅ Aprovar</button>'+
-                '<button class="btn bl" style="padding:6px 14px;font-size:12px;color:#c0392b;" onclick="gestorRejeitar(\''+p.uid+'\',\''+p.nome.replace(/'/g,"\\'")+'\')">❌ Rejeitar</button>'+
+                '<button class="btn be" style="padding:4px 12px;font-size:11px;" onclick="event.stopPropagation();gestorAprovarTodos()">✅ Aprovar todos</button>'+
+                '<span id="pend-seta" style="font-size:11px;color:#d97706;">▾</span>'+
               '</div>'+
-            '</div>';
-          }).join('')+
-        '</div>';
+            '</div>'+
+            '<div id="pend-lista" style="display:none;">'+listaPend+'</div>'+
+          '</div>';
       }
     }
 
@@ -2350,22 +2361,55 @@ function renderGestor(){
 var _gestorUltimoDados=null;
 function gestorAprovar(uid){
   if(!GESTOR_UIDS.includes(_currentUID))return;
-  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false},{merge:true}).then(function(){
+  // limpa AMBOS os campos (novo e legado do sistema antigo)
+  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false,aprovado:true},{merge:true}).then(function(){
     toast('✅ Acesso aprovado!');
     renderGestor();
   }).catch(function(err){
     toast('⚠️ Erro ao aprovar: '+err.message,'#c0392b');
   });
 }
+function gestorAprovarTodos(){
+  if(!GESTOR_UIDS.includes(_currentUID))return;
+  if(!confirm('Aprovar TODOS os pendentes de uma vez? Isso libera acesso pra todos eles.'))return;
+  // busca quem tem aprovado:false OU aguardandoAprovacao:true e aprova em lote
+  var batch=db.batch();
+  var promessas=[
+    db.collection('usuarios').where('aprovado','==',false).get(),
+    db.collection('usuarios').where('aguardandoAprovacao','==',true).get()
+  ];
+  Promise.all(promessas).then(function(snaps){
+    var uids=new Set();
+    snaps.forEach(function(snap){snap.forEach(function(doc){if(!OCULTO_PAINEL_UIDS.includes(doc.id))uids.add(doc.id);});});
+    if(uids.size===0){toast('Nenhum pendente encontrado.');return;}
+    uids.forEach(function(uid){
+      batch.set(db.collection('usuarios').doc(uid),{aguardandoAprovacao:false,aprovado:true},{merge:true});
+    });
+    return batch.commit();
+  }).then(function(){
+    toast('✅ '+' Todos aprovados!');
+    renderGestor();
+  }).catch(function(err){
+    toast('⚠️ Erro: '+err.message,'#c0392b');
+  });
+}
 function gestorRejeitar(uid,nome){
   if(!GESTOR_UIDS.includes(_currentUID))return;
   if(!confirm('Rejeitar o cadastro de '+nome+'? Ele não vai conseguir usar a ferramenta.'))return;
-  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false,bloqueado:true},{merge:true}).then(function(){
+  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false,aprovado:false,bloqueado:true},{merge:true}).then(function(){
     toast('❌ Cadastro rejeitado.');
     renderGestor();
   }).catch(function(err){
     toast('⚠️ Erro: '+err.message,'#c0392b');
   });
+}
+function gestorTogglePendentes(){
+  var lista=document.getElementById('pend-lista');
+  var seta=document.getElementById('pend-seta');
+  if(!lista)return;
+  var abrir=lista.style.display==='none';
+  lista.style.display=abrir?'block':'none';
+  if(seta)seta.textContent=abrir?'▴':'▾';
 }
 function gestorToggleAcesso(){
   var box=document.getElementById('gestor-acesso');

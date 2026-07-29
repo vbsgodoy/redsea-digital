@@ -1048,8 +1048,18 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="gestor-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
 
     <div class="fc" style="margin-bottom:20px;">
-      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Follow-up Pós-venda — Status do Time</div>
-      <div id="gestor-followup" style="padding:8px 0;"></div>
+      <div class="sh" style="cursor:pointer;justify-content:space-between;" onclick="fuToggle()">
+        <div style="display:flex;align-items:center;"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Follow-up Pós-venda</div>
+        <span id="fu-seta" style="font-size:11px;color:var(--tm);">▾ ver</span>
+      </div>
+      <div id="fu-corpo" style="display:none;">
+        <div style="padding:8px 16px;border-bottom:1px solid var(--cb);">
+          <select id="fu-filtro-vendedor" onchange="gestorRenderFollowup()" style="width:100%;font-size:12px;">
+            <option value="">Todos os consultores</option>
+          </select>
+        </div>
+        <div id="gestor-followup"></div>
+      </div>
     </div>
 
     <div id="gestor-alertas" style="margin-bottom:20px;"></div>
@@ -2263,13 +2273,20 @@ function renderGestor(){
 
     // ===== FOLLOW-UP =====
     var fuHost=document.getElementById('gestor-followup');
+    var fuSeta=document.getElementById('fu-seta');
     if(fuHost){
+      // popular dropdown de vendedores
+      var selVend=document.getElementById('fu-filtro-vendedor');
+      var filtroVend=selVend?selVend.value:'';
+      var vendedoresNomes=[];
       var fuLinhas=[];
       usuariosSnap.forEach(function(doc){
         var uid=doc.id;
         if(OCULTO_PAINEL_UIDS.includes(uid)||GESTOR_UIDS.includes(uid))return;
         var d=doc.data();
         var nome=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'Consultor';
+        if(vendedoresNomes.indexOf(nome)===-1)vendedoresNomes.push(nome);
+        if(filtroVend && nome!==filtroVend)return;
         var vendas=d.pjVendas||[];
         var fu=d.followup||{};
         vendas.forEach(function(v){
@@ -2278,36 +2295,56 @@ function renderGestor(){
           var statusP2=entrada.parcela2Status==='em_dia';
           var prazo=entrada.prazoLimite||_fuPrazoLimite(v.data)||'';
           fuLinhas.push({
-            nome:nome,cliente:v.clienteNome||'(sem nome cadastrado)',cpf:v.clienteCpf||'',
+            nome:nome,cliente:v.clienteNome||'—',cpf:v.clienteCpf||'',
             modelo:v.modelo||'',valor:v.valor,dataVenda:v.data||'',prazo:prazo,
-            statusPos:statusPos,statusP2:statusP2,
-            comprovante:!!entrada.comprovante
+            statusPos:statusPos,statusP2:statusP2,comprovante:!!entrada.comprovante
           });
         });
       });
-      if(fuLinhas.length===0){
-        fuHost.innerHTML='<div class="hem" style="padding:16px;">Nenhuma venda com cliente identificado ainda. Os follow-ups aparecem aqui assim que os consultores lançarem vendas com nome do cliente.</div>';
-      } else {
-        var pendentes=fuLinhas.filter(function(l){return l.statusPos==='pendente';});
-        var atrasados=fuLinhas.filter(function(l){return l.statusPos==='atrasado';});
-        var ok=fuLinhas.filter(function(l){return l.statusPos==='ok';});
-        var resumoFu='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px;border-bottom:1px solid var(--cb);">'+
-          '<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#16a34a;">'+ok.length+'</div><div style="font-size:10px;color:var(--tm);">Concluídos</div></div>'+
-          '<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#d97706;">'+pendentes.length+'</div><div style="font-size:10px;color:var(--tm);">Pendentes</div></div>'+
-          '<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#dc2626;">'+atrasados.length+'</div><div style="font-size:10px;color:var(--tm);">Atrasados</div></div>'+
-        '</div>';
-        fuHost.innerHTML=resumoFu+fuLinhas.map(function(l){
-          var corPos=l.statusPos==='ok'?'#16a34a':l.statusPos==='atrasado'?'#dc2626':'#d97706';
-          var labelPos=l.statusPos==='ok'?'✅ OK':l.statusPos==='atrasado'?'🚨 ATRASADO':'⏳ Pendente';
-          return '<div style="padding:10px 20px;border-bottom:1px solid var(--cb);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">'+
-            '<div style="flex:1;min-width:160px;"><div style="font-size:12px;font-weight:700;color:var(--t);">'+l.cliente+(l.cpf?' <span style="color:var(--tm);font-weight:400;">'+l.cpf+'</span>':'')+'</div>'+
-            '<div style="font-size:10px;color:var(--tm);">'+l.nome+(l.modelo?' · '+l.modelo:'')+' · R$ '+_pjFmt(l.valor)+'</div></div>'+
-            '<div style="font-size:10px;color:var(--tm);white-space:nowrap;">Prazo: '+(l.prazo?l.prazo.split('-').reverse().join('/'):'—')+'</div>'+
-            '<span style="font-size:11px;font-weight:700;color:'+corPos+';">'+labelPos+'</span>'+
-            '<span style="font-size:11px;color:'+(l.statusP2?'#16a34a':'var(--tm)')+';">'+(l.statusP2?'✅ 2ª parcela OK':'💳 2ª parcela pendente')+'</span>'+
-          '</div>';
-        }).join('');
+      // atualiza opcoes do select
+      if(selVend){
+        var valorAtual=selVend.value;
+        selVend.innerHTML='<option value="">Todos os consultores</option>'+
+          vendedoresNomes.map(function(n){return '<option value="'+n+'"'+(n===valorAtual?' selected':'')+'>'+n+'</option>';}).join('');
       }
+
+      function _fuLinhaHTML(l){
+        var corPos=l.statusPos==='ok'?'#16a34a':l.statusPos==='atrasado'?'#dc2626':'#d97706';
+        var tag=l.statusPos==='ok'?'✅ OK':l.statusPos==='atrasado'?'🚨 ATRASADO':'⏳ Pendente';
+        return '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--cb);font-size:12px;">'+
+          '<div style="flex:1;min-width:120px;"><strong style="color:var(--t);">'+l.cliente+'</strong>'+(l.cpf?' <span style="color:var(--tm);font-size:10px;">'+l.cpf+'</span>':'')+'<div style="font-size:10px;color:var(--tm);">'+l.nome+(l.modelo?' · '+l.modelo:'')+'</div></div>'+
+          '<span style="font-size:10px;color:var(--tm);">'+(l.prazo?l.prazo.split('-').reverse().join('/'):'—')+'</span>'+
+          '<span style="font-weight:700;color:'+corPos+';">'+tag+'</span>'+
+        '</div>';
+      }
+      function _fuSubAcordeon(id,titulo,linhas,corTitulo){
+        var nOk=linhas.filter(function(l){return l.statusPos==='ok';}).length;
+        var nPend=linhas.filter(function(l){return l.statusPos==='pendente';}).length;
+        var nAtr=linhas.filter(function(l){return l.statusPos==='atrasado';}).length;
+        return '<div style="border-bottom:1px solid var(--cb);">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;cursor:pointer;background:var(--p);" onclick="fuSubToggle(\''+id+'\')">'+
+            '<span style="font-size:12px;font-weight:700;color:'+(corTitulo||'var(--t)')+';">'+titulo+'</span>'+
+            '<div style="display:flex;gap:8px;align-items:center;">'+
+              '<span style="font-size:10px;color:#16a34a;font-weight:700;">✅ '+nOk+'</span>'+
+              '<span style="font-size:10px;color:#d97706;font-weight:700;">⏳ '+nPend+'</span>'+
+              '<span style="font-size:10px;color:#dc2626;font-weight:700;">🚨 '+nAtr+'</span>'+
+              '<span id="fu-sub-seta-'+id+'" style="font-size:11px;color:var(--tm);">▾</span>'+
+            '</div>'+
+          '</div>'+
+          '<div id="fu-sub-'+id+'" style="display:none;">'+
+            (linhas.length?linhas.map(_fuLinhaHTML).join(''):'<div class="hem" style="padding:12px 16px;font-size:11px;">Nenhuma venda registrada.</div>')+
+          '</div>'+
+        '</div>';
+      }
+
+      fuHost.innerHTML=
+        _fuSubAcordeon('pos','📱 Pós-vendas Âncora (app Conta Âncora)',fuLinhas,'var(--t)')+
+        _fuSubAcordeon('p2','💳 2ª Parcela',fuLinhas.map(function(l){
+          // reusa a linha mas ajusta o "statusPos" pro status da 2ª parcela
+          return Object.assign({},l,{statusPos:l.statusP2?'ok':'pendente'});
+        }),'var(--t)');
+
+      if(fuSeta)fuSeta.textContent='▾ ver';
     }
 
     // ===== APROVACOES PENDENTES =====
@@ -2402,6 +2439,26 @@ function gestorRejeitar(uid,nome){
   }).catch(function(err){
     toast('⚠️ Erro: '+err.message,'#c0392b');
   });
+}
+function fuToggle(){
+  var corpo=document.getElementById('fu-corpo');
+  var seta=document.getElementById('fu-seta');
+  if(!corpo)return;
+  var abrir=corpo.style.display==='none';
+  corpo.style.display=abrir?'block':'none';
+  if(seta)seta.textContent=abrir?'▴ fechar':'▾ ver';
+}
+function fuSubToggle(id){
+  var box=document.getElementById('fu-sub-'+id);
+  var seta=document.getElementById('fu-sub-seta-'+id);
+  if(!box)return;
+  var abrir=box.style.display==='none';
+  box.style.display=abrir?'block':'none';
+  if(seta)seta.textContent=abrir?'▴':'▾';
+}
+function gestorRenderFollowup(){
+  // re-renderiza só o bloco de follow-up sem recarregar o painel inteiro
+  renderGestor();
 }
 function gestorTogglePendentes(){
   var lista=document.getElementById('pend-lista');

@@ -1321,7 +1321,11 @@ firebase.auth().onAuthStateChanged(function(user){
           firebase.auth().signOut();
           return;
         }
-        if(d.aprovado===true || d.aprovado===undefined){
+        // So exige aprovacao se veio pelo fluxo de cadastro novo (tem solicitadoEm)
+        // Quem ja tinha conta antes nao tem esse campo e passa direto
+        var ehCadastroNovo=(d.solicitadoEm!==undefined);
+        var aprovado=(d.aprovado===true || !ehCadastroNovo);
+        if(aprovado){
           aguardandoScreen.style.display='none';
           _liberarAcessoApp(user);
         } else {
@@ -1356,7 +1360,12 @@ function _gestorEscutarPendentes(){
   if(_unsubPendentes)_unsubPendentes();
   _unsubPendentes=db.collection('usuarios').where('aprovado','==',false).onSnapshot(function(snap){
     var qtd=0;
-    snap.forEach(function(doc){if(!OCULTO_PAINEL_UIDS.includes(doc.id))qtd++;});
+    snap.forEach(function(doc){
+      if(OCULTO_PAINEL_UIDS.includes(doc.id))return;
+      var d=doc.data();
+      // só conta como pendente quem veio pelo fluxo de cadastro novo
+      if(d.solicitadoEm!==undefined)qtd++;
+    });
     var badge=document.getElementById('nav-gestor-badge');
     if(badge){
       if(qtd>0){badge.textContent=qtd;badge.style.display='inline-block';}
@@ -2024,7 +2033,8 @@ function renderGestor(){
       var d=doc.data();
       if(!GESTOR_UIDS.includes(uid)){
         var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
-        if(d.aprovado===false){
+        var ehCadastroNovo=(d.solicitadoEm!==undefined);
+        if(d.aprovado===false && ehCadastroNovo){
           pendentes.push({uid:uid,nome:nomeCad,email:d.emailCadastro||''});
         } else if(d.bloqueado!==true){
           acessoAtivo.push({uid:uid,nome:nomeCad});

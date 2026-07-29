@@ -285,6 +285,29 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <button class="btn be" id="fs-next" onclick="fsNav(1)" style="flex:0 0 auto;">Próxima →</button>
   </div>
 </div>
+<div id="fu-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:60000;justify-content:center;align-items:center;padding:16px;">
+  <div style="background:var(--bg);border-radius:14px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--cb);">
+      <div style="font-size:14px;font-weight:800;color:var(--t);">📋 Comprovante do Pós-vendas Âncora</div>
+      <button onclick="fuFecharModal()" style="background:none;border:none;color:var(--tm);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div style="padding:16px 20px;">
+      <div id="fu-modal-drop-vazio" onclick="document.getElementById('fu-file-input').click()" style="border:2px dashed var(--cb);border-radius:10px;padding:28px;text-align:center;cursor:pointer;background:var(--p);">
+        <div style="font-size:28px;margin-bottom:6px;">📎</div>
+        <div style="font-size:13px;color:var(--t);font-weight:600;">Clique ou cole (Ctrl+V) o print do pós-vendas concluído</div>
+        <div style="font-size:11px;color:var(--tm);margin-top:4px;">Aceita imagem ou PDF (tela do app Conta Âncora)</div>
+      </div>
+      <div id="fu-modal-preview" style="display:none;text-align:center;">
+        <img id="fu-modal-img" style="max-width:100%;max-height:280px;border-radius:8px;"/>
+      </div>
+      <input type="file" id="fu-file-input" accept="image/*,application/pdf" style="display:none;" onchange="fuArquivoSelecionado(this.files[0])"/>
+    </div>
+    <div style="padding:0 20px 20px;display:flex;gap:8px;">
+      <button class="btn bl" style="flex:1;" onclick="fuFecharModal()">Cancelar</button>
+      <button class="btn be" id="fu-modal-btn-salvar" style="flex:1;" onclick="fuSalvarComprovante()" disabled>✅ Salvar e marcar como concluído</button>
+    </div>
+  </div>
+</div>
 <div id="aguardando-screen" class="login-screen" style="display:none;">
   <div class="login-box" style="text-align:center;">
     <div style="font-size:44px;margin-bottom:10px;">⏳</div>
@@ -1023,6 +1046,11 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
 
     <div id="gestor-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
 
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Clipboard/3D/clipboard_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Follow-up Pós-venda — Status do Time</div>
+      <div id="gestor-followup" style="padding:8px 0;"></div>
+    </div>
+
     <div id="gestor-alertas" style="margin-bottom:20px;"></div>
 
     <div class="fc" style="margin-bottom:20px;">
@@ -1347,6 +1375,7 @@ function _fbCarregarDados(uid){
       if(d.comissaoHistorico!==undefined)localStorage.setItem('rsd_pj_historico',JSON.stringify(d.comissaoHistorico));
       if(d.pjVendas!==undefined)localStorage.setItem('rsd_pj_vendas',JSON.stringify(d.pjVendas));
       if(d.pjMeta!==undefined)localStorage.setItem('rsd_pj_meta',JSON.stringify(d.pjMeta));
+      if(d.followup!==undefined)localStorage.setItem('rsd_followup',JSON.stringify(d.followup));
     } else {
       _fbLog('Documento NAO existe ainda. Criando pela primeira vez...');
       // primeira vez -- sobe o que ja existir localmente (se existir)
@@ -1693,6 +1722,123 @@ function _pjSetHistorico(arr){
     _fbLog('❌ ERRO (comiss\u00E3o hist\u00F3rico): '+err.message);
   });
 }
+
+// ===== FOLLOW-UP PÓS-VENDA =====
+function _fuGet(){return JSON.parse(localStorage.getItem('rsd_followup')||'{}');}
+function _fuSet(obj){
+  localStorage.setItem('rsd_followup',JSON.stringify(obj));
+  if(!_currentUID)return;
+  db.collection('usuarios').doc(_currentUID).set({followup:obj},{merge:true}).catch(function(err){
+    _fbLog('❌ ERRO (followup): '+err.message);
+  });
+}
+function _fuPrazoLimite(dataVendaStr){
+  if(!dataVendaStr)return null;
+  var p=dataVendaStr.split('-');
+  var ano=parseInt(p[0]),mes=parseInt(p[1])-1;
+  var d=new Date(ano,mes+1,15);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-15';
+}
+function _fuStatusPos(fu){
+  if(!fu)return 'pendente';
+  if(fu.posVendaStatus==='concluido')return 'ok';
+  var prazo=fu.prazoLimite;
+  if(prazo && _hojeLocalISO()>prazo)return 'atrasado';
+  return 'pendente';
+}
+function fuAbrirComprovante(vendaId){
+  _fuVendaIdAtiva=vendaId;
+  var modal=document.getElementById('fu-modal');
+  if(modal)modal.style.display='flex';
+  document.getElementById('fu-modal-drop-vazio').style.display='block';
+  document.getElementById('fu-modal-preview').style.display='none';
+  document.getElementById('fu-modal-btn-salvar').disabled=true;
+  _fuBlobAtivo=null;
+}
+function fuFecharModal(){
+  var modal=document.getElementById('fu-modal');
+  if(modal)modal.style.display='none';
+  _fuVendaIdAtiva=null;
+  _fuBlobAtivo=null;
+}
+var _fuVendaIdAtiva=null;
+var _fuBlobAtivo=null;
+function fuArquivoSelecionado(file){
+  if(!file)return;
+  if(file.type==='application/pdf'){
+    if(!window.pdfjsLib){toast('⚠️ Leitor de PDF não disponível','#c0392b');return;}
+    toast('📄 Convertendo PDF...');
+    file.arrayBuffer().then(function(buf){return pdfjsLib.getDocument({data:buf}).promise;})
+      .then(function(pdf){return pdf.getPage(1);})
+      .then(function(page){
+        var vp=page.getViewport({scale:1.8});
+        var c=document.createElement('canvas');
+        c.width=vp.width;c.height=vp.height;
+        return page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise.then(function(){
+          c.toBlob(function(blob){if(blob)_fuMostrarPreview(blob);},'image/jpeg',0.82);
+        });
+      }).catch(function(){toast('⚠️ Não foi possível ler o PDF','#c0392b');});
+  } else {
+    _fuMostrarPreview(file);
+  }
+}
+function _fuMostrarPreview(blob){
+  _fuBlobAtivo=blob;
+  var url=URL.createObjectURL(blob);
+  var img=document.getElementById('fu-modal-img');
+  img.src=url;
+  document.getElementById('fu-modal-drop-vazio').style.display='none';
+  document.getElementById('fu-modal-preview').style.display='block';
+  document.getElementById('fu-modal-btn-salvar').disabled=false;
+}
+function fuSalvarComprovante(){
+  if(!_fuBlobAtivo||!_fuVendaIdAtiva)return;
+  var canvas=document.createElement('canvas');
+  var img=document.getElementById('fu-modal-img');
+  var maxW=800;
+  var scale=Math.min(1,maxW/(img.naturalWidth||800));
+  canvas.width=Math.round((img.naturalWidth||800)*scale);
+  canvas.height=Math.round((img.naturalHeight||600)*scale);
+  canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+  var b64=canvas.toDataURL('image/jpeg',0.75);
+  var fu=_fuGet();
+  var venda=_pjGet().find(function(x){return x.id===_fuVendaIdAtiva;});
+  fu[_fuVendaIdAtiva]=Object.assign(fu[_fuVendaIdAtiva]||{},{
+    posVendaStatus:'concluido',
+    posVendaConcluidoEm:_hojeLocalISO(),
+    comprovante:b64,
+    prazoLimite:_fuPrazoLimite(venda?venda.data:null),
+    clienteNome:venda?venda.clienteNome:'',
+    clienteCpf:venda?venda.clienteCpf:'',
+    valor:venda?venda.valor:0,
+    dataVenda:venda?venda.data:''
+  });
+  _fuSet(fu);
+  fuFecharModal();
+  _pjRenderListaVendas();
+  toast('✅ Comprovante salvo!');
+}
+function fuVerComprovante(vendaId){
+  var fu=_fuGet();
+  var entrada=fu[vendaId];
+  if(!entrada||!entrada.comprovante){toast('⚠️ Nenhum comprovante salvo','#c0392b');return;}
+  var w=window.open('','_blank');
+  w.document.write('<html><body style="background:#111;margin:0;display:flex;justify-content:center;"><img src="'+entrada.comprovante+'" style="max-width:100%;height:auto;"/></body></html>');
+}
+function fuMarcarParcela2(vendaId){
+  var fu=_fuGet();
+  var entrada=fu[vendaId]||{};
+  entrada.parcela2Status=entrada.parcela2Status==='em_dia'?'pendente':'em_dia';
+  if(!entrada.prazoLimite){
+    var venda=_pjGet().find(function(x){return x.id===vendaId;});
+    if(venda)entrada.prazoLimite=_fuPrazoLimite(venda.data);
+  }
+  fu[vendaId]=entrada;
+  _fuSet(fu);
+  _pjRenderListaVendas();
+  toast(entrada.parcela2Status==='em_dia'?'✅ 2ª parcela marcada como em dia!':'↩️ 2ª parcela voltou para pendente.');
+}
+
 function pjFecharMes(){
   var vendas=_pjGet();
   if(vendas.length===0){toast('⚠️ Nenhuma venda lançada esse mês ainda.','#c0392b');return;}
@@ -2106,6 +2252,56 @@ function renderGestor(){
       }).join('')+
       '</table></div>';
     atividadeHost.innerHTML=linhas.length?atividadeTabela:'<div class="hem" style="padding:20px;">Ninguém com dados ainda.</div>';
+
+    // ===== FOLLOW-UP =====
+    var fuHost=document.getElementById('gestor-followup');
+    if(fuHost){
+      var fuLinhas=[];
+      usuariosSnap.forEach(function(doc){
+        var uid=doc.id;
+        if(OCULTO_PAINEL_UIDS.includes(uid)||GESTOR_UIDS.includes(uid))return;
+        var d=doc.data();
+        var nome=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'Consultor';
+        var vendas=d.pjVendas||[];
+        var fu=d.followup||{};
+        vendas.forEach(function(v){
+          if(!v.clienteNome&&!v.clienteCpf)return; // sem dados de cliente = ignora
+          var entrada=fu[v.id]||{};
+          var statusPos=_fuStatusPos(entrada);
+          var statusP2=entrada.parcela2Status==='em_dia';
+          var prazo=entrada.prazoLimite||_fuPrazoLimite(v.data)||'';
+          fuLinhas.push({
+            nome:nome,cliente:v.clienteNome||'(sem nome)',cpf:v.clienteCpf||'',
+            valor:v.valor,dataVenda:v.data||'',prazo:prazo,
+            statusPos:statusPos,statusP2:statusP2,
+            comprovante:!!entrada.comprovante
+          });
+        });
+      });
+      if(fuLinhas.length===0){
+        fuHost.innerHTML='<div class="hem" style="padding:16px;">Nenhuma venda com cliente identificado ainda. Os follow-ups aparecem aqui assim que os consultores lançarem vendas com nome do cliente.</div>';
+      } else {
+        var pendentes=fuLinhas.filter(function(l){return l.statusPos==='pendente';});
+        var atrasados=fuLinhas.filter(function(l){return l.statusPos==='atrasado';});
+        var ok=fuLinhas.filter(function(l){return l.statusPos==='ok';});
+        var resumoFu='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px;border-bottom:1px solid var(--cb);">'+
+          '<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#16a34a;">'+ok.length+'</div><div style="font-size:10px;color:var(--tm);">Concluídos</div></div>'+
+          '<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#d97706;">'+pendentes.length+'</div><div style="font-size:10px;color:var(--tm);">Pendentes</div></div>'+
+          '<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#dc2626;">'+atrasados.length+'</div><div style="font-size:10px;color:var(--tm);">Atrasados</div></div>'+
+        '</div>';
+        fuHost.innerHTML=resumoFu+fuLinhas.map(function(l){
+          var corPos=l.statusPos==='ok'?'#16a34a':l.statusPos==='atrasado'?'#dc2626':'#d97706';
+          var labelPos=l.statusPos==='ok'?'✅ OK':l.statusPos==='atrasado'?'🚨 ATRASADO':'⏳ Pendente';
+          return '<div style="padding:10px 20px;border-bottom:1px solid var(--cb);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">'+
+            '<div style="flex:1;min-width:160px;"><div style="font-size:12px;font-weight:700;color:var(--t);">'+l.cliente+(l.cpf?' <span style="color:var(--tm);font-weight:400;">'+l.cpf+'</span>':'')+'</div>'+
+            '<div style="font-size:10px;color:var(--tm);">'+l.nome+' · R$ '+_pjFmt(l.valor)+'</div></div>'+
+            '<div style="font-size:10px;color:var(--tm);white-space:nowrap;">Prazo: '+(l.prazo?l.prazo.split('-').reverse().join('/'):'—')+'</div>'+
+            '<span style="font-size:11px;font-weight:700;color:'+corPos+';">'+labelPos+'</span>'+
+            '<span style="font-size:11px;color:'+(l.statusP2?'#16a34a':'var(--tm)')+';">'+(l.statusP2?'✅ 2ª parcela OK':'💳 2ª parcela pendente')+'</span>'+
+          '</div>';
+        }).join('');
+      }
+    }
 
     // ===== APROVACOES PENDENTES =====
     var pendentesHost=document.getElementById('gestor-pendentes-wrap');
@@ -2530,16 +2726,23 @@ function _pjRenderListaVendas(){
     host.innerHTML='<div class="hem" style="padding:14px 24px;">Nenhuma venda encontrada com esse filtro/busca.</div>';
     return;
   }
+  var fuMap=_fuGet();
   var somaFiltro=arr.reduce(function(s,x){return s+x.valor;},0);
   var cabecalho='<div style="padding:8px 24px;font-size:11px;color:var(--tm);border-bottom:1px solid var(--cb);">'+arr.length+' venda(s) · '+_labelPeriodo(filtro,'pj-filtro-periodo')+' · Soma: <strong style="color:var(--t);">R$ '+_pjFmt(somaFiltro)+'</strong></div>';
   host.innerHTML=cabecalho+arr.map(function(x){
     var i=arrCompleto.indexOf(x);
     var rotulo=x.tipo==='moto'?(x.premium?'Moto Premium':'Moto'):'Imóvel';
+    var fu=fuMap[x.id]||{};
+    var statusPos=_fuStatusPos(fu);
+    var prazo=_fuPrazoLimite(x.data);
+    var corPos=statusPos==='ok'?'#16a34a':statusPos==='atrasado'?'#dc2626':'#d97706';
+    var labelPos=statusPos==='ok'?'✅ Pós-vendas OK':statusPos==='atrasado'?'🚨 Pós-vendas ATRASADO':'⏳ Pós-vendas pendente';
+    var statusP2=fu.parcela2Status==='em_dia';
     var marcador='';
     if(x.tipo==='moto'){
       marcador='<div style="display:flex;gap:4px;flex-shrink:0;">'+
-        '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'1\')" title="Marcar como 1ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='1'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='1'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">1ª</button>'+
-        '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'2\')" title="Marcar como 2ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='2'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='2'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">2ª</button>'+
+        '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'1\')" title="1ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='1'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='1'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">1ª</button>'+
+        '<button onclick="pjMarcarOrdem(\''+x.id+'\',\'2\')" title="2ª venda do mês" style="font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--cb);background:'+(x.ordemEspecial==='2'?'var(--v)':'transparent')+';color:'+(x.ordemEspecial==='2'?'#fff':'var(--tm)')+';cursor:pointer;font-weight:700;">2ª</button>'+
       '</div>';
     }
     return '<div style="padding:8px 24px;border-bottom:1px solid var(--cb);">'+
@@ -2552,7 +2755,13 @@ function _pjRenderListaVendas(){
         '<button onclick="pjEditarVenda(\''+x.id+'\')" title="Editar" style="border:none;background:none;color:var(--v);cursor:pointer;flex-shrink:0;">✏️</button>'+
         '<button onclick="pjRemoverVenda(\''+x.id+'\')" title="Excluir" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:2px;flex-shrink:0;">✕</button>'+
       '</div>'+
-      (x.clienteNome||x.clienteCpf?'<div style="font-size:10px;color:var(--tm);margin-top:2px;padding-left:24px;">👤 '+(x.clienteNome||'(sem nome)')+(x.clienteCpf?' · '+x.clienteCpf:'')+'</div>':'')+
+      (x.clienteNome||x.clienteCpf?'<div style="font-size:10px;color:var(--tm);margin-top:2px;padding-left:4px;">👤 '+(x.clienteNome||'(sem nome)')+(x.clienteCpf?' · '+x.clienteCpf:'')+'</div>':'')+
+      '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">'+
+        '<button onclick="fuAbrirComprovante(\''+x.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid '+corPos+';background:transparent;color:'+corPos+';cursor:pointer;font-weight:600;">'+labelPos+'</button>'+
+        (statusPos==='ok'&&fu.comprovante?'<button onclick="fuVerComprovante(\''+x.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--cb);background:transparent;color:var(--tm);cursor:pointer;">🔍 Ver comprovante</button>':'')+
+        '<button onclick="fuMarcarParcela2(\''+x.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid '+(statusP2?'#16a34a':'var(--cb)')+';background:transparent;color:'+(statusP2?'#16a34a':'var(--tm)')+';cursor:pointer;font-weight:600;">'+(statusP2?'✅ 2ª parcela em dia':'💳 2ª parcela: pendente')+'</button>'+
+        (prazo?'<span style="font-size:10px;color:var(--tm);align-self:center;">Prazo: '+prazo.split('-').reverse().join('/')+'</span>':'')+
+      '</div>'+
     '</div>';
   }).join('');
 }
@@ -3628,6 +3837,20 @@ function copiarComprovanteEmoldurado(){
   },'image/png');
 }
 document.addEventListener('paste',function(e){
+  // modal follow-up
+  var fuModal=document.getElementById('fu-modal');
+  if(fuModal && fuModal.style.display!=='none'){
+    var items2=(e.clipboardData||{}).items;
+    if(items2){
+      for(var j=0;j<items2.length;j++){
+        if(items2[j].type.indexOf('image')!==-1){
+          _fuMostrarPreview(items2[j].getAsFile());
+          e.preventDefault();return;
+        }
+      }
+    }
+  }
+  // modal venda fechada
   var drop=document.getElementById('vf-drop');
   if(!drop)return;
   var stab=document.getElementById('stab-vendafechada');

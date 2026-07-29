@@ -973,6 +973,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
         <div class="fg" style="margin-bottom:10px;">
           <div class="fi"><label>Nome do cliente</label><input type="text" id="pj-cliente-nome" placeholder="Nome do cliente"/></div>
           <div class="fi"><label>CPF</label><input type="text" id="pj-cliente-cpf" placeholder="000.000.000-00" oninput="fCPF(this)"/></div>
+          <div class="fi"><label>Modelo</label><input type="text" id="pj-modelo" placeholder="Ex: Ninja 300, Z650, Versys 1000..."/></div>
         </div>
         <div class="fg" style="margin-bottom:10px;">
           <div class="fi"><label>Tipo</label><select id="pj-tipo"><option value="moto">Moto</option><option value="imovel">Imóvel</option></select></div>
@@ -2265,14 +2266,13 @@ function renderGestor(){
         var vendas=d.pjVendas||[];
         var fu=d.followup||{};
         vendas.forEach(function(v){
-          if(!v.clienteNome&&!v.clienteCpf)return; // sem dados de cliente = ignora
           var entrada=fu[v.id]||{};
           var statusPos=_fuStatusPos(entrada);
           var statusP2=entrada.parcela2Status==='em_dia';
           var prazo=entrada.prazoLimite||_fuPrazoLimite(v.data)||'';
           fuLinhas.push({
-            nome:nome,cliente:v.clienteNome||'(sem nome)',cpf:v.clienteCpf||'',
-            valor:v.valor,dataVenda:v.data||'',prazo:prazo,
+            nome:nome,cliente:v.clienteNome||'(sem nome cadastrado)',cpf:v.clienteCpf||'',
+            modelo:v.modelo||'',valor:v.valor,dataVenda:v.data||'',prazo:prazo,
             statusPos:statusPos,statusP2:statusP2,
             comprovante:!!entrada.comprovante
           });
@@ -2294,7 +2294,7 @@ function renderGestor(){
           var labelPos=l.statusPos==='ok'?'✅ OK':l.statusPos==='atrasado'?'🚨 ATRASADO':'⏳ Pendente';
           return '<div style="padding:10px 20px;border-bottom:1px solid var(--cb);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">'+
             '<div style="flex:1;min-width:160px;"><div style="font-size:12px;font-weight:700;color:var(--t);">'+l.cliente+(l.cpf?' <span style="color:var(--tm);font-weight:400;">'+l.cpf+'</span>':'')+'</div>'+
-            '<div style="font-size:10px;color:var(--tm);">'+l.nome+' · R$ '+_pjFmt(l.valor)+'</div></div>'+
+            '<div style="font-size:10px;color:var(--tm);">'+l.nome+(l.modelo?' · '+l.modelo:'')+' · R$ '+_pjFmt(l.valor)+'</div></div>'+
             '<div style="font-size:10px;color:var(--tm);white-space:nowrap;">Prazo: '+(l.prazo?l.prazo.split('-').reverse().join('/'):'—')+'</div>'+
             '<span style="font-size:11px;font-weight:700;color:'+corPos+';">'+labelPos+'</span>'+
             '<span style="font-size:11px;color:'+(l.statusP2?'#16a34a':'var(--tm)')+';">'+(l.statusP2?'✅ 2ª parcela OK':'💳 2ª parcela pendente')+'</span>'+
@@ -2648,6 +2648,7 @@ function pjAdicionarVenda(){
   var dataVenda=v('pj-data')||_hojeLocalISO();
   var clienteNome=v('pj-cliente-nome');
   var clienteCpf=v('pj-cliente-cpf');
+  var modelo=v('pj-modelo');
   if(!valor){toast('⚠️ Informe o valor da venda','#c0392b');return;}
   var editandoId=v('pj-editando-id');
   var arr=_pjGet();
@@ -2655,11 +2656,11 @@ function pjAdicionarVenda(){
     var alvo=arr.find(function(x){return x.id===editandoId;});
     if(alvo){
       alvo.tipo=tipo;alvo.premium=tipo==='moto'?premium:false;alvo.valor=valor;alvo.data=dataVenda;
-      alvo.clienteNome=clienteNome;alvo.clienteCpf=clienteCpf;
+      alvo.clienteNome=clienteNome;alvo.clienteCpf=clienteCpf;alvo.modelo=modelo;
     }
     toast('✅ Venda atualizada!');
   } else {
-    arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:dataVenda,clienteNome:clienteNome,clienteCpf:clienteCpf});
+    arr.push({id:'v'+Date.now(),tipo:tipo,premium:tipo==='moto'?premium:false,valor:valor,ordemEspecial:null,data:dataVenda,clienteNome:clienteNome,clienteCpf:clienteCpf,modelo:modelo});
     toast('✅ Venda adicionada!');
   }
   _pjSet(arr);
@@ -2674,6 +2675,7 @@ function pjEditarVenda(id){
   if(!alvo)return;
   document.getElementById('pj-cliente-nome').value=alvo.clienteNome||'';
   document.getElementById('pj-cliente-cpf').value=alvo.clienteCpf||'';
+  document.getElementById('pj-modelo').value=alvo.modelo||'';
   document.getElementById('pj-tipo').value=alvo.tipo;
   document.getElementById('pj-premium').value=alvo.premium?'sim':'nao';
   document.getElementById('pj-valor').value=alvo.valor.toLocaleString('pt-BR',{minimumFractionDigits:2});
@@ -2687,6 +2689,7 @@ function pjEditarVenda(id){
 function pjCancelarEdicao(){
   document.getElementById('pj-cliente-nome').value='';
   document.getElementById('pj-cliente-cpf').value='';
+  document.getElementById('pj-modelo').value='';
   document.getElementById('pj-valor').value='';
   document.getElementById('pj-data').value=_hojeLocalISO();
   document.getElementById('pj-editando-id').value='';
@@ -2755,7 +2758,9 @@ function _pjRenderListaVendas(){
         '<button onclick="pjEditarVenda(\''+x.id+'\')" title="Editar" style="border:none;background:none;color:var(--v);cursor:pointer;flex-shrink:0;">✏️</button>'+
         '<button onclick="pjRemoverVenda(\''+x.id+'\')" title="Excluir" style="border:none;background:none;color:#c0392b;cursor:pointer;margin-left:2px;flex-shrink:0;">✕</button>'+
       '</div>'+
-      (x.clienteNome||x.clienteCpf?'<div style="font-size:10px;color:var(--tm);margin-top:2px;padding-left:4px;">👤 '+(x.clienteNome||'(sem nome)')+(x.clienteCpf?' · '+x.clienteCpf:'')+'</div>':'')+
+      (x.clienteNome||x.clienteCpf||x.modelo?'<div style="font-size:10px;color:var(--tm);margin-top:2px;padding-left:4px;">'+
+        (x.clienteNome||x.clienteCpf?'👤 '+(x.clienteNome||'(sem nome)')+(x.clienteCpf?' · '+x.clienteCpf:''):'')+(x.modelo?' 🏍️ '+x.modelo:'')+
+      '</div>':'')+
       '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">'+
         '<button onclick="fuAbrirComprovante(\''+x.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid '+corPos+';background:transparent;color:'+corPos+';cursor:pointer;font-weight:600;">'+labelPos+'</button>'+
         (statusPos==='ok'&&fu.comprovante?'<button onclick="fuVerComprovante(\''+x.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--cb);background:transparent;color:var(--tm);cursor:pointer;">🔍 Ver comprovante</button>':'')+

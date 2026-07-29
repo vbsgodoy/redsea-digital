@@ -1258,10 +1258,9 @@ function fbCadastrar(){
     cred.user.sendEmailVerification().catch(function(){});
     return cred.user.updateProfile({displayName:nome}).then(function(){
       return db.collection('usuarios').doc(cred.user.uid).set({
-        aprovado:GESTOR_UIDS.includes(cred.user.uid),
+        aguardandoAprovacao:!GESTOR_UIDS.includes(cred.user.uid),
         nomeCadastro:nome,
-        emailCadastro:email,
-        solicitadoEm:firebase.firestore.FieldValue.serverTimestamp()
+        emailCadastro:email
       },{merge:true});
     });
   }).catch(function(err){
@@ -1321,16 +1320,14 @@ firebase.auth().onAuthStateChanged(function(user){
           firebase.auth().signOut();
           return;
         }
-        // So exige aprovacao se veio pelo fluxo de cadastro novo (tem solicitadoEm)
-        // Quem ja tinha conta antes nao tem esse campo e passa direto
-        var ehCadastroNovo=(d.solicitadoEm!==undefined);
-        var aprovado=(d.aprovado===true || !ehCadastroNovo);
-        if(aprovado){
-          aguardandoScreen.style.display='none';
-          _liberarAcessoApp(user);
-        } else {
+        // So bloqueia se aguardandoAprovacao===true (campo criado explicitamente no cadastro novo)
+        // Usuarios existentes nunca tiveram esse campo -> passam direto sempre
+        if(d.aguardandoAprovacao===true){
           appShell.style.display='none';
           aguardandoScreen.style.display='flex';
+        } else {
+          aguardandoScreen.style.display='none';
+          _liberarAcessoApp(user);
         }
       },function(err){
         _fbLog('❌ ERRO (checar aprova\u00E7\u00E3o): '+err.message);
@@ -1358,13 +1355,11 @@ function _liberarAcessoApp(user){
 var _unsubPendentes=null;
 function _gestorEscutarPendentes(){
   if(_unsubPendentes)_unsubPendentes();
-  _unsubPendentes=db.collection('usuarios').where('aprovado','==',false).onSnapshot(function(snap){
+  _unsubPendentes=db.collection('usuarios').where('aguardandoAprovacao','==',true).onSnapshot(function(snap){
     var qtd=0;
     snap.forEach(function(doc){
       if(OCULTO_PAINEL_UIDS.includes(doc.id))return;
-      var d=doc.data();
-      // só conta como pendente quem veio pelo fluxo de cadastro novo
-      if(d.solicitadoEm!==undefined)qtd++;
+      qtd++;
     });
     var badge=document.getElementById('nav-gestor-badge');
     if(badge){
@@ -2033,8 +2028,7 @@ function renderGestor(){
       var d=doc.data();
       if(!GESTOR_UIDS.includes(uid)){
         var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
-        var ehCadastroNovo=(d.solicitadoEm!==undefined);
-        if(d.aprovado===false && ehCadastroNovo){
+        if(d.aguardandoAprovacao===true){
           pendentes.push({uid:uid,nome:nomeCad,email:d.emailCadastro||''});
         } else if(d.bloqueado!==true){
           acessoAtivo.push({uid:uid,nome:nomeCad});
@@ -2356,7 +2350,7 @@ function renderGestor(){
 var _gestorUltimoDados=null;
 function gestorAprovar(uid){
   if(!GESTOR_UIDS.includes(_currentUID))return;
-  db.collection('usuarios').doc(uid).set({aprovado:true},{merge:true}).then(function(){
+  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false},{merge:true}).then(function(){
     toast('✅ Acesso aprovado!');
     renderGestor();
   }).catch(function(err){
@@ -2366,7 +2360,7 @@ function gestorAprovar(uid){
 function gestorRejeitar(uid,nome){
   if(!GESTOR_UIDS.includes(_currentUID))return;
   if(!confirm('Rejeitar o cadastro de '+nome+'? Ele não vai conseguir usar a ferramenta.'))return;
-  db.collection('usuarios').doc(uid).set({aprovado:false,bloqueado:true},{merge:true}).then(function(){
+  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false,bloqueado:true},{merge:true}).then(function(){
     toast('❌ Cadastro rejeitado.');
     renderGestor();
   }).catch(function(err){
@@ -3180,7 +3174,7 @@ function renderPainelGestorHall(){
     var producaoTotal=0, comissaoTotal=0, linhas=[], pendentesQtd=0;
     usuariosSnap.forEach(function(doc){
       var uid=doc.id;
-      if(!GESTOR_UIDS.includes(uid) && !OCULTO_PAINEL_UIDS.includes(uid) && doc.data().aprovado===false)pendentesQtd++;
+      if(!GESTOR_UIDS.includes(uid) && !OCULTO_PAINEL_UIDS.includes(uid) && doc.data().aguardandoAprovacao===true)pendentesQtd++;
       if(NAO_VENDEDOR_UIDS.includes(uid)||OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       var vendas=d.pjVendas||[];

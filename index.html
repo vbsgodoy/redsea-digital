@@ -2042,6 +2042,7 @@ function renderGestor(){
       var uid=doc.id;
       if(OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
+      if(d.bloqueado===true)return; // excluir quem teve acesso removido
       if(!GESTOR_UIDS.includes(uid)){
         var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
         var ePendente=(d.aguardandoAprovacao===true)||(d.aprovado===false&&d.bloqueado!==true);
@@ -2288,6 +2289,7 @@ function renderGestor(){
         var uid=doc.id;
         if(OCULTO_PAINEL_UIDS.includes(uid)||GESTOR_UIDS.includes(uid))return;
         var d=doc.data();
+        if(d.bloqueado===true)return;
         var nome=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'Consultor';
         if(vendedoresNomes.indexOf(nome)===-1)vendedoresNomes.push(nome);
         if(filtroVend && nome!==filtroVend)return;
@@ -2413,6 +2415,7 @@ function gestorFecharMesParaTodos(){
       var uid=doc.id;
       if(OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
+      if(d.bloqueado===true)return;
       var vendas=d.pjVendas||[];
       if(vendas.length===0)return;
       var r=calcularComissao(vendas);
@@ -3329,6 +3332,7 @@ function renderPainelGestorHall(){
       if(!GESTOR_UIDS.includes(uid) && !OCULTO_PAINEL_UIDS.includes(uid) && doc.data().aguardandoAprovacao===true)pendentesQtd++;
       if(NAO_VENDEDOR_UIDS.includes(uid)||OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
+      if(d.bloqueado===true)return;
       var vendas=d.pjVendas||[];
       var r=vendas.length?calcularComissao(vendas):{totalGeral:0};
       var producao=vendas.reduce(function(s,x){return s+x.valor;},0);

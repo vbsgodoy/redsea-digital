@@ -1310,9 +1310,9 @@ function _fbErroTraduzido(code){
   return mapa[code]||'Não foi possível concluir. Tente novamente.';
 }
 var _currentUID=null;
-var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','JcTx6OSpJ2XnFG7BylIuA6OxTli1']; // Vitor Godoy, Ricardo
-var NAO_VENDEDOR_UIDS=[];
-var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2']; // Victor Gabriel - saiu da empresa, nao aparece em nada no painel
+var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2']; // Vitor Godoy
+var NAO_VENDEDOR_UIDS=['JcTx6OSpJ2XnFG7BylIuA6OxTli1']; // Ricardo - acesso ao app mas sem aparecer no ranking/painel
+var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','JcTx6OSpJ2XnFG7BylIuA6OxTli1']; // Victor Gabriel (saiu), Ricardo (oculto do painel)
 var _unsubAprovacao=null;
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');

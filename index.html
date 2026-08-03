@@ -400,6 +400,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div id="hall-resumo" style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;"></div>
 
     <div id="hall-aniversarios" style="margin-bottom:20px;"></div>
+    <div id="hall-fechar-mes" style="margin-bottom:20px;"></div>
     <div id="hall-onboarding" style="margin-bottom:20px;"></div>
     <div id="hall-gestor" style="margin-bottom:20px;"></div>
     <div id="hall-projecao" style="margin-bottom:20px;"></div>
@@ -1097,6 +1098,9 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#0891B2;}
     <div style="display:flex;gap:10px;">
       <button class="btn be" style="flex:1;font-size:14px;padding:14px;" onclick="gestorExportarPDF()">🖨️ Exportar PDF</button>
       <button class="btn bs2" style="flex:1;font-size:14px;padding:14px;" onclick="gestorExportarCSV()">📥 Exportar CSV</button>
+    </div>
+    <button class="btn bl" style="width:100%;font-size:14px;padding:14px;margin-top:10px;border:1.5px solid #d97706;color:#d97706;" onclick="gestorFecharMesParaTodos()">📁 Fechar mês do time inteiro</button>
+    <div style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center;">Arquiva as vendas de todos os consultores e zera pra começar o mês novo. Use quando alguém não puder fechar o próprio mês.</div>
     </div>
 
   </div><!-- /page-content -->
@@ -2396,6 +2400,53 @@ function renderGestor(){
   });
 }
 var _gestorUltimoDados=null;
+function gestorFecharMesParaTodos(){
+  if(!GESTOR_UIDS.includes(_currentUID))return;
+  var hoje=new Date();
+  var mesAnterior=hoje.getMonth()===0?11:hoje.getMonth()-1;
+  var anoAnterior=hoje.getMonth()===0?hoje.getFullYear()-1:hoje.getFullYear();
+  var nomeMes=MESES_PT[mesAnterior];
+  if(!confirm('Fechar '+nomeMes+'/'+anoAnterior+' para TODO o time? Cada um vai ter as vendas arquivadas e a lista zerada pra começar o mês novo.'))return;
+  db.collection('usuarios').get().then(function(snap){
+    var promessas=[];
+    snap.forEach(function(doc){
+      var uid=doc.id;
+      if(OCULTO_PAINEL_UIDS.includes(uid))return;
+      var d=doc.data();
+      var vendas=d.pjVendas||[];
+      if(vendas.length===0)return;
+      var r=calcularComissao(vendas);
+      var registro={
+        id:'m'+Date.now()+'_'+uid,
+        mes:mesAnterior,
+        ano:anoAnterior,
+        mesNome:nomeMes,
+        totalMotos:r.totalMotos,
+        totalImovel:r.totalImovel,
+        totalGeral:r.totalGeral,
+        producaoMoto:r.producaoMoto,
+        qtdVendas:vendas.length,
+        fechadoEm:new Date().toISOString(),
+        fechadoPeloGestor:true
+      };
+      var hist=d.comissaoHistorico||[];
+      hist.unshift(registro);
+      promessas.push(
+        db.collection('usuarios').doc(uid).set({
+          pjVendas:[],
+          pjMeta:{},
+          comissaoHistorico:hist
+        },{merge:true})
+      );
+    });
+    return Promise.all(promessas);
+  }).then(function(){
+    toast('📁 Mês de '+nomeMes+' fechado para todo o time!');
+    renderGestor();
+  }).catch(function(err){
+    toast('⚠️ Erro: '+err.message,'#c0392b');
+  });
+}
 function gestorAprovar(uid){
   if(!GESTOR_UIDS.includes(_currentUID))return;
   // limpa AMBOS os campos (novo e legado do sistema antigo)
@@ -3305,6 +3356,30 @@ function renderPainelGestorHall(){
     _fbLog('❌ ERRO (resumo gestor hall): '+err.message);
   });
 }
+function renderAvisoFecharMes(){
+  var host=document.getElementById('hall-fechar-mes');
+  if(!host)return;
+  var hoje=new Date();
+  // avisa do dia 1 ao dia 5 do mês, se ainda houver vendas do mês anterior
+  if(hoje.getDate()>5){host.innerHTML='';return;}
+  var vendas=_pjGet();
+  if(vendas.length===0){host.innerHTML='';return;}
+  // verifica se alguma venda é do mês anterior
+  var mesAtual=hoje.getMonth();
+  var anoAtual=hoje.getFullYear();
+  var temVendaAntiga=vendas.some(function(v){
+    if(!v.data)return false;
+    var p=v.data.split('-');
+    var mes=parseInt(p[1])-1, ano=parseInt(p[0]);
+    return (ano<anoAtual)||(ano===anoAtual&&mes<mesAtual);
+  });
+  if(!temVendaAntiga){host.innerHTML='';return;}
+  var nomeMesAnt=MESES_PT[mesAtual===0?11:mesAtual-1];
+  host.innerHTML='<div class="fc" style="padding:16px 20px;border:1.5px solid #d97706;background:rgba(217,119,6,0.08);cursor:pointer;" onclick="irPara(\'comissao\')">'+
+    '<div style="font-size:13px;font-weight:700;color:#d97706;">📁 Você ainda não fechou '+nomeMesAnt+'!</div>'+
+    '<div style="font-size:11px;color:var(--tm);margin-top:4px;">Vá em Projeção → "Fechar mês" pra arquivar sua comissão e começar agosto do zero.</div>'+
+  '</div>';
+}
 function renderOnboarding(){
   var host=document.getElementById('hall-onboarding');
   if(!host)return;
@@ -3356,6 +3431,7 @@ function renderProjecaoHall(){
   '</div>';
 }
 function renderHall(){
+  renderAvisoFecharMes();
   renderOnboarding();
   renderAniversarios();
   renderProjecaoHall();

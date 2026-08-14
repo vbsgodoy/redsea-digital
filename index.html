@@ -858,6 +858,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
           <div class="fi fw"><label>Nome do cliente</label><input type="text" id="c_nome" placeholder="Nome" oninput="updCamp()"/></div>
           <div class="fi" id="c_moto_w"><label>Modelo</label><select id="c_moto" onchange="updCamp()"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 Tourer</option><option>Versys 650</option><option>Versys 650 Tourer</option><option>Versys 1100</option><option>Versys 1100 GT</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja ZX-4R</option><option>Ninja ZX-4RR</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 RS Café</option><option>Z900 RS SE</option><option>Z1100</option><option>Z1100 SE</option><option>ZH2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Vulcan S</option><option>Vulcan S Café</option><option>Eliminator 500</option><option>Eliminator 500 SE</option></optgroup></select></div>
           <div class="fi" id="c_lance_w" style="display:none;"><label>Valor do lance</label><input type="text" id="c_lance" placeholder="R$ 0.000,00" oninput="fBRL(this);updCamp()"/></div>
+          <div class="fi" id="c_parcelas_w" style="display:none;"><label>Valor das parcelas</label><input type="text" id="c_parcelas" placeholder="R$ 0.000,00" oninput="fBRL(this);updCamp()"/></div>
           <div class="fi" id="c_data_w" style="display:none;"><label>Data / Ocasião</label><input type="text" id="c_data" placeholder="Ex: Natal 2025" oninput="updCamp()"/></div>
           <div class="fi"><label>Consultor</label><input type="text" id="c_cons" value="Vitor Godoy" oninput="updCamp()"/></div>
           <div class="fi"><label>WhatsApp do consultor</label><input type="text" id="c_wcons" placeholder="(11) 99999-9999" oninput="fFone(this);updCamp()" maxlength="15"/></div>
@@ -5070,9 +5071,9 @@ const CAMP={
     wh:(n,m,l,d,c)=>'Olá, '+n+'! Tudo bem?\n\nMeu nome é '+c+', consultor do Consórcio Kawasaki.\n\nQueria apresentar uma forma inteligente de conquistar'+(m?' a '+m:' sua moto Kawasaki')+' sem entrada e sem juros — o Plano Inteligente.\n\nPosso te mandar mais detalhes? Leva menos de 2 minutos!\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
     em:(n,m,l,d,c)=>'Olá, '+n+'.\n\nMeu nome é '+c+', consultor do Consórcio Kawasaki pela Digital Consórcio LTDA.\n\nO Plano Inteligente é uma modalidade onde a Kawasaki disponibiliza um lance para antecipar o acesso ao crédito — sem juros e sem custo adicional.'+(m?'\n\nGostaria de apresentar as condições para a Kawasaki '+m:'')+'.\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
     as:(n,m)=>n+', uma forma diferente de conquistar sua Kawasaki'},
-  vaga:{icon:'',label:'Vaga Disponível — Lance Aprovado',campos:['moto','lance'],
-    wh:(n,m,l,d,c)=>'Olá, '+n+'!\n\nUm cliente meu que estava no Plano Inteligente contemplou e já está utilizando a moto. Com isso, a posição dele no plano ficou em aberto — e o melhor: o valor de lance de '+(l||'(valor a confirmar)')+' que havia sido aprovado para ele continua válido para quem entrar nessa vaga.\n\nLembrei de você na hora por conta do seu interesse em pegar'+(m?' a '+m:' a moto')+' de forma rápida.\n\nPara aproveitar, seria somente arcar com parcelas de (valor das parcelas).\n\nPosso te explicar melhor?\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
-    em:(n,m,l,d,c)=>'Olá, '+n+'.\n\nUm cliente meu contemplou e já está utilizando a moto. A posição dele no Plano Inteligente ficou em aberto com o lance de '+(l||'valor a confirmar')+' já aprovado. Lembrei de você por conta do seu interesse em adquirir'+(m?' a '+m:' a moto')+' de forma rápida.\n\nPara aproveitar, seria somente arcar com as parcelas mensais.\n\nPosso te explicar melhor?\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
+  vaga:{icon:'',label:'Vaga Disponível — Lance Aprovado',campos:['moto','lance','parcelas'],
+    wh:(n,m,l,d,c,wc,p)=>'Olá, '+n+'!\n\nUm cliente meu que estava no Plano Inteligente contemplou e já está utilizando a moto. Com isso, a posição dele no plano ficou em aberto — e o melhor: o valor de lance de '+(l||'(valor a confirmar)')+' que havia sido aprovado para ele continua válido para quem entrar nessa vaga.\n\nLembrei de você na hora por conta do seu interesse em pegar'+(m?' a '+m:' a moto')+' de forma rápida.\n\nPara aproveitar, seria somente arcar com parcelas de '+(p||'(valor das parcelas)')+'.\n\nPosso te explicar melhor?\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
+    em:(n,m,l,d,c,wc,p)=>'Olá, '+n+'.\n\nUm cliente meu contemplou e já está utilizando a moto. A posição dele no Plano Inteligente ficou em aberto com o lance de '+(l||'valor a confirmar')+' já aprovado. Lembrei de você por conta do seu interesse em adquirir'+(m?' a '+m:' a moto')+' de forma rápida.\n\nPara aproveitar, seria somente arcar com parcelas de '+(p||'(valor das parcelas)')+'.\n\nPosso te explicar melhor?\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
     as:(n,m)=>n+', vaga com lance aprovado — Kawasaki'+(m?' '+m:'')},
   reengajamento:{icon:'',label:'Reengajamento — Cliente Ativo',campos:['moto'],
     wh:(n,m,l,d,c)=>'Olá, '+n+'! Tudo bem?\n\nPassando para dar um alô e te atualizar sobre seu consórcio Kawasaki'+(m?' — '+m:'')+'.\n\nAs assembleias estão acontecendo normalmente. Se quiser conversar sobre como acelerar, é só me chamar!\n\n'+c+'\nConsultor | Digital Consórcio LTDA',
@@ -5094,6 +5095,7 @@ function selCamp(tipo,btn){
   document.getElementById('c-label').textContent=m.label;
   document.getElementById('c_moto_w').style.display=m.campos.indexOf('moto')>=0?'':'none';
   document.getElementById('c_lance_w').style.display=m.campos.indexOf('lance')>=0?'':'none';
+  document.getElementById('c_parcelas_w').style.display=m.campos.indexOf('parcelas')>=0?'':'none';
   document.getElementById('c_data_w').style.display=m.campos.indexOf('data')>=0?'':'none';
   document.getElementById('camp-ed').style.display='block';
   document.getElementById('camp-ed').scrollIntoView({behavior:'smooth',block:'start'});
@@ -5106,11 +5108,13 @@ function updCamp(){
   var mot=document.getElementById('c_moto').value||'';
   var lv=document.getElementById('c_lance').value;
   var l=lv?'R$ '+lv:'';
+  var pv=document.getElementById('c_parcelas').value;
+  var p=pv?'R$ '+pv:'(valor das parcelas)';
   var d=document.getElementById('c_data').value.trim()||'';
   var c=document.getElementById('c_cons').value.trim()||'Vitor Godoy';
   var wc=document.getElementById('c_wcons').value.trim()||'';
-  document.getElementById('c_whtxt').value=m.wh(n,mot,l,d,c,wc);
-  document.getElementById('c_etxt').value=m.em(n,mot,l,d,c,wc);
+  document.getElementById('c_whtxt').value=m.wh(n,mot,l,d,c,wc,p);
+  document.getElementById('c_etxt').value=m.em(n,mot,l,d,c,wc,p);
   document.getElementById('c_assunto').value=m.as(n,mot,l,d);
 }
 function cWh(){

@@ -644,40 +644,36 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
       <button class="stab" onclick="subaPag('sinal',this)">Sinal + Agendamento</button>
     </div>
     <div id="pag-pix">
-      <div class="fc"><div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20with%20wings/3D/money_with_wings_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Pix Copia e Cola</div>
+      <div class="fc"><div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20with%20wings/3D/money_with_wings_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Pix — Gerador de Link de Pagamento</div>
       <div class="fg">
         <div class="fi fw"><label>Nome do cliente</label><input type="text" id="pix_nome" placeholder="Nome do cliente"/></div>
         <div class="fi"><label>Valor</label><input type="text" id="pix_valor" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
         <div class="fi"><label>Descrição / Parcela</label><input type="text" id="pix_label" placeholder="Ex: Primeira Parcela" value="Primeira Parcela"/></div>
         <div class="fi"><label>Administradora</label>
-          <select id="pix_adm" onchange="pixAtualizarAdm()">
-            <option value="ancora">Âncora Administradora</option>
+          <select id="pix_adm">
+            <option value="ancora">Âncora Administradora (Kawasaki)</option>
             <option value="recon">Consórcio Nacional Recon (BMW)</option>
           </select>
         </div>
         <div class="fi"><label>E-mail do cliente</label><input type="email" id="pix_email" placeholder="email@cliente.com.br"/></div>
         <div class="fi"><label>Consultor</label><input type="text" id="pix_cons" placeholder="Nome do consultor"/></div>
-        <div class="fi fw"><label>Código Pix Copia e Cola</label><textarea id="pix_codigo" rows="3" style="resize:vertical;font-family:monospace;font-size:12px;" placeholder="Cole aqui o código Pix..." oninput="pixAtualizarQR()"></textarea></div>
+        <div class="fi fw"><label>Código Pix Copia e Cola</label><textarea id="pix_codigo" rows="3" style="resize:vertical;font-family:monospace;font-size:12px;" placeholder="Cole aqui o código Pix gerado pelo sistema da administradora..."></textarea></div>
       </div>
 
-      <!-- Preview QR Code -->
-      <div id="pix-preview-wrap" style="display:none;padding:16px 24px;border-top:1px solid var(--cb);">
-        <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
-          <div style="text-align:center;">
-            <canvas id="pix-qr-canvas" width="160" height="160" style="border-radius:10px;border:3px solid var(--v);"></canvas>
-            <div style="font-size:10px;color:var(--tm);margin-top:6px;">Escaneie para pagar</div>
-          </div>
-          <div style="flex:1;min-width:180px;">
-            <div style="font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;" id="pix-preview-label">Primeira Parcela</div>
-            <div style="font-size:12px;color:var(--tm);" id="pix-preview-adm">Âncora Administradora</div>
-            <div style="font-size:18px;font-weight:800;color:var(--v);margin:8px 0;" id="pix-preview-valor">—</div>
-            <div style="font-size:11px;color:var(--tm);" id="pix-preview-nome"></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-              <button onclick="pixCopiarCodigo()" class="btn be" style="font-size:12px;padding:8px 16px;">📋 Copiar código Pix</button>
-              <button onclick="pixGerarLinkCliente()" class="btn bl" style="font-size:12px;padding:8px 16px;">🔗 Gerar link do cliente</button>
+      <!-- Botão gerar link -->
+      <div style="padding:0 24px 16px;">
+        <button onclick="pixGerarLinkCliente()" class="btn be" style="width:100%;padding:14px;font-size:14px;font-weight:700;">🔗 Gerar link de pagamento para o cliente</button>
+        <div id="pix-link-resultado" style="display:none;margin-top:12px;">
+          <div style="background:var(--p);border:1px solid var(--v);border-radius:10px;padding:14px;">
+            <div style="font-size:11px;color:var(--tm);margin-bottom:6px;text-transform:uppercase;font-weight:700;letter-spacing:1px;">Link gerado ✅</div>
+            <div id="pix-link-url" style="font-size:13px;color:var(--v);word-break:break-all;margin-bottom:10px;font-weight:600;"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button onclick="pixCopiarLink()" class="btn be" style="flex:1;padding:8px;font-size:12px;">📋 Copiar link</button>
+              <button onclick="pixCopiarCodigo()" class="btn bl" style="flex:1;padding:8px;font-size:12px;">📋 Copiar código Pix</button>
             </div>
           </div>
         </div>
+        <div id="pix-link-loading" style="display:none;text-align:center;padding:10px;font-size:12px;color:var(--tm);">⏳ Gerando link...</div>
       </div>
 
       <div class="aa"><button class="btn be" onclick="whPix()">WhatsApp</button><button class="btn bp" onclick="emailPix()">E-mail</button><button class="btn bl" onclick="limparPix()">Limpar</button></div></div>
@@ -5614,35 +5610,42 @@ function limparCnpj(){
   toast('🧹 Tudo limpo!');
 }
 
-function pixAtualizarQR(){
+function pixAtualizarQR(){}
+function pixAtualizarAdm(){}
+
+var _pixLinkAtual='';
+function pixGerarLinkCliente(){
   var cod=document.getElementById('pix_codigo').value.trim();
-  var wrap=document.getElementById('pix-preview-wrap');
-  if(!cod){if(wrap)wrap.style.display='none';return;}
-  if(wrap)wrap.style.display='block';
-  // QR code
-  try{
-    var canvas=document.getElementById('pix-qr-canvas');
-    var qr=QRCodeGen(0,'M');
-    qr.addData(cod);
-    qr.make();
-    var size=qr.getModuleCount();
-    var ctx=canvas.getContext('2d');
-    var scale=Math.floor(160/size);
-    canvas.width=size*scale;canvas.height=size*scale;
-    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#000';
-    for(var r=0;r<size;r++)for(var c=0;c<size;c++)if(qr.isDark(r,c))ctx.fillRect(c*scale,r*scale,scale,scale);
-  }catch(e){console.log('QR error',e);}
-  // preview info
+  if(!cod){toast('⚠️ Cole o código Pix primeiro','#c0392b');return;}
   var adm=document.getElementById('pix_adm').value;
-  var admLabel=adm==='recon'?'Consórcio Nacional Recon (BMW)':'Âncora Administradora de Consórcios';
   var label=document.getElementById('pix_label').value||'Primeira Parcela';
   var valor=document.getElementById('pix_valor').value?'R$ '+document.getElementById('pix_valor').value:'';
   var nome=document.getElementById('pix_nome').value;
-  var el=document.getElementById('pix-preview-label');if(el)el.textContent=label;
-  var ea=document.getElementById('pix-preview-adm');if(ea)ea.textContent=admLabel;
-  var ev=document.getElementById('pix-preview-valor');if(ev)ev.textContent=valor||'—';
-  var en=document.getElementById('pix-preview-nome');if(en)en.textContent=nome?'Para: '+nome:'';
+  var payload=JSON.stringify({c:cod,l:label,v:valor,n:nome,a:adm});
+  var hash='pix='+btoa(unescape(encodeURIComponent(payload)));
+  var longLink='https://vbsgodoy.github.io/dc-pix/#'+hash;
+  document.getElementById('pix-link-loading').style.display='block';
+  document.getElementById('pix-link-resultado').style.display='none';
+  fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(longLink))
+    .then(function(r){return r.text();})
+    .then(function(shortUrl){
+      shortUrl=shortUrl.trim();
+      if(!shortUrl.startsWith('https://')){shortUrl=longLink;}
+      _pixLinkAtual=shortUrl;
+      document.getElementById('pix-link-url').textContent=shortUrl;
+      document.getElementById('pix-link-loading').style.display='none';
+      document.getElementById('pix-link-resultado').style.display='block';
+    })
+    .catch(function(){
+      _pixLinkAtual=longLink;
+      document.getElementById('pix-link-url').textContent=longLink;
+      document.getElementById('pix-link-loading').style.display='none';
+      document.getElementById('pix-link-resultado').style.display='block';
+    });
+}
+function pixCopiarLink(){
+  if(!_pixLinkAtual){toast('Gere o link primeiro','#c0392b');return;}
+  navigator.clipboard.writeText(_pixLinkAtual).then(function(){toast('🔗 Link copiado! Cole no WhatsApp.');});
 }
 function pixCopiarCodigo(){
   var cod=document.getElementById('pix_codigo').value.trim();
@@ -5651,21 +5654,6 @@ function pixCopiarCodigo(){
     var el=document.getElementById('pix_codigo');el.select();document.execCommand('copy');toast('✅ Código Pix copiado!');
   });
 }
-function pixGerarLinkCliente(){
-  var cod=document.getElementById('pix_codigo').value.trim();
-  if(!cod){toast('Cole o código Pix primeiro','#c0392b');return;}
-  var adm=document.getElementById('pix_adm').value;
-  var label=document.getElementById('pix_label').value||'Primeira Parcela';
-  var valor=document.getElementById('pix_valor').value?'R$ '+document.getElementById('pix_valor').value:'';
-  var nome=document.getElementById('pix_nome').value;
-  var payload=JSON.stringify({c:cod,l:label,v:valor,n:nome,a:adm});
-  var hash='pix='+btoa(unescape(encodeURIComponent(payload)));
-  var link='https://vbsgodoy.github.io/dc-pix/#'+hash;
-  navigator.clipboard.writeText(link).then(function(){
-    toast('🔗 Link copiado! Cole no WhatsApp pro cliente.');
-  }).catch(function(){toast('Link: '+link);});
-}
-function pixAtualizarAdm(){pixAtualizarQR();}
 
 // ===== TELA DO CLIENTE
 function pixVerificarHash(){

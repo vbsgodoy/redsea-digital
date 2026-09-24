@@ -5660,7 +5660,7 @@ function pixGerarLinkCliente(){
   var nome=document.getElementById('pix_nome').value;
   var payload=JSON.stringify({c:cod,l:label,v:valor,n:nome,a:adm});
   var hash='pix='+btoa(unescape(encodeURIComponent(payload)));
-  var link=window.location.origin+window.location.pathname+'#'+hash;
+  var link='https://vbsgodoy.github.io/dc-pix/#'+hash;
   navigator.clipboard.writeText(link).then(function(){
     toast('🔗 Link copiado! Cole no WhatsApp pro cliente.');
   }).catch(function(){toast('Link: '+link);});
@@ -5709,7 +5709,7 @@ function _pixMostrarTelaCliente(p){
       '</div>'+
       // Footer
       '<div style="background:#070D19;padding:12px 24px;text-align:center;border-top:1px solid #1E2D4A;">'+
-        '<div style="font-size:10px;color:#4A6070;">🔒 Pagamento 100% seguro · Red Sea Digital</div>'+
+        '<div style="font-size:10px;color:#4A6070;">🔒 Pagamento 100% seguro · '+(p.a==='recon'?'Digital Consórcio (Recon - BMW)':'Digital Consórcio (Âncora - Kawasaki)')+'</div>'+
       '</div>'+
     '</div>';
   document.body.appendChild(tela);

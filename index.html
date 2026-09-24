@@ -644,12 +644,42 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
       <button class="stab" onclick="subaPag('sinal',this)">Sinal + Agendamento</button>
     </div>
     <div id="pag-pix">
-      <div class="fc"><div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20with%20wings/3D/money_with_wings_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Pix Copia e Cola - Ancora Administradora</div>
-      <div class="fg"><div class="fi fw"><label>Nome do cliente</label><input type="text" id="pix_nome" placeholder="Nome do cliente"/></div>
-      <div class="fi"><label>Valor</label><input type="text" id="pix_valor" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
-      <div class="fi"><label>E-mail do cliente</label><input type="email" id="pix_email" placeholder="email@cliente.com.br"/></div>
-      <div class="fi"><label>Consultor</label><input type="text" id="pix_cons" placeholder="Nome do consultor"/></div>
-      <div class="fi fw"><label>Codigo Pix Copia e Cola</label><textarea id="pix_codigo" rows="3" style="resize:vertical;font-family:monospace;font-size:12px;" placeholder="Cole aqui o codigo Pix..."></textarea></div></div>
+      <div class="fc"><div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20with%20wings/3D/money_with_wings_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Pix Copia e Cola</div>
+      <div class="fg">
+        <div class="fi fw"><label>Nome do cliente</label><input type="text" id="pix_nome" placeholder="Nome do cliente"/></div>
+        <div class="fi"><label>Valor</label><input type="text" id="pix_valor" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
+        <div class="fi"><label>Descrição / Parcela</label><input type="text" id="pix_label" placeholder="Ex: Primeira Parcela" value="Primeira Parcela"/></div>
+        <div class="fi"><label>Administradora</label>
+          <select id="pix_adm" onchange="pixAtualizarAdm()">
+            <option value="ancora">Âncora Administradora</option>
+            <option value="recon">Consórcio Nacional Recon (BMW)</option>
+          </select>
+        </div>
+        <div class="fi"><label>E-mail do cliente</label><input type="email" id="pix_email" placeholder="email@cliente.com.br"/></div>
+        <div class="fi"><label>Consultor</label><input type="text" id="pix_cons" placeholder="Nome do consultor"/></div>
+        <div class="fi fw"><label>Código Pix Copia e Cola</label><textarea id="pix_codigo" rows="3" style="resize:vertical;font-family:monospace;font-size:12px;" placeholder="Cole aqui o código Pix..." oninput="pixAtualizarQR()"></textarea></div>
+      </div>
+
+      <!-- Preview QR Code -->
+      <div id="pix-preview-wrap" style="display:none;padding:16px 24px;border-top:1px solid var(--cb);">
+        <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <canvas id="pix-qr-canvas" width="160" height="160" style="border-radius:10px;border:3px solid var(--v);"></canvas>
+            <div style="font-size:10px;color:var(--tm);margin-top:6px;">Escaneie para pagar</div>
+          </div>
+          <div style="flex:1;min-width:180px;">
+            <div style="font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;" id="pix-preview-label">Primeira Parcela</div>
+            <div style="font-size:12px;color:var(--tm);" id="pix-preview-adm">Âncora Administradora</div>
+            <div style="font-size:18px;font-weight:800;color:var(--v);margin:8px 0;" id="pix-preview-valor">—</div>
+            <div style="font-size:11px;color:var(--tm);" id="pix-preview-nome"></div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+              <button onclick="pixCopiarCodigo()" class="btn be" style="font-size:12px;padding:8px 16px;">📋 Copiar código Pix</button>
+              <button onclick="pixGerarLinkCliente()" class="btn bl" style="font-size:12px;padding:8px 16px;">🔗 Gerar link do cliente</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="aa"><button class="btn be" onclick="whPix()">WhatsApp</button><button class="btn bp" onclick="emailPix()">E-mail</button><button class="btn bl" onclick="limparPix()">Limpar</button></div></div>
     </div>
     <div id="pag-cartao" style="display:none;">
@@ -5496,7 +5526,9 @@ function _restaurarPreferencias(){
   // Hall é sempre a tela de entrada agora - não pula mais pra última aba usada
   renderHall();
 }
-document.addEventListener('DOMContentLoaded',_restaurarPreferencias);
+document.addEventListener('DOMContentLoaded',function(){
+  if(!pixVerificarHash())_restaurarPreferencias();
+});
 
 function gPDFCnpj(){
   var ok=_validarCampos([
@@ -5582,18 +5614,150 @@ function limparCnpj(){
   toast('🧹 Tudo limpo!');
 }
 
+function pixAtualizarQR(){
+  var cod=document.getElementById('pix_codigo').value.trim();
+  var wrap=document.getElementById('pix-preview-wrap');
+  if(!cod){if(wrap)wrap.style.display='none';return;}
+  if(wrap)wrap.style.display='block';
+  // QR code
+  try{
+    var canvas=document.getElementById('pix-qr-canvas');
+    var qr=QRCodeGen(0,'M');
+    qr.addData(cod);
+    qr.make();
+    var size=qr.getModuleCount();
+    var ctx=canvas.getContext('2d');
+    var scale=Math.floor(160/size);
+    canvas.width=size*scale;canvas.height=size*scale;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#000';
+    for(var r=0;r<size;r++)for(var c=0;c<size;c++)if(qr.isDark(r,c))ctx.fillRect(c*scale,r*scale,scale,scale);
+  }catch(e){console.log('QR error',e);}
+  // preview info
+  var adm=document.getElementById('pix_adm').value;
+  var admLabel=adm==='recon'?'Consórcio Nacional Recon (BMW)':'Âncora Administradora de Consórcios';
+  var label=document.getElementById('pix_label').value||'Primeira Parcela';
+  var valor=document.getElementById('pix_valor').value?'R$ '+document.getElementById('pix_valor').value:'';
+  var nome=document.getElementById('pix_nome').value;
+  var el=document.getElementById('pix-preview-label');if(el)el.textContent=label;
+  var ea=document.getElementById('pix-preview-adm');if(ea)ea.textContent=admLabel;
+  var ev=document.getElementById('pix-preview-valor');if(ev)ev.textContent=valor||'—';
+  var en=document.getElementById('pix-preview-nome');if(en)en.textContent=nome?'Para: '+nome:'';
+}
+function pixCopiarCodigo(){
+  var cod=document.getElementById('pix_codigo').value.trim();
+  if(!cod){toast('Nenhum código Pix para copiar','#c0392b');return;}
+  navigator.clipboard.writeText(cod).then(function(){toast('✅ Código Pix copiado!');}).catch(function(){
+    var el=document.getElementById('pix_codigo');el.select();document.execCommand('copy');toast('✅ Código Pix copiado!');
+  });
+}
+function pixGerarLinkCliente(){
+  var cod=document.getElementById('pix_codigo').value.trim();
+  if(!cod){toast('Cole o código Pix primeiro','#c0392b');return;}
+  var adm=document.getElementById('pix_adm').value;
+  var label=document.getElementById('pix_label').value||'Primeira Parcela';
+  var valor=document.getElementById('pix_valor').value?'R$ '+document.getElementById('pix_valor').value:'';
+  var nome=document.getElementById('pix_nome').value;
+  var payload=JSON.stringify({c:cod,l:label,v:valor,n:nome,a:adm});
+  var hash='pix='+btoa(unescape(encodeURIComponent(payload)));
+  var link=window.location.origin+window.location.pathname+'#'+hash;
+  navigator.clipboard.writeText(link).then(function(){
+    toast('🔗 Link copiado! Cole no WhatsApp pro cliente.');
+  }).catch(function(){toast('Link: '+link);});
+}
+function pixAtualizarAdm(){pixAtualizarQR();}
+
+// ===== TELA DO CLIENTE
+function pixVerificarHash(){
+  var hash=window.location.hash;
+  if(!hash.startsWith('#pix='))return false;
+  try{
+    var payload=JSON.parse(decodeURIComponent(escape(atob(hash.slice(5)))));
+    _pixMostrarTelaCliente(payload);
+    return true;
+  }catch(e){return false;}
+}
+function _pixMostrarTelaCliente(p){
+  // Esconde tudo e mostra tela limpa de pagamento
+  document.querySelectorAll('.tp,#login-screen,#app-shell').forEach(function(el){el.style.display='none';});
+  var adm=p.a==='recon'?'Consórcio Nacional Recon':'Âncora Administradora';
+  var tela=document.createElement('div');
+  tela.id='pix-tela-cliente';
+  tela.style.cssText='position:fixed;inset:0;background:#0B1220;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:99999;';
+  tela.innerHTML=
+    '<div style="width:100%;max-width:380px;background:#111E32;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">'+
+      // Header
+      '<div style="background:linear-gradient(135deg,#0D1524,#111E32);padding:20px 24px;border-bottom:1px solid #1E2D4A;text-align:center;">'+
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#5DCAA5;margin-bottom:6px;">Pagamento Seguro</div>'+
+        '<div style="font-size:18px;font-weight:800;color:#fff;">'+(p.l||'Pagamento Pix')+'</div>'+
+        '<div style="font-size:12px;color:#5DCAA5;margin-top:4px;">'+adm+'</div>'+
+        (p.v?'<div style="font-size:28px;font-weight:900;color:#1D9E75;margin-top:10px;">'+p.v+'</div>':'')+ 
+        (p.n?'<div style="font-size:11px;color:#8899AA;margin-top:4px;">Para: '+p.n+'</div>':'')+
+      '</div>'+
+      // QR Code area
+      '<div style="padding:24px;text-align:center;">'+
+        '<div style="display:inline-block;background:#fff;padding:12px;border-radius:12px;margin-bottom:16px;">'+
+          '<canvas id="pix-cliente-qr" width="200" height="200"></canvas>'+
+        '</div>'+
+        '<div style="font-size:12px;color:#5DCAA5;margin-bottom:20px;">Escaneie com o app do seu banco</div>'+
+        // Código truncado
+        '<div style="background:#0D1524;border:1px solid #1E2D4A;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:10px;color:#8899AA;word-break:break-all;margin-bottom:16px;max-height:60px;overflow:hidden;text-overflow:ellipsis;">'+
+          p.c.substring(0,80)+'…'+
+        '</div>'+
+        '<button id="pix-btn-copiar" onclick="pixClienteCopiar()" style="width:100%;padding:14px;background:#1D9E75;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Copiar código Pix</button>'+
+        '<div id="pix-copiado-msg" style="display:none;margin-top:10px;font-size:13px;color:#5DCAA5;font-weight:600;">✅ Código copiado! Cole no seu banco.</div>'+
+      '</div>'+
+      // Footer
+      '<div style="background:#070D19;padding:12px 24px;text-align:center;border-top:1px solid #1E2D4A;">'+
+        '<div style="font-size:10px;color:#4A6070;">🔒 Pagamento 100% seguro · Red Sea Digital</div>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(tela);
+  // Gerar QR na tela do cliente
+  setTimeout(function(){
+    try{
+      var canvas=document.getElementById('pix-cliente-qr');
+      var qr=QRCodeGen(0,'M');
+      qr.addData(p.c);qr.make();
+      var size=qr.getModuleCount();
+      var scale=Math.floor(200/size);
+      canvas.width=size*scale;canvas.height=size*scale;
+      var ctx=canvas.getContext('2d');
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#000';
+      for(var r=0;r<size;r++)for(var c=0;c<size;c++)if(qr.isDark(r,c))ctx.fillRect(c*scale,r*scale,scale,scale);
+    }catch(e){console.log('QR cliente error',e);}
+  },100);
+  window._pixClienteCodigo=p.c;
+}
+function pixClienteCopiar(){
+  var cod=window._pixClienteCodigo||'';
+  if(!cod)return;
+  navigator.clipboard.writeText(cod).then(function(){
+    document.getElementById('pix-copiado-msg').style.display='block';
+    var btn=document.getElementById('pix-btn-copiar');
+    if(btn){btn.textContent='✅ Copiado!';btn.style.background='#0F7A5A';}
+  }).catch(function(){
+    var el=document.createElement('textarea');
+    el.value=cod;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
+    document.getElementById('pix-copiado-msg').style.display='block';
+  });
+}
+
 function whPix(){
   var n=document.getElementById('pix_nome').value.trim()||'cliente';
   var vr=document.getElementById('pix_valor').value.trim()?'R$ '+document.getElementById('pix_valor').value.trim():'';
   var c=document.getElementById('pix_cons').value.trim()||'';
   var cod=document.getElementById('pix_codigo').value.trim();
-  if(!cod){toast('Informe o codigo Pix','#c0392b');return;}
-  var L1='Ola, '+n+'!\n\n';
+  var adm=document.getElementById('pix_adm').value;
+  var admNome=adm==='recon'?'Consórcio Nacional Recon S.A.\nCNPJ: (a confirmar)':'Âncora Administradora de Consórcios S.A.\nCNPJ: 60.375.243/0001-36';
+  if(!cod){toast('Informe o código Pix','#c0392b');return;}
+  var L1='Olá, '+n+'!\n\n';
   var L2='Para finalizar seu cadastro e efetivar o lance, realize o pagamento via Pix:\n\n';
-  var L3='Favorecido: Ancora Administradora de Consorcios S.A.\nCNPJ: 60.375.243/0001-36\n';
+  var L3='Favorecido: '+admNome+'\n';
   var L4=(vr?'Valor: '+vr+'\n':'');
-  var L5='\nCodigo Pix Copia e Cola:\n'+cod+'\n\n';
-  var L6='Apos o pagamento, me avise!\n\n'+c+'\nConsultor | Digital Consorcio LTDA';
+  var L5='\nCódigo Pix Copia e Cola:\n'+cod+'\n\n';
+  var L6='Após o pagamento, me avise!\n\n'+c+'\nConsultor | Digital Consórcio LTDA';
   _wpag(L1+L2+L3+L4+L5+L6);
 }
 

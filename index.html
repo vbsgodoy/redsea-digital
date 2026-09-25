@@ -203,6 +203,7 @@ input::placeholder,textarea::placeholder{color:#555;}
 .mode-toggle{display:inline-flex;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:3px;gap:3px;margin-bottom:16px;}
 .mode-btn{padding:7px 14px;border-radius:6px;border:none;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--tm);}
 .mode-btn.active-kw{background:#111;color:#fff;}
+.mode-btn.active-bmw{background:#0166B1;color:#fff;}
 .mode-btn.active-gen{background:#1D9E75;color:#fff;}
 @media(max-width:760px){
   .app-shell{flex-direction:column;}
@@ -502,7 +503,8 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     </div>
     <div class="mode-toggle">
       <button class="mode-btn active-kw" id="btn-kw" onclick="setModo('kw')">Kawasaki</button>
-      <button class="mode-btn" id="btn-gen" onclick="setModo('gen')">Generico</button>
+      <button class="mode-btn" id="btn-bmw" onclick="setModo('bmw')">BMW / Recon</button>
+      <button class="mode-btn" id="btn-gen" onclick="setModo('gen')">Genérico</button>
     </div>
   </div>
   <div id="lance-pf">
@@ -510,9 +512,9 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <div class="fc">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lance Aprovado</div>
       <div class="lh">
-        <div class="ll">Valor do Lance Aprovado pela Kawasaki + Âncora</div>
+        <div class="ll" id="lance-pf-label">Valor do Lance Aprovado pela Kawasaki + Âncora</div>
         <div class="liw"><div class="lp">R$</div><input type="text" id="lance_valor" placeholder="0.000,00" oninput="fL(this)"/></div>
-        <div class="lhi">Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente</div>
+        <div class="lhi" id="lance-pf-info">Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente</div>
       </div>
       <div class="sd"></div>
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Cliente</div>
@@ -527,6 +529,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Moto e Plano</div>
       <div class="fg">
         <div class="fi" id="modelo-wrap-kw-pf"><label>Modelo</label><select id="modelo"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 TR</option><option>Versys 650</option><option>Versys 650 TR</option><option>Versys 1000</option><option>Versys 1100</option><option>Versys 1000 GT</option><option>Versys 1100 TR</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja 650</option><option>Ninja ZX-4RR</option><option>Ninja ZX-4R</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650 Novo Grafismo</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 R Edition</option><option>Z900 SE</option><option>Z900 RS</option><option>Z900 RS Café</option><option>Z900 RS Edition</option><option>Z1100</option><option>Z1100 SE</option><option>Z1000</option><option>Z1000 R</option><option>Z H2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Eliminator 500</option><option>Eliminator 500 SE</option><option>Vulcan S</option><option>Vulcan S Café</option></optgroup><optgroup label="Off-Road (KX / KLX)"><option>KX 450X</option><option>KX 450</option><option>KX 250X</option><option>KX 250</option><option>KX 112</option><option>KLX 300R</option><option>KLX 110R</option></optgroup></select></div>
+        <div class="fi" id="modelo-wrap-bmw-pf" style="display:none;"><label>Modelo BMW</label><select id="modelo_bmw_pf"><option value="">— Selecione —</option><optgroup label="GS / Adventure"><option>G 310 GS</option><option>F 750 GS</option><option>F 850 GS</option><option>F 850 GS Adventure</option><option>R 1250 GS</option><option>R 1250 GS Adventure</option></optgroup><optgroup label="Naked / Roadster"><option>G 310 R</option><option>F 900 R</option><option>F 900 XR</option><option>R 1250 R</option><option>R 1250 RS</option><option>S 1000 R</option><option>M 1000 R</option></optgroup><optgroup label="Sport"><option>S 1000 RR</option><option>M 1000 RR</option></optgroup><optgroup label="Touring / Cruiser"><option>R 1250 RT</option><option>K 1600 GT</option><option>K 1600 GTL</option><option>R 18</option><option>R 18 Classic</option></optgroup></select></div>
         <div class="fi" id="modelo-wrap-gen-pf" style="display:none;"><label>Bem / Produto</label><input type="text" id="modelo_gen_pf" placeholder="Ex: Imovel, Veiculo..."/></div>
         <div class="fi"><label>Ano</label><input type="text" id="ano" placeholder="2025" maxlength="4"/></div>
         <div class="fi"><label>Adesão / 1ª parcela</label><input type="text" id="adesao" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
@@ -4641,21 +4644,39 @@ var _modo='kw';
 function setModo(modo){
   _modo=modo;
   var bkw=document.getElementById('btn-kw');
+  var bbmw=document.getElementById('btn-bmw');
   var bgen=document.getElementById('btn-gen');
   if(bkw)bkw.className='mode-btn'+(modo==='kw'?' active-kw':'');
+  if(bbmw)bbmw.className='mode-btn'+(modo==='bmw'?' active-bmw':'');
   if(bgen)bgen.className='mode-btn'+(modo==='gen'?' active-gen':'');
+  // modelo selects
+  var mkwPf=document.getElementById('modelo-wrap-kw-pf');
+  var mbmwPf=document.getElementById('modelo-wrap-bmw-pf');
+  var mgenPf=document.getElementById('modelo-wrap-gen-pf');
+  if(mkwPf)mkwPf.style.display=(modo==='kw'?'':'none');
+  if(mbmwPf)mbmwPf.style.display=(modo==='bmw'?'':'none');
+  if(mgenPf)mgenPf.style.display=(modo==='gen'?'':'none');
   var mkw=document.getElementById('modelo-wrap-kw');
   var mgen=document.getElementById('modelo-wrap-gen');
-  if(mkw)mkw.style.display=(modo==='gen'?'none':'');
-  if(mgen)mgen.style.display=(modo==='gen'?'':' none');
-  var mkwPf=document.getElementById('modelo-wrap-kw-pf');
-  var mgenPf=document.getElementById('modelo-wrap-gen-pf');
-  if(mkwPf)mkwPf.style.display=(modo==='gen'?'none':'');
-  if(mgenPf)mgenPf.style.display=(modo==='gen'?'':'none');
+  if(mkw)mkw.style.display=(modo==='gen'||modo==='bmw'?'none':'');
+  if(mgen)mgen.style.display=(modo==='gen'?'':'none');
+  // topbar e textos
   var sub=document.getElementById('sub-aprovacao');
-  if(sub)sub.textContent='Pessoa Fisica - '+(modo==='gen'?'Generico':'Kawasaki');
-  var ll=document.querySelector('#lance-pf .ll');
-  if(ll)ll.textContent=modo==='gen'?'Valor do Lance Aprovado pela Ancora':'Valor do Lance Aprovado pela Kawasaki + \u00C2ncora';
+  var ll=document.getElementById('lance-pf-label');
+  var li=document.getElementById('lance-pf-info');
+  if(modo==='bmw'){
+    if(sub)sub.textContent='Pessoa Física — BMW / Recon';
+    if(ll)ll.textContent='Valor do Lance Aprovado pela BMW + Recon';
+    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela BMW com a Recon</strong> — sem custo ao cliente';
+  } else if(modo==='gen'){
+    if(sub)sub.textContent='Pessoa Física — Genérico';
+    if(ll)ll.textContent='Valor do Lance Aprovado pela Âncora';
+    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela Âncora</strong> — sem custo ao cliente';
+  } else {
+    if(sub)sub.textContent='Pessoa Física — Kawasaki';
+    if(ll)ll.textContent='Valor do Lance Aprovado pela Kawasaki + Âncora';
+    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente';
+  }
 }
 
 // \u2500\u2500 LOGOS (definidas UMA \u00FAnica vez) \u2500\u2500
@@ -4807,11 +4828,17 @@ function buildLance(qrURL){
   const nome=v('nome')||'\u2014',cpf=v('cpf')||'\u2014',nasc=v('nasc')||'\u2014',email=v('email_cli')||'\u2014',tel=v('tel')||'\u2014';
   const lance=v('lance_valor')?'R$ '+v('lance_valor'):'\u2014';
   var modRaw,modelo;
-  var _corPDF=(typeof _modo!=='undefined'&&_modo==='gen')?'#1D9E75':'#006B28';
-  if(typeof _modo!=='undefined'&&_modo==='gen'){
+  var isBMW=(typeof _modo!=='undefined'&&_modo==='bmw');
+  var isGen=(typeof _modo!=='undefined'&&_modo==='gen');
+  var _corPDF=isBMW?'#0166B1':isGen?'#1D9E75':'#006B28';
+  if(isGen){
     modRaw=v('modelo_gen_pf')||'';
     var anoG=v('ano');
     modelo=modRaw?(anoG?modRaw+' '+anoG:modRaw):'\u2014';
+  } else if(isBMW){
+    modRaw=document.getElementById('modelo_bmw_pf').value;
+    var anoB=v('ano');
+    modelo=modRaw?(anoB?'BMW '+modRaw+' '+anoB:'BMW '+modRaw):'\u2014';
   } else {
     modRaw=document.getElementById('modelo').value;
     var anoK=v('ano');
@@ -4829,7 +4856,7 @@ function buildLance(qrURL){
   return`<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#fff;color:#1a1a1a;">
 ${topoPDF()}
 <div style="padding:22px 32px 16px;border-bottom:2px solid ${_corPDF};">
-<div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:5px;">${_modo==="gen"?"Plano Inteligente":"Plano Inteligente \u00B7 Cons\u00F3rcio Kawasaki"}</div>
+<div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:5px;">${isGen?"Plano Inteligente":isBMW?"Plano Inteligente \u00B7 BMW / Recon":"Plano Inteligente \u00B7 Cons\u00F3rcio Kawasaki"}</div>
 <div style="font-size:20px;font-weight:700;color:${_corPDF};">An\u00E1lise de Lance \u2013 Resultado</div>
 <div style="font-size:11px;color:#666;margin-top:3px;">Documento referente \u00E0 avalia\u00E7\u00E3o de lance do Plano Inteligente</div>
 </div>
@@ -4923,7 +4950,7 @@ ${rodapePDF()}
 // \u2500\u2500 A\u00C7\u00D5ES AN\u00C1LISE \u2500\u2500
 function prevPDF(){const el=document.getElementById('pv-aprov');document.getElementById('pv-aprov-ct').innerHTML=buildLance();el.classList.add('vis');el.scrollIntoView({behavior:'smooth',block:'start'});}
 function gPDF(){
-  var modeloId=(typeof _modo!=='undefined'&&_modo==='gen')?'modelo_gen_pf':'modelo';
+  var modeloId=(typeof _modo!=='undefined'&&_modo==='gen')?'modelo_gen_pf':(_modo==='bmw'?'modelo_bmw_pf':'modelo');
   var ok=_validarCampos([
     {id:'nome',label:'Nome'},
     {id:'cpf',label:'CPF'},
@@ -4934,16 +4961,16 @@ function gPDF(){
     {id:'consultor',label:'Nome do Consultor'}
   ]);
   if(!ok)return;
-  sHist('An\u00E1lise de Lance');
+  sHist('Análise de Lance');
   toast('⏳ Preparando seu PDF...');
   var nome=v('nome')||'Cliente', prot=v('protocolo')||'S/N';
   var wcons = v('consultor_whats') || '';
   var numLimpo = wcons.replace(/\D/g,'');
   var numQR = numLimpo ? '55'+numLimpo : '5511999999999';
-  var msgQR = 'Ola! Estou verificando o documento de Analise de Lance do cliente '+nome+' (Protocolo: '+prot+'). Por favor confirme a autenticidade.';
+  var msgQR = 'Olá! Estou verificando o documento de Análise de Lance do cliente '+nome+' (Protocolo: '+prot+'). Por favor confirme a autenticidade.';
   var qrTxt = 'https://wa.me/'+numQR+'?text='+encodeURIComponent(msgQR);
   gerarQRDataURL(qrTxt, function(qrURL){
-    abrirPDF(buildLance(qrURL), nome, 'An\u00E1lise de Lance');
+    abrirPDF(buildLance(qrURL), nome, 'Análise de Lance');
     toast('✅ PDF pronto!');
   });
 }

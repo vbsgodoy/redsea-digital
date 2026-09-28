@@ -4876,15 +4876,15 @@ ${topoPDF()}
 ${refValid}
 </div>
 <div style="padding:24px 32px 0;">
-<p style="font-size:13px;color:#222;margin:0 0 12px;">${_modo==="gen"?"Prezado(a) representante de \u2014,":"Prezado(a) <strong>"+nome+"</strong>,"}</p>
-<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">${_modo==="gen"?"Informamos que o lance referente \u00E0 cota da empresa no <strong>Plano Inteligente</strong>":"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki</strong>"} foi analisado e <strong style="color:${_corPDF};">aprovado com sucesso</strong>. O valor ser\u00E1 registrado diretamente no seu contrato junto \u00E0 <strong>\u00C2ncora Administradora de Cons\u00F3rcios S.A</strong>, institui\u00E7\u00E3o regulada e supervisionada pelo <strong>Banco Central do Brasil</strong>.</p>
-<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">${_modo==="gen"?"Este lance faz parte do programa de incentivo Plano Inteligente e n\u00E3o representa nenhum custo adicional para a empresa \u2014 o valor \u00E9 integralmente disponibilizado em parceria da Digital Cons\u00F3rcios com a \u00C2ncora, com o objetivo de antecipar o acesso ao cr\u00E9dito.":"Este lance faz parte do programa de incentivo Kawasaki e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Kawasaki em parceria com a \u00C2ncora, com o objetivo de antecipar o seu acesso ao cr\u00E9dito."}</p>
+<p style="font-size:13px;color:#222;margin:0 0 12px;">${isGen?"Prezado(a) representante de \u2014,":isBMW?"Prezado(a) <strong>"+nome+"</strong>,":"Prezado(a) <strong>"+nome+"</strong>,"}</p>
+<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">${isGen?"Informamos que o lance referente \u00E0 cota da empresa no <strong>Plano Inteligente</strong>":isBMW?"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio BMW</strong>":"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki</strong>"} foi analisado e <strong style="color:${_corPDF};">aprovado com sucesso</strong>. O valor ser\u00E1 registrado diretamente no seu contrato junto \u00E0 <strong>${isBMW?"Cons\u00F3rcio Nacional Recon S.A.":"\u00C2ncora Administradora de Cons\u00F3rcios S.A."}</strong>, institui\u00E7\u00E3o regulada e supervisionada pelo <strong>Banco Central do Brasil</strong>.</p>
+<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">${isGen?"Este lance faz parte do programa de incentivo Plano Inteligente e n\u00E3o representa nenhum custo adicional para a empresa \u2014 o valor \u00E9 integralmente disponibilizado em parceria da Digital Cons\u00F3rcios com a \u00C2ncora, com o objetivo de antecipar o acesso ao cr\u00E9dito.":isBMW?"Este lance faz parte do programa de incentivo BMW e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela BMW em parceria com a Recon, com o objetivo de antecipar o seu acesso ao cr\u00E9dito.":"Este lance faz parte do programa de incentivo Kawasaki e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Kawasaki em parceria com a \u00C2ncora, com o objetivo de antecipar o seu acesso ao cr\u00E9dito."}</p>
 </div>
 <div style="margin:20px 32px;border:1.5px solid ${_corPDF};border-radius:4px;overflow:hidden;">
 <div style="background:${_corPDF};padding:8px 20px;"><span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.75);">Valor do Lance Aprovado na An\u00E1lise</span></div>
 <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
 <div style="font-size:36px;font-weight:700;color:${_corPDF};">${lance}</div>
-<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${_modo==="gen"?"disponibilizado pela Ancora Administradora.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor ao consorciado.</strong></div>
+<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${isGen?"disponibilizado pela \u00C2ncora Administradora.":isBMW?"disponibilizado pelo programa de incentivo BMW.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor ao consorciado.</strong></div>
 </div></div>
 ${blocoValid}
 <div style="margin:0 32px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -4907,7 +4907,7 @@ ${blocoValid}
 </div>
 <div style="padding:18px 32px 0;">
 <p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 8px;">O seu consultor respons\u00E1vel entrar\u00E1 em contato para orient\u00E1-lo(a) sobre os pr\u00F3ximos passos, documenta\u00E7\u00E3o e cronograma.</p>
-<p style="font-size:12px;color:#444;margin:0;">${_modo==="gen"?"Seja bem-vindo(a) ao Plano Inteligente.":"Seja bem-vindo(a) ao Cons\u00F3rcio Kawasaki."}</p>
+<p style="font-size:12px;color:#444;margin:0;">${isGen?"Seja bem-vindo(a) ao Plano Inteligente.":isBMW?"Seja bem-vindo(a) ao Cons\u00F3rcio BMW / Recon.":"Seja bem-vindo(a) ao Cons\u00F3rcio Kawasaki."}</p>
 </div>
 ${blocoObs}
 ${blocoQR(qrURL, prot, nome, "Analise de Lance")}
@@ -5855,7 +5855,7 @@ ${refValid}
 <div style="background:${_corPDF};padding:8px 20px;"><span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.75);">Valor do Lance Aprovado na An\u00E1lise</span></div>
 <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
 <div style="font-size:36px;font-weight:700;color:${_corPDF};">${lance}</div>
-<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${_modo==="gen"?"disponibilizado pela Ancora Administradora.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor \u00E0 empresa.</strong></div>
+<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${isGen?"disponibilizado pela \u00C2ncora Administradora.":isBMW?"disponibilizado pelo programa de incentivo BMW.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor \u00E0 empresa.</strong></div>
 </div></div>
 ${blocoValid}
 <div style="margin:0 32px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -5893,7 +5893,7 @@ ${blocoValid}
 </div>
 <div style="padding:18px 32px 0;">
 <p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 8px;">O consultor respons\u00E1vel entrar\u00E1 em contato para orientar sobre os pr\u00F3ximos passos, documenta\u00E7\u00E3o e cronograma.</p>
-<p style="font-size:12px;color:#444;margin:0;">${_modo==="gen"?"Seja bem-vindo(a) ao Plano Inteligente.":"Seja bem-vindo(a) ao Cons\u00F3rcio Kawasaki."}</p>
+<p style="font-size:12px;color:#444;margin:0;">${isGen?"Seja bem-vindo(a) ao Plano Inteligente.":isBMW?"Seja bem-vindo(a) ao Cons\u00F3rcio BMW / Recon.":"Seja bem-vindo(a) ao Cons\u00F3rcio Kawasaki."}</p>
 </div>
 ${blocoObs}
 ${blocoQR(qrURL, prot, empresa, "Analise de Lance CNPJ")}

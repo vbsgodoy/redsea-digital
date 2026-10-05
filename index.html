@@ -683,18 +683,18 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
 
       <!-- Botão gerar link -->
       <div style="padding:0 24px 16px;">
-        <button onclick="pixGerarLinkCliente()" class="btn be" style="width:100%;padding:14px;font-size:14px;font-weight:700;">🔗 Gerar link de pagamento para o cliente</button>
+        <button onclick="pixGerarLinkCliente()" class="btn be" style="width:100%;padding:14px;font-size:14px;font-weight:700;">🔗 Gerar link de pagamento</button>
+        <div id="pix-link-erro" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(220,38,38,0.1);border:1px solid #dc2626;border-radius:8px;font-size:12px;color:#dc2626;font-weight:600;"></div>
         <div id="pix-link-resultado" style="display:none;margin-top:12px;">
           <div style="background:var(--p);border:1px solid var(--v);border-radius:10px;padding:14px;">
-            <div style="font-size:11px;color:var(--tm);margin-bottom:6px;text-transform:uppercase;font-weight:700;letter-spacing:1px;">Link gerado ✅</div>
-            <div id="pix-link-url" style="font-size:13px;color:var(--v);word-break:break-all;margin-bottom:10px;font-weight:600;"></div>
+            <div style="font-size:11px;color:var(--tm);margin-bottom:8px;font-weight:700;">✅ Link gerado — toque para selecionar e copiar</div>
+            <textarea id="pix-link-url" readonly onclick="this.select()" style="width:100%;background:var(--ce);border:1px solid var(--cb);border-radius:6px;padding:8px;font-size:11px;color:var(--v);font-family:monospace;resize:none;height:56px;margin-bottom:10px;box-sizing:border-box;"></textarea>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button onclick="pixCopiarLink()" class="btn be" style="flex:1;padding:8px;font-size:12px;">📋 Copiar link</button>
-              <button onclick="pixCopiarCodigo()" class="btn bl" style="flex:1;padding:8px;font-size:12px;">📋 Copiar código Pix</button>
+              <button onclick="pixCopiarLink()" class="btn be" style="flex:1;padding:10px;font-size:12px;">📋 Copiar link</button>
+              <button onclick="pixCopiarCodigo()" class="btn bl" style="flex:1;padding:10px;font-size:12px;">📋 Copiar código Pix</button>
             </div>
           </div>
         </div>
-
       </div>
 
       <div class="aa"><button class="btn be" onclick="whPix()">WhatsApp</button><button class="btn bp" onclick="emailPix()">E-mail</button><button class="btn bl" onclick="limparPix()">Limpar</button></div></div>
@@ -5760,29 +5760,60 @@ function pixAtualizarAdm(){}
 
 var _pixLinkAtual='';
 function pixGerarLinkCliente(){
-  var cod=document.getElementById('pix_codigo').value.trim();
-  if(!cod){toast('⚠️ Cole o código Pix primeiro','#c0392b');return;}
-  var adm=document.getElementById('pix_adm').value;
-  var label=document.getElementById('pix_label').value||'Primeira Parcela';
-  var valor=document.getElementById('pix_valor').value?'R$ '+document.getElementById('pix_valor').value:'';
-  var nome=document.getElementById('pix_nome').value;
-  var payload=JSON.stringify({c:cod,l:label,v:valor,n:nome,a:adm});
-  var hash='pix='+btoa(unescape(encodeURIComponent(payload)));
-  var link='https://vbsgodoy.github.io/dc-pix/#'+hash;
-  _pixLinkAtual=link;
-  document.getElementById('pix-link-url').textContent=link;
-  document.getElementById('pix-link-loading').style.display='none';
-  document.getElementById('pix-link-resultado').style.display='block';
-  // Copia automaticamente para o clipboard
-  navigator.clipboard.writeText(link).then(function(){
-    toast('🔗 Link gerado e copiado! Cole no WhatsApp.');
-  }).catch(function(){
-    toast('🔗 Link gerado! Clique em "Copiar link".');
-  });
+  try{
+    var erroEl=document.getElementById('pix-link-erro');
+    var resultEl=document.getElementById('pix-link-resultado');
+    var urlEl=document.getElementById('pix-link-url');
+    if(erroEl)erroEl.style.display='none';
+    var cod=document.getElementById('pix_codigo').value.trim();
+    if(!cod){
+      if(erroEl){erroEl.textContent='⚠️ Cole o código Pix no campo acima primeiro.';erroEl.style.display='block';}
+      else toast('⚠️ Cole o código Pix primeiro','#c0392b');
+      return;
+    }
+    var adm=(document.getElementById('pix_adm')||{}).value||'ancora';
+    var label=(document.getElementById('pix_label')||{}).value||'Primeira Parcela';
+    var valorRaw=(document.getElementById('pix_valor')||{}).value||'';
+    var valor=valorRaw?'R$ '+valorRaw:'';
+    var nome=(document.getElementById('pix_nome')||{}).value||'';
+    var obj={c:cod,l:label,a:adm};
+    if(valor)obj.v=valor;
+    if(nome)obj.n=nome;
+    var payload=JSON.stringify(obj);
+    var encoded;
+    try{encoded=btoa(unescape(encodeURIComponent(payload)));}
+    catch(e){encoded=btoa(payload);}
+    var link='https://vbsgodoy.github.io/dc-pix/#pix='+encoded;
+    _pixLinkAtual=link;
+    if(urlEl)urlEl.value=link;
+    if(resultEl)resultEl.style.display='block';
+    toast('🔗 Link gerado!');
+    // Tenta copiar, sem bloquear se falhar
+    try{
+      navigator.clipboard.writeText(link).then(function(){
+        toast('🔗 Link copiado! Cole no WhatsApp.');
+      }).catch(function(){});
+    }catch(e){}
+  }catch(err){
+    toast('Erro ao gerar link: '+err.message,'#c0392b');
+  }
 }
 function pixCopiarLink(){
-  if(!_pixLinkAtual){toast('Gere o link primeiro','#c0392b');return;}
-  navigator.clipboard.writeText(_pixLinkAtual).then(function(){toast('🔗 Link copiado! Cole no WhatsApp.');});
+  var urlEl=document.getElementById('pix-link-url');
+  var link=_pixLinkAtual||(urlEl?urlEl.value:'');
+  if(!link){toast('Gere o link primeiro','#c0392b');return;}
+  if(urlEl){urlEl.select();}
+  try{
+    navigator.clipboard.writeText(link).then(function(){
+      toast('🔗 Link copiado! Cole no WhatsApp.');
+    }).catch(function(){
+      document.execCommand('copy');
+      toast('🔗 Link copiado!');
+    });
+  }catch(e){
+    try{document.execCommand('copy');toast('🔗 Link copiado!');}
+    catch(e2){toast('Selecione o link e copie manualmente');}
+  }
 }
 function pixCopiarCodigo(){
   var cod=document.getElementById('pix_codigo').value.trim();

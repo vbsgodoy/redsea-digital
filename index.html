@@ -348,6 +348,19 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
       <input type="text" id="cad-nome" placeholder="Seu nome completo" autocomplete="name"/>
       <input type="email" id="cad-email" placeholder="seu@email.com" autocomplete="email"/>
       <input type="password" id="cad-senha" placeholder="Crie uma senha (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')fbCadastrar()"/>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px;color:#94A3B8;display:block;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Seu time</label>
+        <div style="display:flex;gap:10px;">
+          <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid #2A3650;border-radius:8px;cursor:pointer;background:#0F172A;font-size:13px;color:#E2F0EC;" id="cad-time-label-camaleoes">
+            <input type="radio" name="cad-time" value="camaleoes" id="cad-time-camaleoes" checked style="accent-color:#1D9E75;"/>
+            🦎 Camaleões
+          </label>
+          <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid #2A3650;border-radius:8px;cursor:pointer;background:#0F172A;font-size:13px;color:#E2F0EC;" id="cad-time-label-fenix">
+            <input type="radio" name="cad-time" value="fenix" id="cad-time-fenix" style="accent-color:#f97316;"/>
+            🔥 Fênix
+          </label>
+        </div>
+      </div>
       <button class="btn be login-btn" onclick="fbCadastrar()">Criar conta</button>
       <div id="cadastro-erro" class="login-erro"></div>
       <div class="login-links">
@@ -1306,6 +1319,8 @@ function fbCadastrar(){
   var nome=document.getElementById('cad-nome').value.trim();
   var email=document.getElementById('cad-email').value.trim();
   var senha=document.getElementById('cad-senha').value;
+  var timeRadio=document.querySelector('input[name="cad-time"]:checked');
+  var timeEscolhido=timeRadio?timeRadio.value:'camaleoes';
   var erroEl=document.getElementById('cadastro-erro');
   erroEl.textContent='';
   if(!nome||!email||!senha){erroEl.textContent='Preencha todos os campos.';return;}
@@ -1316,7 +1331,8 @@ function fbCadastrar(){
       return db.collection('usuarios').doc(cred.user.uid).set({
         aguardandoAprovacao:!GESTOR_UIDS.includes(cred.user.uid),
         nomeCadastro:nome,
-        emailCadastro:email
+        emailCadastro:email,
+        timeId:timeEscolhido
       },{merge:true});
     });
   }).catch(function(err){

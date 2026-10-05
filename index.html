@@ -694,7 +694,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
             </div>
           </div>
         </div>
-        <div id="pix-link-loading" style="display:none;text-align:center;padding:10px;font-size:12px;color:var(--tm);">⏳ Gerando link...</div>
+
       </div>
 
       <div class="aa"><button class="btn be" onclick="whPix()">WhatsApp</button><button class="btn bp" onclick="emailPix()">E-mail</button><button class="btn bl" onclick="limparPix()">Limpar</button></div></div>
@@ -5768,25 +5768,17 @@ function pixGerarLinkCliente(){
   var nome=document.getElementById('pix_nome').value;
   var payload=JSON.stringify({c:cod,l:label,v:valor,n:nome,a:adm});
   var hash='pix='+btoa(unescape(encodeURIComponent(payload)));
-  var longLink='https://vbsgodoy.github.io/dc-pix/#'+hash;
-  document.getElementById('pix-link-loading').style.display='block';
-  document.getElementById('pix-link-resultado').style.display='none';
-  fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(longLink))
-    .then(function(r){return r.text();})
-    .then(function(shortUrl){
-      shortUrl=shortUrl.trim();
-      if(!shortUrl.startsWith('https://')){shortUrl=longLink;}
-      _pixLinkAtual=shortUrl;
-      document.getElementById('pix-link-url').textContent=shortUrl;
-      document.getElementById('pix-link-loading').style.display='none';
-      document.getElementById('pix-link-resultado').style.display='block';
-    })
-    .catch(function(){
-      _pixLinkAtual=longLink;
-      document.getElementById('pix-link-url').textContent=longLink;
-      document.getElementById('pix-link-loading').style.display='none';
-      document.getElementById('pix-link-resultado').style.display='block';
-    });
+  var link='https://vbsgodoy.github.io/dc-pix/#'+hash;
+  _pixLinkAtual=link;
+  document.getElementById('pix-link-url').textContent=link;
+  document.getElementById('pix-link-loading').style.display='none';
+  document.getElementById('pix-link-resultado').style.display='block';
+  // Copia automaticamente para o clipboard
+  navigator.clipboard.writeText(link).then(function(){
+    toast('🔗 Link gerado e copiado! Cole no WhatsApp.');
+  }).catch(function(){
+    toast('🔗 Link gerado! Clique em "Copiar link".');
+  });
 }
 function pixCopiarLink(){
   if(!_pixLinkAtual){toast('Gere o link primeiro','#c0392b');return;}

@@ -348,16 +348,18 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
       <input type="text" id="cad-nome" placeholder="Seu nome completo" autocomplete="name"/>
       <input type="email" id="cad-email" placeholder="seu@email.com" autocomplete="email"/>
       <input type="password" id="cad-senha" placeholder="Crie uma senha (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')fbCadastrar()"/>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:11px;color:#94A3B8;display:block;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Seu time</label>
-        <div style="display:flex;gap:10px;">
-          <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid #2A3650;border-radius:8px;cursor:pointer;background:#0F172A;font-size:13px;color:#E2F0EC;" id="cad-time-label-camaleoes">
-            <input type="radio" name="cad-time" value="camaleoes" id="cad-time-camaleoes" checked style="accent-color:#1D9E75;"/>
-            🦎 Camaleões
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;color:#64748B;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Selecione seu time</div>
+        <div style="display:flex;gap:8px;">
+          <input type="radio" name="cad-time" value="camaleoes" id="cad-time-camaleoes" checked style="display:none;"/>
+          <label for="cad-time-camaleoes" id="cad-time-label-camaleoes" onclick="cadTimeSelect('camaleoes')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:2px solid #1D9E75;border-radius:10px;cursor:pointer;background:rgba(29,158,117,0.1);transition:all 0.15s;">
+            <span style="font-size:22px;">🦎</span>
+            <span style="font-size:12px;font-weight:700;color:#5DCAA5;">Camaleões</span>
           </label>
-          <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid #2A3650;border-radius:8px;cursor:pointer;background:#0F172A;font-size:13px;color:#E2F0EC;" id="cad-time-label-fenix">
-            <input type="radio" name="cad-time" value="fenix" id="cad-time-fenix" style="accent-color:#f97316;"/>
-            🔥 Fênix
+          <input type="radio" name="cad-time" value="fenix" id="cad-time-fenix" style="display:none;"/>
+          <label for="cad-time-fenix" id="cad-time-label-fenix" onclick="cadTimeSelect('fenix')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:2px solid #2A3650;border-radius:10px;cursor:pointer;background:transparent;transition:all 0.15s;">
+            <span style="font-size:22px;">🔥</span>
+            <span style="font-size:12px;font-weight:700;color:#94A3B8;">Fênix</span>
           </label>
         </div>
       </div>
@@ -1314,6 +1316,23 @@ function fbLogin(){
   firebase.auth().signInWithEmailAndPassword(email,senha).catch(function(err){
     erroEl.textContent=_fbErroTraduzido(err.code);
   });
+}
+function cadTimeSelect(time){
+  var lc=document.getElementById('cad-time-label-camaleoes');
+  var lf=document.getElementById('cad-time-label-fenix');
+  var nc=document.querySelector('#cad-time-label-camaleoes span:last-child');
+  var nf=document.querySelector('#cad-time-label-fenix span:last-child');
+  if(time==='camaleoes'){
+    if(lc){lc.style.border='2px solid #1D9E75';lc.style.background='rgba(29,158,117,0.1)';}
+    if(lf){lf.style.border='2px solid #2A3650';lf.style.background='transparent';}
+    if(nc)nc.style.color='#5DCAA5';
+    if(nf)nf.style.color='#94A3B8';
+  } else {
+    if(lf){lf.style.border='2px solid #f97316';lf.style.background='rgba(249,115,22,0.1)';}
+    if(lc){lc.style.border='2px solid #2A3650';lc.style.background='transparent';}
+    if(nf)nf.style.color='#fb923c';
+    if(nc)nc.style.color='#94A3B8';
+  }
 }
 function fbCadastrar(){
   var nome=document.getElementById('cad-nome').value.trim();

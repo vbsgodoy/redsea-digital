@@ -388,7 +388,10 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     </button>
     <div class="sb-badge" style="flex:1;">Ancora<br>Administradora</div>
     <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(128,128,128,0.35);">
-      <span id="sb-user-nome" style="font-size:10px;color:var(--tm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;"></span>
+      <span style="display:flex;flex-direction:column;gap:1px;overflow:hidden;">
+        <span id="sb-time-nome" style="font-size:9px;color:var(--v);font-weight:700;letter-spacing:0.5px;">Camaleões 🦎</span>
+        <span id="sb-user-nome" style="font-size:10px;color:var(--tm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;"></span>
+      </span>
       <a onclick="fbLogout()" style="font-size:10px;color:#c0392b;cursor:pointer;font-weight:700;">Sair</a>
     </div>
   </div>
@@ -1347,9 +1350,60 @@ function _fbErroTraduzido(code){
   return mapa[code]||'Não foi possível concluir. Tente novamente.';
 }
 var _currentUID=null;
-var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2']; // Vitor Godoy, Vitor Hugo (supervisor)
-var NAO_VENDEDOR_UIDS=['JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2']; // Ricardo, Vitor Hugo - nao vendem
-var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2']; // Victor Gabriel (saiu), Ricardo, Vitor Hugo (supervisores)
+var _timeAtual='camaleoes'; // 'camaleoes' ou 'fenix' — definido no login
+var _timeNome='Camaleões';
+var _timeEmoji='🦎';
+
+// ===== CONFIG POR TIME =====
+var TIMES_CONFIG={
+  camaleoes:{
+    nome:'Camaleões', emoji:'🦎',
+    gestores:['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2'],
+    naoVendedor:['JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2'],
+    ocultoPainel:['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2']
+  },
+  fenix:{
+    nome:'Fênix', emoji:'🔥',
+    gestores:['LBriG9ecE3XSA9BZhJ2vEPiHDpn2'],
+    naoVendedor:['LBriG9ecE3XSA9BZhJ2vEPiHDpn2'],
+    ocultoPainel:['LBriG9ecE3XSA9BZhJ2vEPiHDpn2']
+  }
+};
+// UID → time (UIDs fixos pré-configurados; novos usuários herdam o time do gestor que os aprova)
+var UIDS_TIME_FIXO={
+  'PlKKgHHFTFUuMc0TrMQsZIXHpyz2':'camaleoes',
+  '4CHMJ2EJYYhJTNfQGPokrYt2fHE2':'camaleoes',
+  'JcTx6OSpJ2XnFG7BylIuA6OxTli1':'camaleoes',
+  'T5Ss7dm8gBWESd4KwJkoXfcVBKE2':'camaleoes',
+  'LBriG9ecE3XSA9BZhJ2vEPiHDpn2':'fenix'
+};
+
+// Helpers dinâmicos — sempre refletem o time atual do usuário logado
+var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2']; // todos gestores
+var NAO_VENDEDOR_UIDS=['JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2'];
+var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2'];
+
+function _timeDoUID(uid, timeIdFirestore){
+  if(timeIdFirestore) return timeIdFirestore;
+  if(UIDS_TIME_FIXO[uid]) return UIDS_TIME_FIXO[uid];
+  return 'camaleoes'; // default
+}
+function _setTimeAtual(timeId){
+  _timeAtual=timeId||'camaleoes';
+  var cfg=TIMES_CONFIG[_timeAtual]||TIMES_CONFIG.camaleoes;
+  _timeNome=cfg.nome;
+  _timeEmoji=cfg.emoji;
+  // Atualizar helpers dinâmicos para o time atual
+  NAO_VENDEDOR_UIDS=cfg.naoVendedor;
+  OCULTO_PAINEL_UIDS=cfg.ocultoPainel;
+  // Atualizar label do time na topbar
+  var el=document.getElementById('sb-time-nome');
+  if(el)el.textContent=cfg.nome+' '+cfg.emoji;
+}
+function _isGestorDoTime(uid){
+  var cfg=TIMES_CONFIG[_timeAtual]||TIMES_CONFIG.camaleoes;
+  return cfg.gestores.includes(uid);
+}
 var _unsubAprovacao=null;
 firebase.auth().onAuthStateChanged(function(user){
   var loginScreen=document.getElementById('login-screen');
@@ -1362,6 +1416,7 @@ firebase.auth().onAuthStateChanged(function(user){
     loginScreen.style.display='none';
     if(GESTOR_UIDS.includes(user.uid)){
       aguardandoScreen.style.display='none';
+      _setTimeAtual(_timeDoUID(user.uid,null));
       _liberarAcessoApp(user);
     } else {
       _unsubAprovacao=db.collection('usuarios').doc(user.uid).onSnapshot(function(doc){
@@ -1373,8 +1428,7 @@ firebase.auth().onAuthStateChanged(function(user){
           firebase.auth().signOut();
           return;
         }
-        // So bloqueia se aguardandoAprovacao===true (campo criado explicitamente no cadastro novo)
-        // Usuarios existentes nunca tiveram esse campo -> passam direto sempre
+        _setTimeAtual(_timeDoUID(user.uid,d.timeId||null));
         if(d.aguardandoAprovacao===true){
           appShell.style.display='none';
           aguardandoScreen.style.display='flex';
@@ -1402,8 +1456,8 @@ function _liberarAcessoApp(user){
   _fbCarregarMeuAniversario(user.uid);
   _agIniciarLembretes();
   var navGestor=document.getElementById('nav-gestor');
-  if(navGestor)navGestor.style.display=(GESTOR_UIDS.includes(user.uid)?'block':'none');
-  if(GESTOR_UIDS.includes(user.uid))_gestorEscutarPendentes();
+  if(navGestor)navGestor.style.display=(_isGestorDoTime(user.uid)?'block':'none');
+  if(_isGestorDoTime(user.uid))_gestorEscutarPendentes();
 }
 var _unsubPendentes=null;
 function _gestorEscutarPendentes(){
@@ -1412,6 +1466,8 @@ function _gestorEscutarPendentes(){
     var qtd=0;
     snap.forEach(function(doc){
       if(OCULTO_PAINEL_UIDS.includes(doc.id))return;
+      var d=doc.data();
+      if((d.timeId||'camaleoes')!==_timeAtual)return;
       qtd++;
     });
     var badge=document.getElementById('nav-gestor-badge');
@@ -1698,6 +1754,7 @@ function _fbAtualizarPerfilPublico(){
     modulosCompletos:modulosCompletos,
     producaoMes:producaoTotal,
     comissaoMes:rComissao.totalGeral,
+    timeId:_timeAtual,
     atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()
   };
   var aniv=localStorage.getItem('rsd_meu_aniversario');
@@ -2080,6 +2137,7 @@ function renderGestor(){
       if(OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       if(d.bloqueado===true)return; // excluir quem teve acesso removido
+      if((d.timeId||'camaleoes')!==_timeAtual)return; // filtrar por time
       if(!GESTOR_UIDS.includes(uid)){
         var nomeCad=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'(sem nome)';
         var ePendente=(d.aguardandoAprovacao===true)||(d.aprovado===false&&d.bloqueado!==true);
@@ -2327,6 +2385,7 @@ function renderGestor(){
         if(OCULTO_PAINEL_UIDS.includes(uid)||GESTOR_UIDS.includes(uid))return;
         var d=doc.data();
         if(d.bloqueado===true)return;
+        if((d.timeId||'camaleoes')!==_timeAtual)return;
         var nome=(perfis[uid]&&perfis[uid].nome)||d.nomeCadastro||'Consultor';
         if(vendedoresNomes.indexOf(nome)===-1)vendedoresNomes.push(nome);
         if(filtroVend && nome!==filtroVend)return;
@@ -2453,6 +2512,7 @@ function gestorFecharMesParaTodos(){
       if(OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       if(d.bloqueado===true)return;
+      if((d.timeId||'camaleoes')!==_timeAtual)return;
       var vendas=d.pjVendas||[];
       if(vendas.length===0)return;
       var r=calcularComissao(vendas);
@@ -2490,7 +2550,7 @@ function gestorFecharMesParaTodos(){
 function gestorAprovar(uid){
   if(!GESTOR_UIDS.includes(_currentUID))return;
   // limpa AMBOS os campos (novo e legado do sistema antigo)
-  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false,aprovado:true},{merge:true}).then(function(){
+  db.collection('usuarios').doc(uid).set({aguardandoAprovacao:false,aprovado:true,timeId:_timeAtual},{merge:true}).then(function(){
     toast('✅ Acesso aprovado!');
     renderGestor();
   }).catch(function(err){
@@ -3107,6 +3167,7 @@ function _fbPostarMural(tipo,texto){
     nome:_fbNomeAtual(),
     tipo:tipo,
     texto:texto,
+    timeId:_timeAtual,
     criadoEm:firebase.firestore.FieldValue.serverTimestamp(),
     reacoes:{}
   }).catch(function(err){
@@ -3124,7 +3185,12 @@ function renderRanking(){
   if(!host)return;
   db.collection('perfis_publicos').get().then(function(snap){
     var perfis=[];
-    snap.forEach(function(doc){if(!NAO_VENDEDOR_UIDS.includes(doc.id)&&!OCULTO_PAINEL_UIDS.includes(doc.id))perfis.push(doc.data());});
+    snap.forEach(function(doc){
+      if(NAO_VENDEDOR_UIDS.includes(doc.id)||OCULTO_PAINEL_UIDS.includes(doc.id))return;
+      var d=doc.data();
+      if((d.timeId||'camaleoes')!==_timeAtual)return;
+      perfis.push(d);
+    });
     perfis.sort(function(a,b){
       return (b.comissaoMes||0)-(a.comissaoMes||0);
     });
@@ -3149,12 +3215,18 @@ function renderRanking(){
 function renderMural(){
   var host=document.getElementById('equipe-mural');
   if(!host)return;
-  db.collection('mural').orderBy('criadoEm','desc').limit(30).get().then(function(snap){
-    if(snap.empty){
+  db.collection('mural').orderBy('criadoEm','desc').limit(60).get().then(function(snap){
+    var docs=snap.docs.filter(function(doc){
+      var d=doc.data();
+      // Posts sem timeId (legado) ficam no Camaleões por padrão
+      var postTime=d.timeId||'camaleoes';
+      return postTime===_timeAtual;
+    }).slice(0,30);
+    if(docs.length===0){
       host.innerHTML='<div class="hem" style="padding:20px;">Nenhuma atividade ainda.</div>';
       return;
     }
-    host.innerHTML=snap.docs.map(function(doc){
+    host.innerHTML=docs.map(function(doc){
       var d=doc.data();
       var id=doc.id;
       var reacoes=d.reacoes||{};
@@ -3370,6 +3442,8 @@ function renderPainelGestorHall(){
       if(NAO_VENDEDOR_UIDS.includes(uid)||OCULTO_PAINEL_UIDS.includes(uid))return;
       var d=doc.data();
       if(d.bloqueado===true)return;
+      if((d.timeId||'camaleoes')!==_timeAtual)return;
+      if((d.timeId||'camaleoes')!==_timeAtual)return;
       var vendas=d.pjVendas||[];
       var r=vendas.length?calcularComissao(vendas):{totalGeral:0};
       var producao=vendas.reduce(function(s,x){return s+x.valor;},0);
@@ -3932,7 +4006,7 @@ function renderVendaFechada(){
     '*Plano:* '+plano+'\n'+
     '*Contrato:* '+contrato+'\n\n'+
     '*Consultor:* '+consultor+'\n\n'+
-    'Pra cima, Camaleões! 🦎';
+    'Pra cima, '+_timeNome+'! '+_timeEmoji;
 
   var el=document.getElementById('vf-texto');
   if(el)el.textContent=texto;

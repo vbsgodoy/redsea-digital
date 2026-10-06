@@ -1290,18 +1290,6 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
 </div>
 </div>
 <div id="em"><div class="modal-box"><div class="mh"><h3>Enviar ao Cliente</h3><button class="mf" onclick="fModal()">x</button></div><div class="mb"><div class="mas">Assunto: <span id="m-assunto"></span></div><div class="mco" id="m-corpo"></div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--tm);display:block;margin-bottom:5px;">E-mail do destinatario</label><input type="email" id="m-dest-input" placeholder="email@cliente.com.br" style="width:100%;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:9px 12px;color:var(--t);font-family:inherit;font-size:13px;outline:none;" oninput="_dest=this.value.trim()"/></div><div class="mac"><button class="mbtn mg" onclick="mGmail()">Gmail</button><button class="mbtn mo" onclick="mOutlook()">Outlook</button><button class="mbtn mc" onclick="mCopy()" id="m-copy-btn">Copiar</button><button class="mbtn mw" onclick="mWhats()">WhatsApp</button></div></div></div></div>
-<div id="home-fab" class="notes-fab home-fab" onclick="irPara('hall')" title="Voltar ao Hall"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/House/3D/house_3d.png" style="width:28px;height:28px;" onerror="this.parentElement.textContent='🏠'"/></div>
-<div id="notes-fab" class="notes-fab" onclick="nToggle()" title="Notas rápidas"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pushpin/3D/pushpin_3d.png" style="width:26px;height:26px;" onerror="this.parentElement.textContent='📌'"/></div>
-<div id="notes-panel" class="notes-panel">
-  <div class="notes-header">
-    <span>📌 Notas rápidas</span>
-    <button class="mf" onclick="nToggle()">x</button>
-  </div>
-  <div id="notes-list" class="notes-list"></div>
-  <div class="notes-footer">
-    <button class="btn bs2" onclick="nNova()">+ Nova nota</button>
-  </div>
-</div>
 <div id="tab-parciais" class="tp" style="display:none;">
   <div class="topbar"><div class="topbar-title">Parciais</div><div class="topbar-sub" id="parc-subtitulo">Acompanhamento do time</div></div>
   <div class="page-content">
@@ -1345,6 +1333,19 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <button onclick="document.getElementById('parc-print-modal').style.display='none'" style="background:transparent;border:1px solid #2A3650;color:#94A3B8;padding:8px 16px;border-radius:8px;margin-bottom:16px;cursor:pointer;font-size:12px;">✕ Fechar</button>
     <div style="font-size:11px;color:#5DCAA5;margin-bottom:10px;text-align:center;">📱 Tire um print desta tela e envie no grupo</div>
     <div id="parc-print-card"></div>
+  </div>
+</div>
+
+<div id="home-fab" class="notes-fab home-fab" onclick="irPara('hall')" title="Voltar ao Hall"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/House/3D/house_3d.png" style="width:28px;height:28px;" onerror="this.parentElement.textContent='🏠'"/></div>
+<div id="notes-fab" class="notes-fab" onclick="nToggle()" title="Notas rápidas"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pushpin/3D/pushpin_3d.png" style="width:26px;height:26px;" onerror="this.parentElement.textContent='📌'"/></div>
+<div id="notes-panel" class="notes-panel">
+  <div class="notes-header">
+    <span>📌 Notas rápidas</span>
+    <button class="mf" onclick="nToggle()">x</button>
+  </div>
+  <div id="notes-list" class="notes-list"></div>
+  <div class="notes-footer">
+    <button class="btn bs2" onclick="nNova()">+ Nova nota</button>
   </div>
 </div>
 

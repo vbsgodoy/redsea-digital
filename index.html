@@ -1311,7 +1311,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <!-- Tabela -->
     <div class="fc">
       <div class="sh">📋 Parcial do dia</div>
-      <div id="parc-tabela" style="overflow-x:auto;padding:8px 16px 4px;"></div>
+      <div id="parc-tabela"></div>
       <div class="aa">
         <button onclick="parcSalvar()" style="flex:1;padding:13px;border-radius:10px;border:none;background:var(--v);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Salvar parcial</button>
         <button onclick="parcGerarPrint()" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--cb);background:transparent;color:var(--t);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📸 Gerar print</button>
@@ -5812,34 +5812,32 @@ function _parcRenderTabela(){
     {id:'normal',label:'Norm.'},
     {id:'upgrade',label:'Upgr.'}
   ];
-  var html='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:580px;margin-top:4px;">';
-  html+='<thead><tr style="background:var(--p);">';
-  html+='<th style="padding:9px 10px;text-align:left;color:var(--tm);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Vendedor</th>';
-  html+='<th style="padding:9px 4px;color:var(--tm);font-weight:700;font-size:11px;min-width:95px;">Situação</th>';
-  cols.forEach(function(c){html+='<th style="padding:9px 4px;color:var(--tm);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">'+c.label+'</th>';});
+  var html='<table class="ht">';
+  html+='<thead><tr>';
+  html+='<th style="text-align:left;">Vendedor</th>';
+  html+='<th>Situação</th>';
+  cols.forEach(function(c){html+='<th>'+c.label+'</th>';});
   html+='</tr></thead><tbody>';
   _parcMembros.forEach(function(m){
     var d=_parcDados[m.uid]||{status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
     var canEdit=isGestor||(m.uid===_currentUID);
     var ausente=d.status!=='presente';
-    var rowBg=ausente?'background:rgba(100,116,139,0.05);':'';
-    html+='<tr style="border-bottom:1px solid var(--cb);'+rowBg+'">';
-    html+='<td style="padding:8px 8px;font-weight:600;color:var(--t);">'+m.nome+'</td>';
+    html+='<tr style="border-bottom:1px solid var(--cb);">';
+    html+='<td style="opacity:'+(ausente?'0.4':'1')+'"><strong>'+m.nome+'</strong></td>';
     if(canEdit){
-      html+='<td style="padding:4px 2px;"><select id="ps-'+m.uid+'" onchange="parcStatus(\''+m.uid+'\')" style="font-size:11px;padding:3px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);width:88px;">';
-      [{v:'presente',l:'✅ Presente'},{v:'ausente',l:'😶 Ausente'},{v:'afastado',l:'🤕 Afastado'},{v:'ferias',l:'🏖 Férias'}].forEach(function(s){
+      html+='<td><select id="ps-'+m.uid+'" onchange="parcStatus(\''+m.uid+'\')" style="font-size:10px;padding:2px;border-radius:4px;border:1px solid var(--cb);background:var(--ce);color:var(--t);">';
+      [{v:'presente',l:'✅ Ok'},{v:'ausente',l:'😶 Aus.'},{v:'afastado',l:'🤕 Af.'},{v:'ferias',l:'🏖 Fér.'}].forEach(function(s){
         html+='<option value="'+s.v+'"'+(d.status===s.v?' selected':'')+'>'+s.l+'</option>';
       });
       html+='</select></td>';
     } else {
-      var sLabel={'presente':'✅ Presente','ausente':'😶 Ausente','afastado':'🤕 Afastado','ferias':'🏖 Férias'}[d.status]||d.status;
-      html+='<td style="padding:8px 4px;text-align:center;font-size:11px;color:var(--tm);">'+sLabel+'</td>';
+      html+='<td style="text-align:center;">'+({'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—')+'</td>';
     }
     cols.forEach(function(c){
       if(canEdit&&!ausente){
-        html+='<td style="padding:4px 2px;"><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:42px;padding:4px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:12px;text-align:center;"/></td>';
+        html+='<td><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:34px;padding:2px;border-radius:4px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:11px;text-align:center;"/></td>';
       } else {
-        html+='<td style="padding:8px 4px;text-align:center;color:'+(ausente?'var(--tm)':'var(--t)')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
+        html+='<td style="text-align:center;opacity:'+(ausente?'0.4':'1')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
       }
     });
     html+='</tr>';

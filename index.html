@@ -5777,12 +5777,10 @@ function parcCarregar(){
       _parcMembros.push({uid:doc.id,nome:d.nome||'(sem nome)'});
     });
     _parcMembros.sort(function(a,b){return a.nome.localeCompare(b.nome);});
-    // Carregar dados salvos
     var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
     db.collection('parciais').doc(docId).get().then(function(doc){
       if(doc.exists&&doc.data().dados){
         _parcDados=doc.data().dados;
-        // Garantir que todos os membros atuais estão presentes
         _parcMembros.forEach(function(m){
           if(!_parcDados[m.uid]){
             _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
@@ -5796,7 +5794,13 @@ function parcCarregar(){
       }
       _parcRenderTabela();
       _parcRenderControle();
+    }).catch(function(err){
+      var host=document.getElementById('parc-tabela');
+      if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar as parciais.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
     });
+  }).catch(function(err){
+    var host=document.getElementById('parc-tabela');
+    if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar os membros do time.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
   });
 }
 function _parcRenderTabela(){
@@ -5941,7 +5945,11 @@ function _parcRenderControle(){
         html+='</table></div>';
       }
       host.innerHTML=html;
+    }).catch(function(err){
+      host.innerHTML='<div style="padding:16px 20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar o controle geral.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
     });
+  }).catch(function(err){
+    host.innerHTML='<div style="padding:16px 20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar o controle geral.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
   });
 }
 function parcGerarPrint(){

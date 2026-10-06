@@ -5808,13 +5808,13 @@ function parcCarregar(){
         _parcDados=doc.data().dados;
         _parcMembros.forEach(function(m){
           if(!_parcDados[m.uid]){
-            _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+            _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
           }
         });
       } else {
         _parcDados={};
         _parcMembros.forEach(function(m){
-          _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+          _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
         });
       }
       _parcRenderTabela();
@@ -5840,7 +5840,8 @@ function _parcRenderTabela(){
     {id:'vendas',label:'Vendas'},
     {id:'premium',label:'Prem.'},
     {id:'normal',label:'Norm.'},
-    {id:'upgrade',label:'Upgr.'}
+    {id:'upgrade',label:'Upgr.'},
+    {id:'producao',label:'Prod. R$',currency:true}
   ];
   var html='<table style="width:100%;border-collapse:collapse;font-size:14px;">';
   html+='<thead><tr style="background:var(--p);">';
@@ -5866,9 +5867,16 @@ function _parcRenderTabela(){
     }
     cols.forEach(function(c){
       if(canEdit&&!ausente){
-        html+='<td style="padding:4px 2px;"><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:38px;padding:4px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;text-align:center;"/></td>';
+        if(c.currency){
+          var pVal=(d[c.id]||0);
+          var pStr=pVal>0?String(pVal).replace('.',','):'';
+          html+='<td style="padding:4px 2px;"><input type="text" inputmode="decimal" id="pi-'+c.id+'-'+m.uid+'" value="'+pStr+'" placeholder="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:70px;padding:4px;border-radius:6px;border:1px solid var(--v);background:var(--ce);color:var(--v);font-size:13px;font-weight:700;text-align:center;"/></td>';
+        } else {
+          html+='<td style="padding:4px 2px;"><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:38px;padding:4px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;text-align:center;"/></td>';
+        }
       } else {
-        html+='<td style="text-align:center;padding:7px 2px;font-size:14px;opacity:'+(ausente?'0.4':'1')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
+        var dispVal=ausente?'—':c.currency?(d[c.id]>0?'R$'+(d[c.id]||0):'—'):(d[c.id]||0);
+        html+='<td style="text-align:center;padding:7px 2px;font-size:'+(c.currency?'12':'14')+'px;font-weight:'+(c.currency?'700':'400')+';color:'+(c.currency?'var(--v)':'var(--t)')+';opacity:'+(ausente?'0.4':'1')+';">'+dispVal+'</td>';
       }
     });
     if(isGestor)html+='<td style="padding:4px 2px;text-align:center;"><button onclick="parcRemoverMembro(\''+m.uid+'\')" style="background:transparent;border:none;color:#94A3B8;cursor:pointer;font-size:14px;padding:2px 4px;" title="Remover desta parcial">×</button></td>';
@@ -5877,9 +5885,10 @@ function _parcRenderTabela(){
   html+='<tr style="border-top:2px solid var(--v);font-weight:700;">';
   html+='<td style="padding:8px 10px;color:var(--v);font-size:13px;">TOTAL</td>';
   html+='<td style="padding:8px 4px;text-align:center;font-size:12px;color:var(--tm);">'+_parcMembros.length+'</td>';
-  ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){
-    var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(d[c]||0);});
-    html+='<td style="padding:8px 4px;text-align:center;color:var(--v);font-size:14px;font-weight:900;">'+tot+'</td>';
+  cols.forEach(function(c){
+    var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(parseFloat(d[c.id])||0);});
+    var totStr=c.currency?'R$'+tot.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):tot;
+    html+='<td style="padding:8px 4px;text-align:center;color:var(--v);font-size:'+(c.currency?'12':'14')+'px;font-weight:900;">'+totStr+'</td>';
   });
   if(isGestor)html+='<td></td>';
   html+='</tr>';
@@ -5899,6 +5908,8 @@ function _parcAtualizar(uid){
     var el=document.getElementById('pi-'+c+'-'+uid);
     if(el)_parcDados[uid][c]=parseInt(el.value)||0;
   });
+  var elP=document.getElementById('pi-producao-'+uid);
+  if(elP)_parcDados[uid].producao=parseFloat(elP.value.replace(',','.'))||0;
 }
 function parcRemoverMembro(uid){
   if(!confirm('Remover este membro desta parcial?'))return;
@@ -5954,10 +5965,10 @@ function _parcRenderControle(){
       var dados=parc.dados||{};
       Object.keys(dados).forEach(function(uid){
         var r=dados[uid];
-        if(!totais[uid])totais[uid]={nome:r.nome||uid,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,diasPresente:0};
+        if(!totais[uid])totais[uid]={nome:r.nome||uid,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0,diasPresente:0};
         if(r.status==='presente'){
           totais[uid].diasPresente++;
-          ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){totais[uid][c]+=(r[c]||0);});
+          ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade','producao'].forEach(function(c){totais[uid][c]+=(r[c]||0);});
         }
       });
     });
@@ -6071,7 +6082,7 @@ function parcGerarPrint(){
   if(!modal||!card)return;
   var periodoLabel={'12h':'12h00','15h':'15h00','17h30':'17h30'}[_parcPeriodo]||_parcPeriodo;
   var dataBR=_parcData.split('-').reverse().join('/');
-  var cols=[{id:'campanha',l:'Camp.'},{id:'dados',l:'Fichas'},{id:'aprovacoes',l:'Aprov.'},{id:'contratos',l:'Contr.'},{id:'vendas',l:'Vendas'},{id:'premium',l:'Prem.'},{id:'normal',l:'Norm.'},{id:'upgrade',l:'Upgr.'}];
+  var cols=[{id:'campanha',l:'Camp.'},{id:'dados',l:'Fichas'},{id:'aprovacoes',l:'Aprov.'},{id:'contratos',l:'Contr.'},{id:'vendas',l:'Vendas'},{id:'premium',l:'Prem.'},{id:'normal',l:'Norm.'},{id:'upgrade',l:'Upgr.'},{id:'producao',l:'Prod.R$'}];
   var html='<div style="background:#0D1524;border-radius:14px;overflow:hidden;font-family:Arial,sans-serif;">';
   html+='<div style="background:linear-gradient(135deg,#0A1220,#111E32);padding:14px 18px;border-bottom:1px solid #1E2D4A;">';
   html+='<div style="font-size:11px;color:#5DCAA5;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Parcial '+_timeNome+' '+_timeEmoji+'</div>';

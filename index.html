@@ -5742,6 +5742,11 @@ var _parcPeriodo='12h';
 var _parcDados={};
 var _parcMembros=[];
 
+function _brl(n){
+  var num=parseFloat(String(n).replace(',','.'));
+  if(isNaN(num)||num===0)return '—';
+  return 'R$ '+num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function _parcAutoPeriodo(){
   var h=new Date().getHours();
   if(h<13)return '12h';
@@ -5806,9 +5811,17 @@ function parcCarregar(){
     db.collection('parciais').doc(docId).get().then(function(doc){
       if(doc.exists&&doc.data().dados){
         _parcDados=doc.data().dados;
+        // Garantir que membros do time estão presentes
         _parcMembros.forEach(function(m){
           if(!_parcDados[m.uid]){
             _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
+          }
+        });
+        // Reconstituir membros adicionados manualmente (que não estão na lista do time)
+        Object.keys(_parcDados).forEach(function(uid){
+          if(!_parcMembros.find(function(m){return m.uid===uid;})){
+            var r=_parcDados[uid];
+            _parcMembros.push({uid:uid,nome:r.nome||'(manual)',manual:true});
           }
         });
       } else {
@@ -5875,7 +5888,7 @@ function _parcRenderTabela(){
           html+='<td style="padding:4px 2px;"><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:38px;padding:4px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;text-align:center;"/></td>';
         }
       } else {
-        var dispVal=ausente?'—':c.currency?(d[c.id]>0?'R$'+(d[c.id]||0):'—'):(d[c.id]||0);
+        var dispVal=ausente?'—':c.currency?_brl(d[c.id]||0):(d[c.id]||0);
         html+='<td style="text-align:center;padding:7px 2px;font-size:'+(c.currency?'12':'14')+'px;font-weight:'+(c.currency?'700':'400')+';color:'+(c.currency?'var(--v)':'var(--t)')+';opacity:'+(ausente?'0.4':'1')+';">'+dispVal+'</td>';
       }
     });
@@ -5887,7 +5900,7 @@ function _parcRenderTabela(){
   html+='<td style="padding:8px 4px;text-align:center;font-size:12px;color:var(--tm);">'+_parcMembros.length+'</td>';
   cols.forEach(function(c){
     var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(parseFloat(d[c.id])||0);});
-    var totStr=c.currency?'R$'+tot.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):tot;
+    var totStr=c.currency?_brl(tot):tot;
     html+='<td style="padding:8px 4px;text-align:center;color:var(--v);font-size:'+(c.currency?'12':'14')+'px;font-weight:900;">'+totStr+'</td>';
   });
   if(isGestor)html+='<td></td>';
@@ -5924,7 +5937,7 @@ function parcAdicionarMembro(){
   if(!nome){toast('Digite o nome do membro','#c0392b');return;}
   var uid='manual_'+Date.now();
   _parcMembros.push({uid:uid,nome:nome});
-  _parcDados[uid]={nome:nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+  _parcDados[uid]={nome:nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
   inp.value='';
   _parcRenderTabela();
   toast('✅ '+nome+' adicionado(a)!');
@@ -6082,39 +6095,84 @@ function parcGerarPrint(){
   if(!modal||!card)return;
   var periodoLabel={'12h':'12h00','15h':'15h00','17h30':'17h30'}[_parcPeriodo]||_parcPeriodo;
   var dataBR=_parcData.split('-').reverse().join('/');
-  var cols=[{id:'campanha',l:'Camp.'},{id:'dados',l:'Fichas'},{id:'aprovacoes',l:'Aprov.'},{id:'contratos',l:'Contr.'},{id:'vendas',l:'Vendas'},{id:'premium',l:'Prem.'},{id:'normal',l:'Norm.'},{id:'upgrade',l:'Upgr.'},{id:'producao',l:'Prod.R$'}];
-  var html='<div style="background:#0D1524;border-radius:14px;overflow:hidden;font-family:Arial,sans-serif;">';
-  html+='<div style="background:linear-gradient(135deg,#0A1220,#111E32);padding:14px 18px;border-bottom:1px solid #1E2D4A;">';
-  html+='<div style="font-size:11px;color:#5DCAA5;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Parcial '+_timeNome+' '+_timeEmoji+'</div>';
-  html+='<div style="font-size:18px;font-weight:900;color:#fff;margin:2px 0;">'+dataBR+' — '+periodoLabel+'</div>';
-  html+='<div style="font-size:10px;color:#5DCAA5;">Red Sea Digital</div></div>';
-  html+='<div style="overflow-x:auto;padding:10px 14px;">';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:11px;">';
-  html+='<tr style="color:#5DCAA5;"><th style="padding:6px 6px;text-align:left;">Vendedor</th><th style="padding:6px 4px;">Sit.</th>';
-  cols.forEach(function(c){html+='<th style="padding:6px 4px;">'+c.l+'</th>';});
+  var cols=[
+    {id:'campanha',l:'Camp.'},
+    {id:'dados',l:'Fichas'},
+    {id:'aprovacoes',l:'Aprov.'},
+    {id:'contratos',l:'Contr.'},
+    {id:'vendas',l:'Vendas',destaque:true},
+    {id:'premium',l:'Prem.'},
+    {id:'normal',l:'Norm.'},
+    {id:'upgrade',l:'Upgr.',destaque:true},
+    {id:'producao',l:'Produção',currency:true,destaque:true}
+  ];
+  // Calcular totais
+  var totais={};
+  cols.forEach(function(c){
+    var t=0;
+    _parcMembros.forEach(function(m){
+      var d=_parcDados[m.uid]||{};
+      if(d.status==='presente')t+=parseFloat(d[c.id]||0);
+    });
+    totais[c.id]=t;
+  });
+  var presentes=_parcMembros.filter(function(m){return (_parcDados[m.uid]||{}).status==='presente';}).length;
+  // Header
+  var html='<div style="background:#0B1220;border-radius:14px;overflow:hidden;font-family:Arial,sans-serif;">';
+  html+='<div style="background:linear-gradient(135deg,#0D1524,#111E32);padding:16px 18px;border-bottom:1px solid #1E2D4A;">';
+  html+='<div style="font-size:10px;color:#5DCAA5;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">'+_timeNome+' '+_timeEmoji+' · Parcial do dia</div>';
+  html+='<div style="font-size:20px;font-weight:900;color:#fff;">'+dataBR+' <span style="color:#5DCAA5;">'+periodoLabel+'</span></div>';
+  html+='</div>';
+  // Cards de destaque
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#1E2D4A;">';
+  html+='<div style="background:#0D1524;padding:12px 14px;text-align:center;">';
+  html+='<div style="font-size:9px;color:#5DCAA5;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Vendas</div>';
+  html+='<div style="font-size:28px;font-weight:900;color:#1D9E75;">'+totais['vendas']+'</div></div>';
+  html+='<div style="background:#0D1524;padding:12px 14px;text-align:center;">';
+  html+='<div style="font-size:9px;color:#5DCAA5;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Upgrade</div>';
+  html+='<div style="font-size:28px;font-weight:900;color:#f97316;">'+totais['upgrade']+'</div></div>';
+  html+='<div style="background:#0D1524;padding:12px 14px;text-align:center;">';
+  html+='<div style="font-size:9px;color:#5DCAA5;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Produção</div>';
+  html+='<div style="font-size:14px;font-weight:900;color:#1D9E75;margin-top:4px;">'+_brl(totais['producao'])+'</div></div>';
+  html+='</div>';
+  // Tabela por vendedor
+  html+='<div style="padding:12px 14px;">';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+  html+='<tr style="color:#5DCAA5;border-bottom:1px solid #1E2D4A;">';
+  html+='<th style="padding:6px 6px;text-align:left;font-weight:700;">Vendedor</th>';
+  html+='<th style="padding:6px 4px;font-weight:700;">Sit.</th>';
+  cols.forEach(function(c){
+    html+='<th style="padding:6px 4px;font-weight:700;color:'+(c.destaque?'#fff':'#5DCAA5')+';text-align:center;">'+c.l+'</th>';
+  });
   html+='</tr>';
   _parcMembros.forEach(function(m){
     var d=_parcDados[m.uid]||{status:'presente'};
     var ausente=d.status!=='presente';
     var sitLabel={'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—';
-    html+='<tr style="border-top:1px solid #1E2D4A;background:'+(ausente?'rgba(100,116,139,0.1)':'transparent')+'">';
-    html+='<td style="padding:7px 6px;font-weight:700;color:'+(ausente?'#64748B':'#E2F0EC')+';">'+m.nome+'</td>';
-    html+='<td style="padding:7px 4px;text-align:center;">'+sitLabel+'</td>';
+    html+='<tr style="border-bottom:1px solid #1E2D4A;opacity:'+(ausente?'0.4':'1')+'">';
+    html+='<td style="padding:8px 6px;font-weight:700;color:#E2F0EC;font-size:13px;">'+m.nome+'</td>';
+    html+='<td style="padding:8px 4px;text-align:center;font-size:13px;">'+sitLabel+'</td>';
     cols.forEach(function(c){
-      html+='<td style="padding:7px 4px;text-align:center;color:'+(ausente?'#475569':'#fff')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
+      var val=ausente?'—':c.currency?_brl(d[c.id]||0):(d[c.id]||0);
+      var cor=c.destaque&&!ausente?'#fff':'#94A3B8';
+      var fw=c.destaque&&!ausente?'700':'400';
+      html+='<td style="padding:8px 4px;text-align:center;color:'+cor+';font-weight:'+fw+';font-size:'+(c.currency?'11':'13')+'px;">'+val+'</td>';
     });
     html+='</tr>';
   });
   // Linha de totais
-  html+='<tr style="border-top:2px solid #1D9E75;">';
-  html+='<td style="padding:7px 6px;font-weight:900;color:#1D9E75;">TOTAL</td>';
-  html+='<td style="padding:7px 4px;"></td>';
+  html+='<tr style="border-top:2px solid #1D9E75;margin-top:4px;">';
+  html+='<td style="padding:8px 6px;font-weight:900;color:#1D9E75;font-size:13px;">TOTAL</td>';
+  html+='<td style="padding:8px 4px;text-align:center;font-size:11px;color:#5DCAA5;">'+presentes+' pres.</td>';
   cols.forEach(function(c){
-    var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(d[c.id]||0);});
-    html+='<td style="padding:7px 4px;text-align:center;font-weight:900;color:#1D9E75;">'+tot+'</td>';
+    var totStr=c.currency?_brl(totais[c.id]):totais[c.id];
+    html+='<td style="padding:8px 4px;text-align:center;font-weight:900;color:#1D9E75;font-size:'+(c.currency?'11':'14')+'px;">'+totStr+'</td>';
   });
   html+='</tr>';
-  html+='</table></div></div>';
+  html+='</table></div>';
+  html+='<div style="padding:10px 18px;border-top:1px solid #1E2D4A;text-align:center;">';
+  html+='<div style="font-size:9px;color:#3A4A5A;">Red Sea Digital · '+_timeNome+'</div></div>';
+  html+='</div>';
   card.innerHTML=html;
   modal.style.display='block';
   modal.scrollTop=0;

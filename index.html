@@ -361,6 +361,11 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
             <span style="font-size:22px;">🔥</span>
             <span style="font-size:12px;font-weight:700;color:#94A3B8;">Fênix</span>
           </label>
+          <input type="radio" name="cad-time" value="tigres" id="cad-time-tigres" style="display:none;"/>
+          <label for="cad-time-tigres" id="cad-time-label-tigres" onclick="cadTimeSelect('tigres')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:2px solid #2A3650;border-radius:10px;cursor:pointer;background:transparent;transition:all 0.15s;">
+            <span style="font-size:22px;">🐯</span>
+            <span style="font-size:12px;font-weight:700;color:#94A3B8;">Tigres</span>
+          </label>
         </div>
       </div>
       <button class="btn be login-btn" onclick="fbCadastrar()">Criar conta</button>
@@ -1318,21 +1323,23 @@ function fbLogin(){
   });
 }
 function cadTimeSelect(time){
-  var lc=document.getElementById('cad-time-label-camaleoes');
-  var lf=document.getElementById('cad-time-label-fenix');
-  var nc=document.querySelector('#cad-time-label-camaleoes span:last-child');
-  var nf=document.querySelector('#cad-time-label-fenix span:last-child');
-  if(time==='camaleoes'){
-    if(lc){lc.style.border='2px solid #1D9E75';lc.style.background='rgba(29,158,117,0.1)';}
-    if(lf){lf.style.border='2px solid #2A3650';lf.style.background='transparent';}
-    if(nc)nc.style.color='#5DCAA5';
-    if(nf)nf.style.color='#94A3B8';
-  } else {
-    if(lf){lf.style.border='2px solid #f97316';lf.style.background='rgba(249,115,22,0.1)';}
-    if(lc){lc.style.border='2px solid #2A3650';lc.style.background='transparent';}
-    if(nf)nf.style.color='#fb923c';
-    if(nc)nc.style.color='#94A3B8';
-  }
+  var times={
+    camaleoes:{el:'cad-time-label-camaleoes',cor:'#1D9E75',bg:'rgba(29,158,117,0.1)',textoCor:'#5DCAA5'},
+    fenix:{el:'cad-time-label-fenix',cor:'#f97316',bg:'rgba(249,115,22,0.1)',textoCor:'#fb923c'},
+    tigres:{el:'cad-time-label-tigres',cor:'#eab308',bg:'rgba(234,179,8,0.1)',textoCor:'#facc15'}
+  };
+  Object.keys(times).forEach(function(t){
+    var cfg=times[t];
+    var label=document.getElementById(cfg.el);
+    var span=label?label.querySelector('span:last-child'):null;
+    if(t===time){
+      if(label){label.style.border='2px solid '+cfg.cor;label.style.background=cfg.bg;}
+      if(span)span.style.color=cfg.textoCor;
+    } else {
+      if(label){label.style.border='2px solid #2A3650';label.style.background='transparent';}
+      if(span)span.style.color='#94A3B8';
+    }
+  });
 }
 function fbCadastrar(){
   var nome=document.getElementById('cad-nome').value.trim();
@@ -1394,29 +1401,35 @@ var TIMES_CONFIG={
   camaleoes:{
     nome:'Camaleões', emoji:'🦎',
     gestores:['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2'],
-    naoVendedor:['JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2'],
-    ocultoPainel:['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2']
+    naoVendedor:['4CHMJ2EJYYhJTNfQGPokrYt2fHE2'],
+    ocultoPainel:['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2']
   },
   fenix:{
     nome:'Fênix', emoji:'🔥',
     gestores:['LBriG9ecE3XSA9BZhJ2vEPiHDpn2'],
     naoVendedor:['LBriG9ecE3XSA9BZhJ2vEPiHDpn2'],
     ocultoPainel:['LBriG9ecE3XSA9BZhJ2vEPiHDpn2']
+  },
+  tigres:{
+    nome:'Tigres', emoji:'🐯',
+    gestores:['JcTx6OSpJ2XnFG7BylIuA6OxTli1'],
+    naoVendedor:['JcTx6OSpJ2XnFG7BylIuA6OxTli1'],
+    ocultoPainel:['JcTx6OSpJ2XnFG7BylIuA6OxTli1']
   }
 };
 // UID → time (UIDs fixos pré-configurados; novos usuários herdam o time do gestor que os aprova)
 var UIDS_TIME_FIXO={
   'PlKKgHHFTFUuMc0TrMQsZIXHpyz2':'camaleoes',
   '4CHMJ2EJYYhJTNfQGPokrYt2fHE2':'camaleoes',
-  'JcTx6OSpJ2XnFG7BylIuA6OxTli1':'camaleoes',
   'T5Ss7dm8gBWESd4KwJkoXfcVBKE2':'camaleoes',
-  'LBriG9ecE3XSA9BZhJ2vEPiHDpn2':'fenix'
+  'LBriG9ecE3XSA9BZhJ2vEPiHDpn2':'fenix',
+  'JcTx6OSpJ2XnFG7BylIuA6OxTli1':'tigres'
 };
 
 // Helpers dinâmicos — sempre refletem o time atual do usuário logado
-var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2']; // todos gestores
-var NAO_VENDEDOR_UIDS=['JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2'];
-var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','JcTx6OSpJ2XnFG7BylIuA6OxTli1','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2'];
+var GESTOR_UIDS=['PlKKgHHFTFUuMc0TrMQsZIXHpyz2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2','JcTx6OSpJ2XnFG7BylIuA6OxTli1']; // todos gestores
+var NAO_VENDEDOR_UIDS=['4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2','JcTx6OSpJ2XnFG7BylIuA6OxTli1'];
+var OCULTO_PAINEL_UIDS=['T5Ss7dm8gBWESd4KwJkoXfcVBKE2','4CHMJ2EJYYhJTNfQGPokrYt2fHE2','LBriG9ecE3XSA9BZhJ2vEPiHDpn2','JcTx6OSpJ2XnFG7BylIuA6OxTli1'];
 
 function _timeDoUID(uid, timeIdFirestore){
   if(timeIdFirestore) return timeIdFirestore;

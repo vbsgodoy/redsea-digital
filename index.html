@@ -1304,34 +1304,41 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
 </div>
 <div id="tab-parciais" class="tp" style="display:none;">
   <div class="topbar"><div class="topbar-title">Parciais</div><div class="topbar-sub" id="parc-subtitulo">Acompanhamento do time</div></div>
-  <div style="padding:16px 20px 0;">
 
-    <!-- Seletor data + período -->
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
-      <input type="date" id="parc-data" onchange="parcCarregar()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;"/>
-      <div style="display:flex;gap:6px;">
-        <button id="parcbtn-12h"  onclick="parcSelPeriodo('12h',this)"  class="btn be" style="padding:7px 14px;font-size:12px;">12h</button>
-        <button id="parcbtn-15h"  onclick="parcSelPeriodo('15h',this)"  class="btn bl" style="padding:7px 14px;font-size:12px;">15h</button>
-        <button id="parcbtn-17h30" onclick="parcSelPeriodo('17h30',this)" class="btn bl" style="padding:7px 14px;font-size:12px;">17h30</button>
+  <!-- Card seletor data + período -->
+  <div class="fc">
+    <div class="fg" style="gap:10px;">
+      <div class="fi">
+        <label>Data</label>
+        <input type="date" id="parc-data" onchange="parcCarregar()" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;"/>
+      </div>
+      <div class="fi">
+        <label>Período</label>
+        <div style="display:flex;gap:6px;">
+          <button id="parcbtn-12h"   onclick="parcSelPeriodo('12h')"   class="btn be" style="flex:1;padding:9px 0;font-size:13px;font-weight:700;">12h</button>
+          <button id="parcbtn-15h"   onclick="parcSelPeriodo('15h')"   class="btn bl" style="flex:1;padding:9px 0;font-size:13px;font-weight:700;">15h</button>
+          <button id="parcbtn-17h30" onclick="parcSelPeriodo('17h30')" class="btn bl" style="flex:1;padding:9px 0;font-size:13px;font-weight:700;">17h30</button>
+        </div>
       </div>
     </div>
-
-    <!-- Tabela -->
-    <div id="parc-tabela" style="overflow-x:auto;margin-bottom:14px;"></div>
-
-    <!-- Ações -->
-    <div style="display:flex;gap:10px;margin-bottom:20px;">
-      <button class="btn be" onclick="parcSalvar()" style="flex:1;padding:12px;font-size:13px;font-weight:700;">💾 Salvar parcial</button>
-      <button class="btn bl" onclick="parcGerarPrint()" style="flex:1;padding:12px;font-size:13px;font-weight:700;">📸 Gerar print</button>
-    </div>
-
-    <!-- Controle Geral do Mês -->
-    <div class="fc" style="margin-bottom:20px;">
-      <div class="sh">📊 Controle Geral do Mês</div>
-      <div id="parc-controle" style="padding:4px 0;"></div>
-    </div>
-
   </div>
+
+  <!-- Card tabela -->
+  <div class="fc">
+    <div class="sh">📋 Parcial do dia</div>
+    <div id="parc-tabela" style="overflow-x:auto;padding:0 16px 8px;"></div>
+    <div class="aa" style="gap:10px;">
+      <button class="btn be" onclick="parcSalvar()" style="flex:1;padding:13px;font-size:13px;font-weight:700;">💾 Salvar</button>
+      <button class="btn bl" onclick="parcGerarPrint()" style="flex:1;padding:13px;font-size:13px;font-weight:700;">📸 Gerar print</button>
+    </div>
+  </div>
+
+  <!-- Controle Geral -->
+  <div class="fc" style="margin-bottom:24px;">
+    <div class="sh">📊 Controle Geral do Mês</div>
+    <div id="parc-controle"></div>
+  </div>
+
 </div>
 
 <!-- Modal Print Parcial -->
@@ -5801,11 +5808,11 @@ function _parcRenderTabela(){
     {id:'normal',label:'Norm.'},
     {id:'upgrade',label:'Upgr.'}
   ];
-  var html='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:560px;">';
-  html+='<thead><tr style="background:var(--ce);">';
-  html+='<th style="padding:8px 8px;text-align:left;color:var(--tm);font-weight:700;">Vendedor</th>';
-  html+='<th style="padding:8px 4px;color:var(--tm);font-weight:700;min-width:90px;">Situação</th>';
-  cols.forEach(function(c){html+='<th style="padding:8px 4px;color:var(--tm);font-weight:700;">'+c.label+'</th>';});
+  var html='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:580px;margin-top:4px;">';
+  html+='<thead><tr style="background:var(--p);">';
+  html+='<th style="padding:9px 10px;text-align:left;color:var(--tm);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Vendedor</th>';
+  html+='<th style="padding:9px 4px;color:var(--tm);font-weight:700;font-size:11px;min-width:95px;">Situação</th>';
+  cols.forEach(function(c){html+='<th style="padding:9px 4px;color:var(--tm);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">'+c.label+'</th>';});
   html+='</tr></thead><tbody>';
   _parcMembros.forEach(function(m){
     var d=_parcDados[m.uid]||{status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};

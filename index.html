@@ -5793,7 +5793,7 @@ function _parcRenderTabela(){
   var isGestor=_isGestorDoTime(_currentUID);
   var cols=[
     {id:'campanha',label:'Camp.'},
-    {id:'dados',label:'Dados'},
+    {id:'dados',label:'Fichas'},
     {id:'aprovacoes',label:'Aprov.'},
     {id:'contratos',label:'Contr.'},
     {id:'vendas',label:'Vendas'},
@@ -5918,7 +5918,7 @@ function _parcRenderControle(){
       html+='</div>';
       if(membros.length){
         html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
-        html+='<tr style="color:var(--tm);"><th style="padding:6px 8px;text-align:left;">Vendedor</th><th>Camp.</th><th>Dados</th><th>Aprov.</th><th>Contr.</th><th>Vendas</th><th>Prem.</th><th>Norm.</th><th>Upgr.</th></tr>';
+        html+='<tr style="color:var(--tm);"><th style="padding:6px 8px;text-align:left;">Vendedor</th><th>Camp.</th><th>Fichas</th><th>Aprov.</th><th>Contr.</th><th>Vendas</th><th>Prem.</th><th>Norm.</th><th>Upgr.</th></tr>';
         membros.sort(function(a,b){return b.vendas-a.vendas;});
         membros.forEach(function(m){
           html+='<tr style="border-top:1px solid var(--cb);">';
@@ -5941,7 +5941,7 @@ function parcGerarPrint(){
   if(!modal||!card)return;
   var periodoLabel={'12h':'12h00','15h':'15h00','17h30':'17h30'}[_parcPeriodo]||_parcPeriodo;
   var dataBR=_parcData.split('-').reverse().join('/');
-  var cols=[{id:'campanha',l:'Camp.'},{id:'dados',l:'Dados'},{id:'aprovacoes',l:'Aprov.'},{id:'contratos',l:'Contr.'},{id:'vendas',l:'Vendas'},{id:'premium',l:'Prem.'},{id:'normal',l:'Norm.'},{id:'upgrade',l:'Upgr.'}];
+  var cols=[{id:'campanha',l:'Camp.'},{id:'dados',l:'Fichas'},{id:'aprovacoes',l:'Aprov.'},{id:'contratos',l:'Contr.'},{id:'vendas',l:'Vendas'},{id:'premium',l:'Prem.'},{id:'normal',l:'Norm.'},{id:'upgrade',l:'Upgr.'}];
   var html='<div style="background:#0D1524;border-radius:14px;overflow:hidden;font-family:Arial,sans-serif;">';
   html+='<div style="background:linear-gradient(135deg,#0A1220,#111E32);padding:14px 18px;border-bottom:1px solid #1E2D4A;">';
   html+='<div style="font-size:11px;color:#5DCAA5;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Parcial '+_timeNome+' '+_timeEmoji+'</div>';

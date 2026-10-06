@@ -975,6 +975,10 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <div class="fc">
       <div class="sh">📋 Parcial do dia</div>
       <div id="parc-tabela"></div>
+      <div style="padding:10px 16px;border-top:1px solid var(--cb);display:flex;gap:8px;">
+        <input type="text" id="parc-add-nome" placeholder="Adicionar membro manualmente..." style="flex:1;"/>
+        <button onclick="parcAdicionarMembro()" style="padding:8px 14px;border-radius:8px;border:none;background:var(--v);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">+ Adicionar</button>
+      </div>
       <div class="aa">
         <button onclick="parcSalvar()" style="flex:1;padding:13px;border-radius:10px;border:none;background:var(--v);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Salvar parcial</button>
         <button onclick="parcGerarPrint()" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--cb);background:transparent;color:var(--t);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📸 Gerar print</button>
@@ -985,6 +989,15 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <div class="fc">
       <div class="sh">📊 Controle Geral do Mês</div>
       <div id="parc-controle"></div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="fc" style="margin-bottom:24px;">
+      <div class="sh" style="cursor:pointer;" onclick="parcToggleHistorico()">
+        📅 Histórico de Parciais
+        <span id="parc-hist-seta" style="margin-left:auto;font-size:14px;">▼</span>
+      </div>
+      <div id="parc-historico-lista" style="display:none;"></div>
     </div>
 
   </div>
@@ -5767,14 +5780,26 @@ function parcCarregar(){
   var host=document.getElementById('parc-tabela');
   if(host)host.innerHTML='<div style="padding:20px;color:var(--tm);font-size:12px;">Carregando...</div>';
   // Carregar membros do time
-  db.collection('perfis_publicos').get().then(function(snap){
+  var colecao=_isGestorDoTime(_currentUID)?'usuarios':'perfis_publicos';
+  db.collection(colecao).get().then(function(snap){
     _parcMembros=[];
     var cfg=TIMES_CONFIG[_timeAtual]||{};
     snap.forEach(function(doc){
       var d=doc.data();
+      // Filtrar pelo time correto
       if((d.timeId||'camaleoes')!==_timeAtual)return;
+      // Excluir bloqueados e ocultos do painel
+      if(d.bloqueado===true)return;
       if((cfg.ocultoPainel||[]).includes(doc.id))return;
-      _parcMembros.push({uid:doc.id,nome:d.nome||'(sem nome)'});
+      if((cfg.gestores||[]).includes(doc.id))return;
+      var nome=d.nome||d.nomeCadastro||'(sem nome)';
+      _parcMembros.push({uid:doc.id,nome:nome});
+    });
+    // Remover duplicados por nome (manter o que tiver uid menor como tiebreak)
+    var vistos={};
+    _parcMembros=_parcMembros.filter(function(m){
+      if(vistos[m.nome])return false;
+      vistos[m.nome]=true;return true;
     });
     _parcMembros.sort(function(a,b){return a.nome.localeCompare(b.nome);});
     var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
@@ -5817,44 +5842,46 @@ function _parcRenderTabela(){
     {id:'normal',label:'Norm.'},
     {id:'upgrade',label:'Upgr.'}
   ];
-  var html='<table class="ht">';
-  html+='<thead><tr>';
-  html+='<th style="text-align:left;">Vendedor</th>';
-  html+='<th>Situação</th>';
-  cols.forEach(function(c){html+='<th>'+c.label+'</th>';});
+  var html='<table style="width:100%;border-collapse:collapse;font-size:14px;">';
+  html+='<thead><tr style="background:var(--p);">';
+  html+='<th style="text-align:left;padding:8px 10px;font-size:12px;color:var(--tm);font-weight:700;">Vendedor</th>';
+  html+='<th style="padding:8px 4px;font-size:12px;color:var(--tm);font-weight:700;">Sit.</th>';
+  cols.forEach(function(c){html+='<th style="padding:8px 4px;font-size:12px;color:var(--tm);font-weight:700;">'+c.label+'</th>';});
+  if(isGestor)html+='<th style="padding:8px 4px;width:28px;"></th>';
   html+='</tr></thead><tbody>';
   _parcMembros.forEach(function(m){
     var d=_parcDados[m.uid]||{status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
     var canEdit=isGestor||(m.uid===_currentUID);
     var ausente=d.status!=='presente';
     html+='<tr style="border-bottom:1px solid var(--cb);">';
-    html+='<td style="opacity:'+(ausente?'0.4':'1')+'"><strong>'+m.nome+'</strong></td>';
+    html+='<td style="padding:7px 10px;opacity:'+(ausente?'0.45':'1')+'"><strong style="font-size:13px;">'+m.nome+'</strong></td>';
     if(canEdit){
-      html+='<td><select id="ps-'+m.uid+'" onchange="parcStatus(\''+m.uid+'\')" style="font-size:10px;padding:2px;border-radius:4px;border:1px solid var(--cb);background:var(--ce);color:var(--t);">';
+      html+='<td style="padding:4px 2px;"><select id="ps-'+m.uid+'" onchange="parcStatus(\''+m.uid+'\')" style="font-size:12px;padding:3px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);">';
       [{v:'presente',l:'✅ Ok'},{v:'ausente',l:'😶 Aus.'},{v:'afastado',l:'🤕 Af.'},{v:'ferias',l:'🏖 Fér.'}].forEach(function(s){
         html+='<option value="'+s.v+'"'+(d.status===s.v?' selected':'')+'>'+s.l+'</option>';
       });
       html+='</select></td>';
     } else {
-      html+='<td style="text-align:center;">'+({'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—')+'</td>';
+      html+='<td style="text-align:center;padding:7px 2px;font-size:14px;">'+({'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—')+'</td>';
     }
     cols.forEach(function(c){
       if(canEdit&&!ausente){
-        html+='<td><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:34px;padding:2px;border-radius:4px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:11px;text-align:center;"/></td>';
+        html+='<td style="padding:4px 2px;"><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:38px;padding:4px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;text-align:center;"/></td>';
       } else {
-        html+='<td style="text-align:center;opacity:'+(ausente?'0.4':'1')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
+        html+='<td style="text-align:center;padding:7px 2px;font-size:14px;opacity:'+(ausente?'0.4':'1')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
       }
     });
+    if(isGestor)html+='<td style="padding:4px 2px;text-align:center;"><button onclick="parcRemoverMembro(\''+m.uid+'\')" style="background:transparent;border:none;color:#94A3B8;cursor:pointer;font-size:14px;padding:2px 4px;" title="Remover desta parcial">×</button></td>';
     html+='</tr>';
   });
-  // Linha de totais
   html+='<tr style="border-top:2px solid var(--v);font-weight:700;">';
-  html+='<td style="padding:8px 8px;color:var(--v);">TOTAL</td>';
-  html+='<td style="padding:8px 4px;text-align:center;font-size:11px;color:var(--tm);">'+_parcMembros.length+' pessoas</td>';
+  html+='<td style="padding:8px 10px;color:var(--v);font-size:13px;">TOTAL</td>';
+  html+='<td style="padding:8px 4px;text-align:center;font-size:12px;color:var(--tm);">'+_parcMembros.length+'</td>';
   ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){
     var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(d[c]||0);});
-    html+='<td style="padding:8px 4px;text-align:center;color:var(--v);">'+tot+'</td>';
+    html+='<td style="padding:8px 4px;text-align:center;color:var(--v);font-size:14px;font-weight:900;">'+tot+'</td>';
   });
+  if(isGestor)html+='<td></td>';
   html+='</tr>';
   html+='</tbody></table>';
   host.innerHTML=html;
@@ -5872,6 +5899,24 @@ function _parcAtualizar(uid){
     var el=document.getElementById('pi-'+c+'-'+uid);
     if(el)_parcDados[uid][c]=parseInt(el.value)||0;
   });
+}
+function parcRemoverMembro(uid){
+  if(!confirm('Remover este membro desta parcial?'))return;
+  delete _parcDados[uid];
+  _parcMembros=_parcMembros.filter(function(m){return m.uid!==uid;});
+  _parcRenderTabela();
+}
+function parcAdicionarMembro(){
+  var inp=document.getElementById('parc-add-nome');
+  if(!inp)return;
+  var nome=inp.value.trim();
+  if(!nome){toast('Digite o nome do membro','#c0392b');return;}
+  var uid='manual_'+Date.now();
+  _parcMembros.push({uid:uid,nome:nome});
+  _parcDados[uid]={nome:nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+  inp.value='';
+  _parcRenderTabela();
+  toast('✅ '+nome+' adicionado(a)!');
 }
 function parcSalvar(){
   _parcMembros.forEach(function(m){_parcAtualizar(m.uid);});
@@ -5951,6 +5996,73 @@ function _parcRenderControle(){
   }).catch(function(err){
     host.innerHTML='<div style="padding:16px 20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar o controle geral.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
   });
+}
+function parcToggleHistorico(){
+  var lista=document.getElementById('parc-historico-lista');
+  var seta=document.getElementById('parc-hist-seta');
+  if(!lista)return;
+  if(lista.style.display==='none'){
+    lista.style.display='block';
+    if(seta)seta.textContent='▲';
+    parcCarregarHistorico();
+  } else {
+    lista.style.display='none';
+    if(seta)seta.textContent='▼';
+  }
+}
+function parcCarregarHistorico(){
+  var lista=document.getElementById('parc-historico-lista');
+  if(!lista)return;
+  lista.innerHTML='<div style="padding:16px;color:var(--tm);font-size:12px;">Carregando...</div>';
+  db.collection('parciais').where('timeId','==',_timeAtual).get().then(function(snap){
+    if(snap.empty){lista.innerHTML='<div style="padding:16px;color:var(--tm);font-size:12px;">Nenhuma parcial salva ainda.</div>';return;}
+    // Agrupar por data
+    var porData={};
+    snap.forEach(function(doc){
+      var d=doc.data();
+      if(!porData[d.date])porData[d.date]=[];
+      porData[d.date].push({period:d.period,docId:doc.id,dados:d.dados||{}});
+    });
+    // Ordenar datas decrescente
+    var datas=Object.keys(porData).sort(function(a,b){return b.localeCompare(a);});
+    var html='';
+    datas.forEach(function(dt){
+      var parts=dt.split('-');
+      var dtBR=parts[2]+'/'+parts[1]+'/'+parts[0];
+      html+='<div style="border-bottom:1px solid var(--cb);padding:10px 16px;">';
+      html+='<div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:6px;">📅 '+dtBR+'</div>';
+      html+='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+      var ordem=['12h','15h','17h30'];
+      porData[dt].sort(function(a,b){return ordem.indexOf(a.period)-ordem.indexOf(b.period);});
+      porData[dt].forEach(function(p){
+        // Contar vendas desse período
+        var vendas=0;
+        Object.values(p.dados).forEach(function(r){if(r.status==='presente')vendas+=(r.vendas||0);});
+        html+='<button onclick="parcCarregarDoHistorico(\''+dt+'\',\''+p.period+'\')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);cursor:pointer;font-size:12px;font-family:inherit;">';
+        html+=p.period+' <span style="color:var(--v);font-weight:700;">'+vendas+' venda'+(vendas!==1?'s':'')+'</span></button>';
+      });
+      html+='</div></div>';
+    });
+    lista.innerHTML=html;
+  }).catch(function(err){
+    lista.innerHTML='<div style="padding:16px;color:#dc2626;font-size:12px;">⚠️ '+err.message+'</div>';
+  });
+}
+function parcCarregarDoHistorico(data,period){
+  _parcData=data;
+  _parcPeriodo=period;
+  var dt=document.getElementById('parc-data');
+  if(dt)dt.value=data;
+  _parcHighlight(period);
+  // Fechar histórico
+  var lista=document.getElementById('parc-historico-lista');
+  var seta=document.getElementById('parc-hist-seta');
+  if(lista)lista.style.display='none';
+  if(seta)seta.textContent='▼';
+  parcCarregar();
+  // Scroll pro topo da aba
+  var tab=document.getElementById('tab-parciais');
+  if(tab)tab.scrollTop=0;
 }
 function parcGerarPrint(){
   _parcMembros.forEach(function(m){_parcAtualizar(m.uid);});

@@ -1305,38 +1305,38 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
 <div id="tab-parciais" class="tp" style="display:none;">
   <div class="topbar"><div class="topbar-title">Parciais</div><div class="topbar-sub" id="parc-subtitulo">Acompanhamento do time</div></div>
 
-  <!-- Card seletor data + período -->
+  <!-- Seletor data + período -->
   <div class="fc">
-    <div class="fg" style="gap:10px;">
-      <div class="fi">
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
         <label>Data</label>
-        <input type="date" id="parc-data" onchange="parcCarregar()" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;"/>
+        <input type="date" id="parc-data" onchange="parcCarregar()"/>
       </div>
-      <div class="fi">
+      <div style="display:flex;flex-direction:column;gap:6px;">
         <label>Período</label>
-        <div style="display:flex;gap:6px;">
-          <button id="parcbtn-12h"   onclick="parcSelPeriodo('12h')"   class="btn be" style="flex:1;padding:9px 0;font-size:13px;font-weight:700;">12h</button>
-          <button id="parcbtn-15h"   onclick="parcSelPeriodo('15h')"   class="btn bl" style="flex:1;padding:9px 0;font-size:13px;font-weight:700;">15h</button>
-          <button id="parcbtn-17h30" onclick="parcSelPeriodo('17h30')" class="btn bl" style="flex:1;padding:9px 0;font-size:13px;font-weight:700;">17h30</button>
+        <div style="display:flex;gap:8px;">
+          <button id="parcbtn-12h"   onclick="parcSelPeriodo('12h')"   style="flex:1;padding:10px 0;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:var(--v);color:#fff;">12h</button>
+          <button id="parcbtn-15h"   onclick="parcSelPeriodo('15h')"   style="flex:1;padding:10px 0;border-radius:8px;border:1.5px solid var(--cb);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:transparent;color:var(--tm);">15h</button>
+          <button id="parcbtn-17h30" onclick="parcSelPeriodo('17h30')" style="flex:1;padding:10px 0;border-radius:8px;border:1.5px solid var(--cb);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:transparent;color:var(--tm);">17h30</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Card tabela -->
+  <!-- Tabela parcial -->
   <div class="fc">
     <div class="sh">📋 Parcial do dia</div>
-    <div id="parc-tabela" style="overflow-x:auto;padding:0 16px 8px;"></div>
-    <div class="aa" style="gap:10px;">
-      <button class="btn be" onclick="parcSalvar()" style="flex:1;padding:13px;font-size:13px;font-weight:700;">💾 Salvar</button>
-      <button class="btn bl" onclick="parcGerarPrint()" style="flex:1;padding:13px;font-size:13px;font-weight:700;">📸 Gerar print</button>
+    <div id="parc-tabela" style="overflow-x:auto;padding:8px 16px;"></div>
+    <div style="padding:12px 16px;display:flex;gap:10px;">
+      <button onclick="parcSalvar()" style="flex:1;padding:13px;border-radius:10px;border:none;background:var(--v);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Salvar parcial</button>
+      <button onclick="parcGerarPrint()" style="flex:1;padding:13px;border-radius:10px;border:1.5px solid var(--cb);background:transparent;color:var(--t);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📸 Gerar print</button>
     </div>
   </div>
 
   <!-- Controle Geral -->
   <div class="fc" style="margin-bottom:24px;">
     <div class="sh">📊 Controle Geral do Mês</div>
-    <div id="parc-controle"></div>
+    <div id="parc-controle" style="padding:4px 0 8px;"></div>
   </div>
 
 </div>
@@ -5748,7 +5748,12 @@ function renderParciais(){
 function _parcHighlight(p){
   ['12h','15h','17h30'].forEach(function(pp){
     var b=document.getElementById('parcbtn-'+pp);
-    if(b){b.className='btn '+(pp===p?'be':'bl');b.style.padding='7px 14px';b.style.fontSize='12px';}
+    if(!b)return;
+    if(pp===p){
+      b.style.background='var(--v)';b.style.color='#fff';b.style.border='none';
+    } else {
+      b.style.background='transparent';b.style.color='var(--tm)';b.style.border='1.5px solid var(--cb)';
+    }
   });
 }
 function parcSelPeriodo(p){

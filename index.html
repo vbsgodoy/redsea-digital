@@ -400,6 +400,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <div class="sb-nav-item" onclick="aba('equipe',this)" style="display:none;"><span class="sb-dot"></span>Equipe</div>
     <div class="sb-nav-item" onclick="aba('agenda',this)"><span class="sb-dot"></span>Agenda</div>
     <div class="sb-nav-item" onclick="aba('comissao',this)"><span class="sb-dot"></span>Projeção</div>
+    <div class="sb-nav-item" onclick="aba('parciais',this)"><span class="sb-dot"></span>Parciais</div>
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button id="theme-toggle" onclick="alternarTema()" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);cursor:pointer;margin-bottom:8px;color:var(--t);font-size:12px;font-weight:600;transition:all 0.2s;" title="Alternar tema claro/escuro">
@@ -1301,6 +1302,47 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <button class="btn bs2" onclick="nNova()">+ Nova nota</button>
   </div>
 </div>
+<div id="tab-parciais" class="tp" style="display:none;">
+  <div class="topbar"><div class="topbar-title">Parciais</div><div class="topbar-sub" id="parc-subtitulo">Acompanhamento do time</div></div>
+  <div style="padding:16px 20px 0;">
+
+    <!-- Seletor data + período -->
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+      <input type="date" id="parc-data" onchange="parcCarregar()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:13px;"/>
+      <div style="display:flex;gap:6px;">
+        <button id="parcbtn-12h"  onclick="parcSelPeriodo('12h',this)"  class="btn be" style="padding:7px 14px;font-size:12px;">12h</button>
+        <button id="parcbtn-15h"  onclick="parcSelPeriodo('15h',this)"  class="btn bl" style="padding:7px 14px;font-size:12px;">15h</button>
+        <button id="parcbtn-17h30" onclick="parcSelPeriodo('17h30',this)" class="btn bl" style="padding:7px 14px;font-size:12px;">17h30</button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div id="parc-tabela" style="overflow-x:auto;margin-bottom:14px;"></div>
+
+    <!-- Ações -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <button class="btn be" onclick="parcSalvar()" style="flex:1;padding:12px;font-size:13px;font-weight:700;">💾 Salvar parcial</button>
+      <button class="btn bl" onclick="parcGerarPrint()" style="flex:1;padding:12px;font-size:13px;font-weight:700;">📸 Gerar print</button>
+    </div>
+
+    <!-- Controle Geral do Mês -->
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh">📊 Controle Geral do Mês</div>
+      <div id="parc-controle" style="padding:4px 0;"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Print Parcial -->
+<div id="parc-print-modal" style="display:none;position:fixed;inset:0;background:#0B1220;z-index:99999;overflow-y:auto;padding:20px;">
+  <div style="max-width:500px;margin:0 auto;">
+    <button onclick="document.getElementById('parc-print-modal').style.display='none'" style="background:transparent;border:1px solid #2A3650;color:#94A3B8;padding:8px 16px;border-radius:8px;margin-bottom:16px;cursor:pointer;font-size:12px;">✕ Fechar</button>
+    <div style="font-size:11px;color:#5DCAA5;margin-bottom:10px;text-align:center;">📱 Tire um print desta tela e envie no grupo</div>
+    <div id="parc-print-card"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <script>
 // ===== AUTENTICACAO (FIREBASE) =====
@@ -3318,8 +3360,7 @@ function aba(id,el){
   if(tab)tab.style.display='block';
   if(el)el.classList.add('active');
   localStorage.setItem('rsd_ultima_aba',id);
-  _registrarUsoAba(id);
-  if(id==='historico')hRender();
+if(id==='historico')hRender();
   if(id==='scripts')renderScripts();
   if(id==='proposta')renderProposta();
   if(id==='hall')renderHall();
@@ -3328,19 +3369,11 @@ function aba(id,el){
   if(id==='agenda')renderAgenda();
   if(id==='comissao')renderComissaoTab();
   if(id==='gestor')renderGestor();
+  if(id==='parciais')renderParciais();
   if(id==='agendamento')renderAgendamento();
 }
 var _usoAbaTimer=null;
-function _registrarUsoAba(id){
-  if(!_currentUID || id==='gestor')return; // nao conta o proprio painel do gestor como "esforco"
-  var uso=JSON.parse(localStorage.getItem('rsd_uso_abas')||'{}');
-  uso[id]=(uso[id]||0)+1;
-  uso._total=(uso._total||0)+1;
-  var hojeStr=_hojeLocalISO();
-  var dias=JSON.parse(localStorage.getItem('rsd_dias_ativos')||'[]');
-  if(dias.indexOf(hojeStr)===-1)dias.push(hojeStr);
-  localStorage.setItem('rsd_uso_abas',JSON.stringify(uso));
-  localStorage.setItem('rsd_dias_ativos',JSON.stringify(dias));
+function _noop(){
   clearTimeout(_usoAbaTimer);
   _usoAbaTimer=setTimeout(function(){
     if(!_currentUID)return;
@@ -5682,6 +5715,269 @@ function _restaurarPreferencias(){
 document.addEventListener('DOMContentLoaded',function(){
   if(!pixVerificarHash())_restaurarPreferencias();
 });
+
+// ===== PARCIAIS =====
+var _parcData=hoje();
+var _parcPeriodo='12h';
+var _parcDados={};
+var _parcMembros=[];
+
+function _parcAutoPeriodo(){
+  var h=new Date().getHours();
+  if(h<13)return '12h';
+  if(h<16)return '15h';
+  return '17h30';
+}
+function renderParciais(){
+  _parcData=hoje();
+  _parcPeriodo=_parcAutoPeriodo();
+  var dt=document.getElementById('parc-data');
+  if(dt)dt.value=_parcData;
+  _parcHighlight(_parcPeriodo);
+  var sub=document.getElementById('parc-subtitulo');
+  if(sub)sub.textContent='Parcial do time — '+_timeNome+' '+_timeEmoji;
+  parcCarregar();
+}
+function _parcHighlight(p){
+  ['12h','15h','17h30'].forEach(function(pp){
+    var b=document.getElementById('parcbtn-'+pp);
+    if(b){b.className='btn '+(pp===p?'be':'bl');b.style.padding='7px 14px';b.style.fontSize='12px';}
+  });
+}
+function parcSelPeriodo(p){
+  _parcPeriodo=p;
+  _parcHighlight(p);
+  parcCarregar();
+}
+function parcCarregar(){
+  var dt=document.getElementById('parc-data');
+  if(dt&&dt.value)_parcData=dt.value;
+  var host=document.getElementById('parc-tabela');
+  if(host)host.innerHTML='<div style="padding:20px;color:var(--tm);font-size:12px;">Carregando...</div>';
+  // Carregar membros do time
+  db.collection('perfis_publicos').get().then(function(snap){
+    _parcMembros=[];
+    var cfg=TIMES_CONFIG[_timeAtual]||{};
+    snap.forEach(function(doc){
+      var d=doc.data();
+      if((d.timeId||'camaleoes')!==_timeAtual)return;
+      if((cfg.ocultoPainel||[]).includes(doc.id))return;
+      _parcMembros.push({uid:doc.id,nome:d.nome||'(sem nome)'});
+    });
+    _parcMembros.sort(function(a,b){return a.nome.localeCompare(b.nome);});
+    // Carregar dados salvos
+    var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
+    db.collection('parciais').doc(docId).get().then(function(doc){
+      if(doc.exists&&doc.data().dados){
+        _parcDados=doc.data().dados;
+        // Garantir que todos os membros atuais estão presentes
+        _parcMembros.forEach(function(m){
+          if(!_parcDados[m.uid]){
+            _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+          }
+        });
+      } else {
+        _parcDados={};
+        _parcMembros.forEach(function(m){
+          _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+        });
+      }
+      _parcRenderTabela();
+      _parcRenderControle();
+    });
+  });
+}
+function _parcRenderTabela(){
+  var host=document.getElementById('parc-tabela');
+  if(!host)return;
+  var isGestor=_isGestorDoTime(_currentUID);
+  var cols=[
+    {id:'campanha',label:'Camp.'},
+    {id:'dados',label:'Dados'},
+    {id:'aprovacoes',label:'Aprov.'},
+    {id:'contratos',label:'Contr.'},
+    {id:'vendas',label:'Vendas'},
+    {id:'premium',label:'Prem.'},
+    {id:'normal',label:'Norm.'},
+    {id:'upgrade',label:'Upgr.'}
+  ];
+  var html='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:560px;">';
+  html+='<thead><tr style="background:var(--ce);">';
+  html+='<th style="padding:8px 8px;text-align:left;color:var(--tm);font-weight:700;">Vendedor</th>';
+  html+='<th style="padding:8px 4px;color:var(--tm);font-weight:700;min-width:90px;">Situação</th>';
+  cols.forEach(function(c){html+='<th style="padding:8px 4px;color:var(--tm);font-weight:700;">'+c.label+'</th>';});
+  html+='</tr></thead><tbody>';
+  _parcMembros.forEach(function(m){
+    var d=_parcDados[m.uid]||{status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0};
+    var canEdit=isGestor||(m.uid===_currentUID);
+    var ausente=d.status!=='presente';
+    var rowBg=ausente?'background:rgba(100,116,139,0.05);':'';
+    html+='<tr style="border-bottom:1px solid var(--cb);'+rowBg+'">';
+    html+='<td style="padding:8px 8px;font-weight:600;color:var(--t);">'+m.nome+'</td>';
+    if(canEdit){
+      html+='<td style="padding:4px 2px;"><select id="ps-'+m.uid+'" onchange="parcStatus(\''+m.uid+'\')" style="font-size:11px;padding:3px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);width:88px;">';
+      [{v:'presente',l:'✅ Presente'},{v:'ausente',l:'😶 Ausente'},{v:'afastado',l:'🤕 Afastado'},{v:'ferias',l:'🏖 Férias'}].forEach(function(s){
+        html+='<option value="'+s.v+'"'+(d.status===s.v?' selected':'')+'>'+s.l+'</option>';
+      });
+      html+='</select></td>';
+    } else {
+      var sLabel={'presente':'✅ Presente','ausente':'😶 Ausente','afastado':'🤕 Afastado','ferias':'🏖 Férias'}[d.status]||d.status;
+      html+='<td style="padding:8px 4px;text-align:center;font-size:11px;color:var(--tm);">'+sLabel+'</td>';
+    }
+    cols.forEach(function(c){
+      if(canEdit&&!ausente){
+        html+='<td style="padding:4px 2px;"><input type="number" id="pi-'+c.id+'-'+m.uid+'" value="'+(d[c.id]||0)+'" min="0" oninput="_parcAtualizar(\''+m.uid+'\')" style="width:42px;padding:4px;border-radius:6px;border:1px solid var(--cb);background:var(--ce);color:var(--t);font-size:12px;text-align:center;"/></td>';
+      } else {
+        html+='<td style="padding:8px 4px;text-align:center;color:'+(ausente?'var(--tm)':'var(--t)')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
+      }
+    });
+    html+='</tr>';
+  });
+  // Linha de totais
+  html+='<tr style="border-top:2px solid var(--v);font-weight:700;">';
+  html+='<td style="padding:8px 8px;color:var(--v);">TOTAL</td>';
+  html+='<td style="padding:8px 4px;text-align:center;font-size:11px;color:var(--tm);">'+_parcMembros.length+' pessoas</td>';
+  ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){
+    var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(d[c]||0);});
+    html+='<td style="padding:8px 4px;text-align:center;color:var(--v);">'+tot+'</td>';
+  });
+  html+='</tr>';
+  html+='</tbody></table>';
+  host.innerHTML=html;
+}
+function parcStatus(uid){
+  var sel=document.getElementById('ps-'+uid);
+  if(!sel)return;
+  if(!_parcDados[uid])_parcDados[uid]={};
+  _parcDados[uid].status=sel.value;
+  _parcRenderTabela();
+}
+function _parcAtualizar(uid){
+  if(!_parcDados[uid])_parcDados[uid]={status:'presente'};
+  ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){
+    var el=document.getElementById('pi-'+c+'-'+uid);
+    if(el)_parcDados[uid][c]=parseInt(el.value)||0;
+  });
+}
+function parcSalvar(){
+  _parcMembros.forEach(function(m){_parcAtualizar(m.uid);});
+  var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
+  db.collection('parciais').doc(docId).set({
+    timeId:_timeAtual,
+    date:_parcData,
+    period:_parcPeriodo,
+    atualizadoEm:firebase.firestore.FieldValue.serverTimestamp(),
+    dados:_parcDados
+  }).then(function(){
+    toast('✅ Parcial salva!');
+    _parcRenderControle();
+  }).catch(function(e){toast('Erro: '+e.message,'#c0392b');});
+}
+function _parcRenderControle(){
+  var host=document.getElementById('parc-controle');
+  if(!host)return;
+  var mesAtual=hoje().substring(0,7); // "2026-10"
+  // Buscar todas as parciais do mês
+  db.collection('parciais').where('timeId','==',_timeAtual).get().then(function(snap){
+    // Agrupar por data, pegar o período mais recente de cada dia
+    var porData={};
+    snap.forEach(function(doc){
+      var d=doc.data();
+      if(!d.date||d.date.substring(0,7)!==mesAtual)return;
+      var ordem={'17h30':3,'15h':2,'12h':1};
+      if(!porData[d.date]||ordem[d.period]>ordem[porData[d.date].period]){
+        porData[d.date]=d;
+      }
+    });
+    // Agregar totais por vendedor
+    var totais={};// uid → {nome, campanha, dados, aprovacoes, contratos, vendas, premium, normal, upgrade, diasPresente}
+    Object.values(porData).forEach(function(parc){
+      var dados=parc.dados||{};
+      Object.keys(dados).forEach(function(uid){
+        var r=dados[uid];
+        if(!totais[uid])totais[uid]={nome:r.nome||uid,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,diasPresente:0};
+        if(r.status==='presente'){
+          totais[uid].diasPresente++;
+          ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){totais[uid][c]+=(r[c]||0);});
+        }
+      });
+    });
+    var totalVendas=Object.values(totais).reduce(function(s,t){return s+t.vendas;},0);
+    // Meta do time (do Firestore config)
+    db.collection('config').doc('time').get().then(function(cfgDoc){
+      var meta=cfgDoc.exists?(cfgDoc.data().metaTime||0):0;
+      var diasNoMes=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+      var diaAtual=new Date().getDate();
+      var projecao=diaAtual>0?Math.round(totalVendas/diaAtual*diasNoMes):0;
+      var falta=Math.max(0,meta-totalVendas);
+      var membros=Object.values(totais);
+      var html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 0 10px;">';
+      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Vendas no mês</div><div style="font-size:22px;font-weight:900;color:var(--v);">'+totalVendas+'</div></div>';
+      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Projeção</div><div style="font-size:22px;font-weight:900;color:#f97316;">'+projecao+'</div></div>';
+      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Falta para meta</div><div style="font-size:22px;font-weight:900;color:'+(falta===0?'var(--v)':'#dc2626')+';">'+falta+'</div></div>';
+      html+='</div>';
+      if(membros.length){
+        html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+        html+='<tr style="color:var(--tm);"><th style="padding:6px 8px;text-align:left;">Vendedor</th><th>Camp.</th><th>Dados</th><th>Aprov.</th><th>Contr.</th><th>Vendas</th><th>Prem.</th><th>Norm.</th><th>Upgr.</th></tr>';
+        membros.sort(function(a,b){return b.vendas-a.vendas;});
+        membros.forEach(function(m){
+          html+='<tr style="border-top:1px solid var(--cb);">';
+          html+='<td style="padding:6px 8px;font-weight:600;color:var(--t);">'+m.nome+'</td>';
+          ['campanha','dados','aprovacoes','contratos','vendas','premium','normal','upgrade'].forEach(function(c){
+            html+='<td style="padding:6px 4px;text-align:center;color:var(--t);">'+m[c]+'</td>';
+          });
+          html+='</tr>';
+        });
+        html+='</table></div>';
+      }
+      host.innerHTML=html;
+    });
+  });
+}
+function parcGerarPrint(){
+  _parcMembros.forEach(function(m){_parcAtualizar(m.uid);});
+  var modal=document.getElementById('parc-print-modal');
+  var card=document.getElementById('parc-print-card');
+  if(!modal||!card)return;
+  var periodoLabel={'12h':'12h00','15h':'15h00','17h30':'17h30'}[_parcPeriodo]||_parcPeriodo;
+  var dataBR=_parcData.split('-').reverse().join('/');
+  var cols=[{id:'campanha',l:'Camp.'},{id:'dados',l:'Dados'},{id:'aprovacoes',l:'Aprov.'},{id:'contratos',l:'Contr.'},{id:'vendas',l:'Vendas'},{id:'premium',l:'Prem.'},{id:'normal',l:'Norm.'},{id:'upgrade',l:'Upgr.'}];
+  var html='<div style="background:#0D1524;border-radius:14px;overflow:hidden;font-family:Arial,sans-serif;">';
+  html+='<div style="background:linear-gradient(135deg,#0A1220,#111E32);padding:14px 18px;border-bottom:1px solid #1E2D4A;">';
+  html+='<div style="font-size:11px;color:#5DCAA5;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Parcial '+_timeNome+' '+_timeEmoji+'</div>';
+  html+='<div style="font-size:18px;font-weight:900;color:#fff;margin:2px 0;">'+dataBR+' — '+periodoLabel+'</div>';
+  html+='<div style="font-size:10px;color:#5DCAA5;">Red Sea Digital</div></div>';
+  html+='<div style="overflow-x:auto;padding:10px 14px;">';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+  html+='<tr style="color:#5DCAA5;"><th style="padding:6px 6px;text-align:left;">Vendedor</th><th style="padding:6px 4px;">Sit.</th>';
+  cols.forEach(function(c){html+='<th style="padding:6px 4px;">'+c.l+'</th>';});
+  html+='</tr>';
+  _parcMembros.forEach(function(m){
+    var d=_parcDados[m.uid]||{status:'presente'};
+    var ausente=d.status!=='presente';
+    var sitLabel={'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—';
+    html+='<tr style="border-top:1px solid #1E2D4A;background:'+(ausente?'rgba(100,116,139,0.1)':'transparent')+'">';
+    html+='<td style="padding:7px 6px;font-weight:700;color:'+(ausente?'#64748B':'#E2F0EC')+';">'+m.nome+'</td>';
+    html+='<td style="padding:7px 4px;text-align:center;">'+sitLabel+'</td>';
+    cols.forEach(function(c){
+      html+='<td style="padding:7px 4px;text-align:center;color:'+(ausente?'#475569':'#fff')+';">'+(ausente?'—':(d[c.id]||0))+'</td>';
+    });
+    html+='</tr>';
+  });
+  // Linha de totais
+  html+='<tr style="border-top:2px solid #1D9E75;">';
+  html+='<td style="padding:7px 6px;font-weight:900;color:#1D9E75;">TOTAL</td>';
+  html+='<td style="padding:7px 4px;"></td>';
+  cols.forEach(function(c){
+    var tot=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')tot+=(d[c.id]||0);});
+    html+='<td style="padding:7px 4px;text-align:center;font-weight:900;color:#1D9E75;">'+tot+'</td>';
+  });
+  html+='</tr>';
+  html+='</table></div></div>';
+  card.innerHTML=html;
+  modal.style.display='block';
+  modal.scrollTop=0;
+}
 
 function gPDFCnpj(){
   var ok=_validarCampos([

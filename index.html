@@ -5093,32 +5093,31 @@ function gPDF(){
   });
 }
 function abrirEmail(){
-  var modeloId=(typeof _modo!=='undefined'&&_modo==='gen')?'modelo_gen_pf':'modelo';
+  var isBMW=(typeof _modo!=='undefined'&&_modo==='bmw');
+  var isGen=(typeof _modo!=='undefined'&&_modo==='gen');
+  var modeloId=isGen?'modelo_gen_pf':isBMW?'modelo_bmw_pf':'modelo';
   var ok=_validarCampos([
     {id:'nome',label:'Nome'},{id:'cpf',label:'CPF'},{id:'nasc',label:'Data de Nascimento'},
     {id:'email_cli',label:'E-mail'},{id:modeloId,label:'Modelo'},
     {id:'lance_valor',label:'Valor do Lance'},{id:'consultor',label:'Nome do Consultor'}
   ]);
   if(!ok)return;
-  const nome=v('nome')||'cliente',lance=v('lance_valor')?'R$ '+v('lance_valor'):'(ver anexo)',modelo=document.getElementById('modelo').value?'Kawasaki '+document.getElementById('modelo').value:'',cons=v('consultor')||'Vitor Godoy',prot=v('protocolo')||'';
-if(v('nome')&&v('lance_valor'))abrirPDF(buildLance(),v('nome'),'An\u00E1lise de Lance');
-_dest=v('email_cli');_wnum='';
-_assunto='Resultado da An\u00E1lise de Lance \u2013 Cons\u00F3rcio Kawasaki'+(prot?' | Processo '+prot:'');
-_corpo=`Ol\u00E1, ${nome}.
-
-Informamos que o lance referente \u00E0 sua cota no Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki foi analisado e aprovado com sucesso.
-
-Valor do lance: ${lance}
-${modelo?'Modelo de interesse: '+modelo+'\n':''}
-Este valor \u00E9 disponibilizado pelo programa de incentivo Kawasaki em parceria com a \u00C2ncora Administradora, sem custo adicional para voc\u00EA.
-
-Em breve entrarei em contato para orient\u00E1-lo(a) sobre os pr\u00F3ximos passos e documenta\u00E7\u00E3o necess\u00E1ria.
-
-Atenciosamente,
-${cons}
-Consultor | Digital Cons\u00F3rcio LTDA | Cons\u00F3rcio Kawasaki`;
-abModal();}
-function limpar1(){if(!confirm('Limpar todos os campos?'))return;['lance_valor','nome','cpf','nasc','email_cli','tel','ano','adesao','parcela','prazo','credito','protocolo','validade','obs','consultor_whats'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); document.getElementById('modelo').selectedIndex=0;document.getElementById('consultor').value='Vitor Godoy';document.getElementById('dt_aprov').value=hoje();document.getElementById('pv-aprov').classList.remove('vis');toast('🧹 Tudo limpo!');}
+  var nome=v('nome')||'cliente';
+  var lance=v('lance_valor')?'R$ '+v('lance_valor'):'(ver anexo)';
+  var modRaw=document.getElementById(modeloId).value||'';
+  var modelo=modRaw?(isBMW?'BMW '+modRaw:isGen?modRaw:'Kawasaki '+modRaw):'';
+  var cons=v('consultor')||'Vitor Godoy';
+  var prot=v('protocolo')||'';
+  var marcaNome=isBMW?'BMW':'Kawasaki';
+  var admNome=isBMW?'Consórcio Nacional Recon':'Âncora Administradora';
+  var consorNome=isBMW?'Consórcio BMW / Recon':'Consórcio Kawasaki';
+  if(v('nome')&&v('lance_valor'))abrirPDF(buildLance(),v('nome'),'Análise de Lance');
+  _dest=v('email_cli');_wnum='';
+  _assunto='Resultado da Análise de Lance – '+consorNome+(prot?' | Processo '+prot:'');
+  _corpo='Olá, '+nome+'.\n\nInformamos que o lance referente à sua cota no Plano Inteligente – '+consorNome+' foi analisado e aprovado com sucesso.\n\nValor do lance: '+lance+'\n'+(modelo?'Modelo de interesse: '+modelo+'\n':'')+'\nEste valor é disponibilizado pelo programa de incentivo '+marcaNome+' em parceria com a '+admNome+', sem custo adicional para você.\n\nEm breve entrarei em contato para orientá-lo(a) sobre os próximos passos e documentação necessária.\n\nAtenciosamente,\n'+cons+'\nConsultor | Digital Consórcio LTDA | '+consorNome;
+  abModal();
+}
+function limpar1(){if(!confirm('Limpar todos os campos?'))return;['lance_valor','nome','cpf','nasc','email_cli','tel','ano','adesao','parcela','prazo','credito','protocolo','validade','obs','consultor_whats'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); ['modelo','modelo_bmw_pf','modelo_gen_pf'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});document.getElementById('consultor').value='Vitor Godoy';document.getElementById('dt_aprov').value=hoje();document.getElementById('pv-aprov').classList.remove('vis');toast('🧹 Tudo limpo!');}
 
 // \u2500\u2500 A\u00C7\u00D5ES BOAS-VINDAS \u2500\u2500
 function prevBV(){const el=document.getElementById('pv-bv');document.getElementById('pv-bv-ct').innerHTML=buildBV();el.classList.add('vis');el.scrollIntoView({behavior:'smooth',block:'start'});}

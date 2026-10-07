@@ -5741,6 +5741,7 @@ var _parcData=hoje();
 var _parcPeriodo='12h';
 var _parcDados={};
 var _parcMembros=[];
+var _parcRoster=null; // {membros:[{uid,nome}], statusFixo:{uid:status}}
 
 function _brl(n){
   var num=parseFloat(String(n).replace(',','.'));
@@ -5785,60 +5786,72 @@ function parcCarregar(){
   var host=document.getElementById('parc-tabela');
   if(host)host.innerHTML='<div style="padding:20px;color:var(--tm);font-size:12px;">Carregando...</div>';
   // Carregar membros do time
-  var colecao=_isGestorDoTime(_currentUID)?'usuarios':'perfis_publicos';
-  db.collection(colecao).get().then(function(snap){
-    _parcMembros=[];
-    var cfg=TIMES_CONFIG[_timeAtual]||{};
-    snap.forEach(function(doc){
-      var d=doc.data();
-      // Filtrar pelo time correto
-      if((d.timeId||'camaleoes')!==_timeAtual)return;
-      // Excluir bloqueados e ocultos do painel
-      if(d.bloqueado===true)return;
-      if((cfg.ocultoPainel||[]).includes(doc.id))return;
-      if((cfg.gestores||[]).includes(doc.id))return;
-      var nome=d.nome||d.nomeCadastro||'(sem nome)';
-      _parcMembros.push({uid:doc.id,nome:nome});
-    });
-    // Remover duplicados por nome (manter o que tiver uid menor como tiebreak)
-    var vistos={};
-    _parcMembros=_parcMembros.filter(function(m){
-      if(vistos[m.nome])return false;
-      vistos[m.nome]=true;return true;
-    });
-    _parcMembros.sort(function(a,b){return a.nome.localeCompare(b.nome);});
-    var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
-    db.collection('parciais').doc(docId).get().then(function(doc){
-      if(doc.exists&&doc.data().dados){
-        _parcDados=doc.data().dados;
-        // Garantir que membros do time estão presentes
-        _parcMembros.forEach(function(m){
-          if(!_parcDados[m.uid]){
-            _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
-          }
+  // Carregar roster persistente (ou criar a partir de usuarios na primeira vez)
+  db.collection('config').doc('roster_'+_timeAtual).get().then(function(rosterDoc){
+    if(rosterDoc.exists&&rosterDoc.data().membros&&rosterDoc.data().membros.length>0){
+      // Usar roster salvo
+      _parcRoster=rosterDoc.data();
+      _parcMembros=(_parcRoster.membros||[]).map(function(m){return{uid:m.uid,nome:m.nome};});
+      _parcCarregarPeriodo();
+    } else {
+      // Primeira vez: montar roster a partir de usuarios
+      var colecao=_isGestorDoTime(_currentUID)?'usuarios':'perfis_publicos';
+      db.collection(colecao).get().then(function(snap){
+        _parcMembros=[];
+        var cfg=TIMES_CONFIG[_timeAtual]||{};
+        snap.forEach(function(doc){
+          var d=doc.data();
+          if((d.timeId||'camaleoes')!==_timeAtual)return;
+          if(d.bloqueado===true)return;
+          if((cfg.ocultoPainel||[]).includes(doc.id))return;
+          if((cfg.gestores||[]).includes(doc.id))return;
+          var nome=d.nome||d.nomeCadastro||'(sem nome)';
+          _parcMembros.push({uid:doc.id,nome:nome});
         });
-        // Reconstituir membros adicionados manualmente (que não estão na lista do time)
-        Object.keys(_parcDados).forEach(function(uid){
-          if(!_parcMembros.find(function(m){return m.uid===uid;})){
-            var r=_parcDados[uid];
-            _parcMembros.push({uid:uid,nome:r.nome||'(manual)',manual:true});
-          }
+        var vistos={};
+        _parcMembros=_parcMembros.filter(function(m){
+          if(vistos[m.nome])return false;
+          vistos[m.nome]=true;return true;
         });
-      } else {
-        _parcDados={};
-        _parcMembros.forEach(function(m){
-          _parcDados[m.uid]={nome:m.nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
-        });
-      }
-      _parcRenderTabela();
-      _parcRenderControle();
-    }).catch(function(err){
-      var host=document.getElementById('parc-tabela');
-      if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar as parciais.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
-    });
+        _parcMembros.sort(function(a,b){return a.nome.localeCompare(b.nome);});
+        _parcRoster={membros:_parcMembros.map(function(m){return{uid:m.uid,nome:m.nome};}),statusFixo:{}};
+        _parcCarregarPeriodo();
+      }).catch(function(err){
+        var host=document.getElementById('parc-tabela');
+        if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar membros.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
+      });
+    }
   }).catch(function(err){
     var host=document.getElementById('parc-tabela');
-    if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar os membros do time.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
+    if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar o roster.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
+  });
+}
+function _parcCarregarPeriodo(){
+  var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
+  var statusFixo=(_parcRoster&&_parcRoster.statusFixo)||{};
+  db.collection('parciais').doc(docId).get().then(function(doc){
+    if(doc.exists&&doc.data().dados){
+      _parcDados=doc.data().dados;
+      // Garantir que membros do roster estão presentes
+      _parcMembros.forEach(function(m){
+        if(!_parcDados[m.uid]){
+          var st=statusFixo[m.uid]||'presente';
+          _parcDados[m.uid]={nome:m.nome,status:st,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
+        }
+      });
+    } else {
+      // Parcial nova — aplicar statusFixo do roster
+      _parcDados={};
+      _parcMembros.forEach(function(m){
+        var st=statusFixo[m.uid]||'presente';
+        _parcDados[m.uid]={nome:m.nome,status:st,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
+      });
+    }
+    _parcRenderTabela();
+    _parcRenderControle();
+  }).catch(function(err){
+    var host=document.getElementById('parc-tabela');
+    if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar as parciais.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
   });
 }
 function _parcRenderTabela(){
@@ -5924,11 +5937,23 @@ function _parcAtualizar(uid){
   var elP=document.getElementById('pi-producao-'+uid);
   if(elP)_parcDados[uid].producao=parseFloat(elP.value.replace(',','.'))||0;
 }
+function _parcSalvarRoster(){
+  if(!_parcRoster)_parcRoster={membros:[],statusFixo:{}};
+  var roster={
+    timeId:_timeAtual,
+    membros:_parcMembros.map(function(m){return{uid:m.uid,nome:m.nome};}),
+    statusFixo:_parcRoster.statusFixo||{}
+  };
+  db.collection('config').doc('roster_'+_timeAtual).set(roster,{merge:true})
+    .then(function(){_parcRoster=roster;})
+    .catch(function(e){toast('Erro ao salvar roster: '+e.message,'#c0392b');});
+}
 function parcRemoverMembro(uid){
-  if(!confirm('Remover este membro desta parcial?'))return;
+  if(!confirm('Remover este membro do time? Ele não vai aparecer nas próximas parciais.'))return;
   delete _parcDados[uid];
   _parcMembros=_parcMembros.filter(function(m){return m.uid!==uid;});
   _parcRenderTabela();
+  _parcSalvarRoster();
 }
 function parcAdicionarMembro(){
   var inp=document.getElementById('parc-add-nome');
@@ -5940,10 +5965,31 @@ function parcAdicionarMembro(){
   _parcDados[uid]={nome:nome,status:'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
   inp.value='';
   _parcRenderTabela();
-  toast('✅ '+nome+' adicionado(a)!');
+  _parcSalvarRoster();
+  toast('✅ '+nome+' adicionado(a) ao time!');
 }
 function parcSalvar(){
   _parcMembros.forEach(function(m){_parcAtualizar(m.uid);});
+  // Atualizar statusFixo no roster com base nos status atuais
+  if(!_parcRoster)_parcRoster={membros:[],statusFixo:{}};
+  if(!_parcRoster.statusFixo)_parcRoster.statusFixo={};
+  _parcMembros.forEach(function(m){
+    var d=_parcDados[m.uid]||{};
+    if(d.status==='ferias'||d.status==='afastado'){
+      _parcRoster.statusFixo[m.uid]=d.status;
+    } else {
+      delete _parcRoster.statusFixo[m.uid];
+    }
+  });
+  // Salvar roster persistente
+  var roster={
+    timeId:_timeAtual,
+    membros:_parcMembros.map(function(m){return{uid:m.uid,nome:m.nome};}),
+    statusFixo:_parcRoster.statusFixo
+  };
+  db.collection('config').doc('roster_'+_timeAtual).set(roster,{merge:true}).catch(function(){});
+  _parcRoster=roster;
+  // Salvar parcial do período
   var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
   db.collection('parciais').doc(docId).set({
     timeId:_timeAtual,
@@ -5954,7 +6000,7 @@ function parcSalvar(){
   }).then(function(){
     toast('✅ Parcial salva!');
     _parcRenderControle();
-  }).catch(function(e){toast('Erro: '+e.message,'#c0392b');});
+  }).catch(function(e){toast('Erro ao salvar parcial: '+e.message,'#c0392b');});
 }
 function _parcRenderControle(){
   var host=document.getElementById('parc-controle');

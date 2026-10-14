@@ -961,13 +961,6 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
     <div class="fc">
       <div class="fg">
         <div class="fi"><label>Data</label><input type="date" id="parc-data" onchange="parcCarregar()"/></div>
-        <div class="fi"><label>Período</label>
-          <div style="display:flex;gap:8px;height:40px;">
-            <button id="parcbtn-12h"   onclick="parcSelPeriodo('12h')"   style="flex:1;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:var(--v);color:#fff;">12h</button>
-            <button id="parcbtn-15h"   onclick="parcSelPeriodo('15h')"   style="flex:1;border-radius:8px;border:1.5px solid var(--cb);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:transparent;color:var(--tm);">15h</button>
-            <button id="parcbtn-17h30" onclick="parcSelPeriodo('17h30')" style="flex:1;border-radius:8px;border:1.5px solid var(--cb);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;background:transparent;color:var(--tm);">17h30</button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -5913,7 +5906,6 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ===== PARCIAIS =====
 var _parcData=hojeISO();
-var _parcPeriodo='12h';
 var _parcDados={};
 var _parcMembros=[];
 var _parcRoster=null; // {membros:[{uid,nome}], statusFixo:{uid:status}}
@@ -5923,36 +5915,12 @@ function _brl(n){
   if(isNaN(num)||num===0)return '—';
   return 'R$ '+num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
-function _parcAutoPeriodo(){
-  var h=new Date().getHours();
-  if(h<13)return '12h';
-  if(h<16)return '15h';
-  return '17h30';
-}
 function renderParciais(){
   _parcData=hojeISO();
-  _parcPeriodo=_parcAutoPeriodo();
   var dt=document.getElementById('parc-data');
   if(dt)dt.value=_parcData;
-  _parcHighlight(_parcPeriodo);
   var sub=document.getElementById('parc-subtitulo');
   if(sub)sub.textContent='Parcial do time — '+_timeNome+' '+_timeEmoji;
-  parcCarregar();
-}
-function _parcHighlight(p){
-  ['12h','15h','17h30'].forEach(function(pp){
-    var b=document.getElementById('parcbtn-'+pp);
-    if(!b)return;
-    if(pp===p){
-      b.style.background='var(--v)';b.style.color='#fff';b.style.border='none';
-    } else {
-      b.style.background='transparent';b.style.color='var(--tm)';b.style.border='1.5px solid var(--cb)';
-    }
-  });
-}
-function parcSelPeriodo(p){
-  _parcPeriodo=p;
-  _parcHighlight(p);
   parcCarregar();
 }
 function parcCarregar(){
@@ -6002,32 +5970,33 @@ function parcCarregar(){
   });
 }
 function _parcCarregarPeriodo(){
-  var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
+  var docId=_timeAtual+'_'+_parcData;
   var statusFixo=(_parcRoster&&_parcRoster.statusFixo)||{};
-  db.collection('parciais').doc(docId).get().then(function(doc){
-    if(doc.exists&&doc.data().dados){
-      _parcDados=doc.data().dados;
-      // Garantir que membros do roster estão presentes
-      _parcMembros.forEach(function(m){
-        if(!_parcDados[m.uid]){
-          var st=statusFixo[m.uid]||'presente';
-          _parcDados[m.uid]={nome:m.nome,status:st,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
-        }
-      });
+  var vazio=function(m){return{nome:m.nome,status:statusFixo[m.uid]||'presente',campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};};
+  function aplicar(dados){
+    if(dados){
+      _parcDados=dados;
+      _parcMembros.forEach(function(m){if(!_parcDados[m.uid])_parcDados[m.uid]=vazio(m);});
     } else {
-      // Parcial nova — aplicar statusFixo do roster
       _parcDados={};
-      _parcMembros.forEach(function(m){
-        var st=statusFixo[m.uid]||'presente';
-        _parcDados[m.uid]={nome:m.nome,status:st,campanha:0,dados:0,aprovacoes:0,contratos:0,vendas:0,premium:0,normal:0,upgrade:0,producao:0};
-      });
+      _parcMembros.forEach(function(m){_parcDados[m.uid]=vazio(m);});
     }
     _parcRenderTabela();
     _parcRenderControle();
-  }).catch(function(err){
+  }
+  function erro(err){
     var host=document.getElementById('parc-tabela');
     if(host)host.innerHTML='<div style="padding:20px;color:#dc2626;font-size:12px;">⚠️ Não foi possível carregar as parciais.<br><span style="color:var(--tm);font-size:11px;">'+err.message+'</span></div>';
-  });
+  }
+  db.collection('parciais').doc(docId).get().then(function(doc){
+    if(doc.exists&&doc.data().dados){aplicar(doc.data().dados);return;}
+    // Parciais antigas eram salvas por período (12h/15h/17h30): usa a mais recente do dia
+    var ids=['17h30','15h','12h'].map(function(per){return _timeAtual+'_'+_parcData+'_'+per;});
+    return Promise.all(ids.map(function(id){return db.collection('parciais').doc(id).get();})).then(function(docs){
+      var achou=docs.filter(function(d){return d.exists&&d.data().dados;})[0];
+      aplicar(achou?achou.data().dados:null);
+    });
+  }).catch(erro);
 }
 function _parcRenderTabela(){
   var host=document.getElementById('parc-tabela');
@@ -6164,12 +6133,11 @@ function parcSalvar(){
   };
   db.collection('config').doc('roster_'+_timeAtual).set(roster,{merge:true}).catch(function(){});
   _parcRoster=roster;
-  // Salvar parcial do período
-  var docId=_timeAtual+'_'+_parcData+'_'+_parcPeriodo;
+  // Salvar parcial do dia (uma só por dia)
+  var docId=_timeAtual+'_'+_parcData;
   db.collection('parciais').doc(docId).set({
     timeId:_timeAtual,
     date:_parcData,
-    period:_parcPeriodo,
     atualizadoEm:firebase.firestore.FieldValue.serverTimestamp(),
     dados:_parcDados
   }).then(function(){
@@ -6189,7 +6157,8 @@ function _parcRenderControle(){
       var d=doc.data();
       if(!d.date||d.date.substring(0,7)!==mesAtual)return;
       var ordem={'17h30':3,'15h':2,'12h':1};
-      if(!porData[d.date]||ordem[d.period]>ordem[porData[d.date].period]){
+      var o=ordem[d.period]||4;
+      if(!porData[d.date]||o>(ordem[porData[d.date].period]||4)){
         porData[d.date]=d;
       }
     });
@@ -6277,15 +6246,12 @@ function parcCarregarHistorico(){
       html+='<div style="border-bottom:1px solid var(--cb);padding:10px 16px;">';
       html+='<div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:6px;">📅 '+dtBR+'</div>';
       html+='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
-      var ordem=['12h','15h','17h30'];
-      porData[dt].sort(function(a,b){return ordem.indexOf(a.period)-ordem.indexOf(b.period);});
-      porData[dt].forEach(function(p){
-        // Contar vendas desse período
-        var vendas=0;
-        Object.values(p.dados).forEach(function(r){if(r.status==='presente')vendas+=(r.vendas||0);});
-        html+='<button onclick="parcCarregarDoHistorico(\''+dt+'\',\''+p.period+'\')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);cursor:pointer;font-size:12px;font-family:inherit;">';
-        html+=p.period+' <span style="color:var(--v);font-weight:700;">'+vendas+' venda'+(vendas!==1?'s':'')+'</span></button>';
-      });
+      var ordemH={'17h30':3,'15h':2,'12h':1};
+      var melhor=porData[dt].slice().sort(function(a,b){return (ordemH[b.period]||4)-(ordemH[a.period]||4);})[0];
+      var vendas=0;
+      Object.values(melhor.dados).forEach(function(r){if(r.status==='presente')vendas+=(r.vendas||0);});
+      html+='<button onclick="parcCarregarDoHistorico(\''+dt+'\')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);color:var(--t);cursor:pointer;font-size:12px;font-family:inherit;">';
+      html+='Ver parcial <span style="color:var(--v);font-weight:700;">'+vendas+' venda'+(vendas!==1?'s':'')+'</span></button>';
       html+='</div></div>';
     });
     lista.innerHTML=html;
@@ -6293,12 +6259,10 @@ function parcCarregarHistorico(){
     lista.innerHTML='<div style="padding:16px;color:#dc2626;font-size:12px;">⚠️ '+err.message+'</div>';
   });
 }
-function parcCarregarDoHistorico(data,period){
+function parcCarregarDoHistorico(data){
   _parcData=data;
-  _parcPeriodo=period;
   var dt=document.getElementById('parc-data');
   if(dt)dt.value=data;
-  _parcHighlight(period);
   // Fechar histórico
   var lista=document.getElementById('parc-historico-lista');
   var seta=document.getElementById('parc-hist-seta');
@@ -6325,7 +6289,8 @@ function parcGerarPrint(){
 function _parcDesenharPrint(){
   var canvas=document.getElementById('parc-canvas');
   if(!canvas)return;
-  var periodoLabel={'12h':'12h00','15h':'15h00','17h30':'17h30'}[_parcPeriodo]||_parcPeriodo;
+  var agora=new Date();
+  var periodoLabel=String(agora.getHours()).padStart(2,'0')+'h'+String(agora.getMinutes()).padStart(2,'0');
   var dataBR=_parcData.split('-').reverse().join('/');
   var cols=[
     {id:'campanha',l:'Camp.',w:84},
@@ -6428,7 +6393,7 @@ function parcCopiarPrint(){
   if(!canvas)return;
   canvas.toBlob(function(blob){
     if(!blob){toast('Não foi possível gerar a imagem.','#c0392b');return;}
-    var nome='parcial_'+_parcData+'_'+_parcPeriodo;
+    var nome='parcial_'+_parcData;
     if(navigator.clipboard&&window.ClipboardItem){
       navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
         toast('Imagem copiada! Cole no grupo 📋');
@@ -6443,7 +6408,7 @@ function parcBaixarPrint(){
     if(!blob)return;
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
-    a.href=url;a.download='parcial_'+_parcData+'_'+_parcPeriodo+'.png';
+    a.href=url;a.download='parcial_'+_parcData+'.png';
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     setTimeout(function(){URL.revokeObjectURL(url);},1000);
   },'image/png');

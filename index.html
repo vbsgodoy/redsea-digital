@@ -1308,6 +1308,12 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
   <div class="page-content">
   <div class="pt"><h2>Agendamento de Análise</h2><p>Gere o <span class="hl">texto + card de confirmação</span> pra passar segurança ao cliente</p></div>
 
+    <div class="subtabs">
+      <button class="stab ac" onclick="subaAgd('conf',this)">Confirmação</button>
+      <button class="stab" onclick="subaAgd('msg',this)">Mensagem de análise</button>
+    </div>
+    <div id="agd-sub-conf">
+
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Spiral%20calendar/3D/spiral_calendar_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Agendamento</div>
       <div class="fg">
@@ -1334,6 +1340,42 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
         </div>
       </div>
     </div>
+
+    </div><!-- /agd-sub-conf -->
+
+    <div id="agd-sub-msg" style="display:none;">
+      <div class="fc" style="margin-bottom:20px;">
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Speech%20balloon/3D/speech_balloon_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados da Mensagem</div>
+        <div class="fg">
+          <div class="fi"><label>Nome do cliente</label><input type="text" id="man_cliente" placeholder="Nome do cliente" oninput="renderMsgAnalise()"/></div>
+          <div class="fi"><label>Nome do analista</label><input type="text" id="man_analista" placeholder="Quem vai ligar" oninput="renderMsgAnalise()"/></div>
+          <div class="fi"><label>Moto</label><input type="text" id="man_moto" list="dl-modelo-kw" placeholder="Ex: Ninja 300" autocomplete="off" oninput="renderMsgAnalise()"/></div>
+          <div class="fi"><label>Nome do consultor</label><input type="text" id="man_consultor" value="Vitor Godoy" oninput="renderMsgAnalise()"/></div>
+        </div>
+      </div>
+
+      <div class="subtabs" id="man-tipos">
+        <button class="stab ac" onclick="setMsgTipo('contato',this)">1º contato</button>
+        <button class="stab" onclick="setMsgTipo('followup',this)">Follow-up</button>
+        <button class="stab" onclick="setMsgTipo('preligacao',this)">Antes da ligação</button>
+      </div>
+
+      <div class="fc">
+        <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Eye/3D/eye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Prévia</div>
+        <div style="padding:20px 24px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+          <div style="flex:0 0 260px;">
+            <canvas id="man-canvas" width="1080" height="1080" style="width:100%;border-radius:10px;border:1px solid var(--cb);display:block;"></canvas>
+            <button class="btn bl" style="width:100%;margin-top:8px;" onclick="copiarCardMsgAnalise()">📋 Copiar card</button>
+          </div>
+          <div style="flex:1;min-width:240px;">
+            <div id="man-texto" contenteditable="true" style="font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:16px 18px;min-height:200px;outline:none;">Preencha os dados acima.</div>
+            <div class="aa" style="margin-top:12px;">
+              <button class="btn bs2" onclick="copiarTextoMsgAnalise()">📋 Copiar texto</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /agd-sub-msg -->
 
   </div><!-- /page-content -->
 </div>
@@ -4084,6 +4126,138 @@ function copiarCardAgendamento(){
     } else {
       _baixarImagemFallback(blob,'agendamento_'+(v('agd_cliente')||'cliente'));
     }
+  },'image/png');
+}
+
+// ===== MENSAGEM DE ANALISE (sub aba do Agendamento) =====
+var _manTipo='contato';
+function subaAgd(id,btn){
+  ['conf','msg'].forEach(function(x){
+    var el=document.getElementById('agd-sub-'+x);
+    if(el)el.style.display=(x===id?'block':'none');
+  });
+  if(btn){btn.closest('.subtabs').querySelectorAll('.stab').forEach(function(b){b.classList.remove('ac');});btn.classList.add('ac');}
+  if(id==='msg'){
+    [['man_cliente','agd_cliente'],['man_analista','agd_analista']].forEach(function(p){
+      var a=document.getElementById(p[0]),b=document.getElementById(p[1]);
+      if(a&&b&&!a.value&&b.value)a.value=b.value;
+    });
+    renderMsgAnalise();
+  } else renderAgendamento();
+}
+function setMsgTipo(t,btn){
+  _manTipo=t;
+  if(btn){btn.closest('.subtabs').querySelectorAll('.stab').forEach(function(b){b.classList.remove('ac');});btn.classList.add('ac');}
+  renderMsgAnalise();
+}
+function _manSaudacao(){
+  var h=new Date().getHours();
+  return h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
+}
+function _manTextos(){
+  var cliente=v('man_cliente')||'(Nome do cliente)';
+  var analista=v('man_analista')||'(Analista)';
+  var moto=v('man_moto')||'(Moto)';
+  var consultor=v('man_consultor')||'(Consultor)';
+  var sd=_manSaudacao();
+  var t={};
+  t.contato=sd+', '+cliente+'!\nTudo bem? 😄\n\n'+
+    'Me chamo '+analista+', sou do Setor de Análise do Consórcio Kawasaki Brasil.\n\n'+
+    'Estou tentando entrar em contato com você referente a sua solicitação de análise para entrar no Plano Inteligente e adquirir a '+moto+'. Posso te ligar?';
+  t.followup=sd+', '+cliente+'! 😊\n\n'+
+    'Sou '+analista+', do Setor de Análise do Consórcio Kawasaki Brasil. Tentei falar com você sobre a sua solicitação para adquirir a '+moto+' pelo Plano Inteligente e ainda não consegui contato.\n\n'+
+    'Sua solicitação segue ativa, mas preciso falar com você para dar andamento à análise.\n\n'+
+    'Qual o melhor horário para eu te ligar hoje? É só me responder por aqui. 🏍️';
+  t.preligacao=sd+', '+cliente+'! 👋\n\n'+
+    'Aqui é '+analista+', do Setor de Análise do Consórcio Kawasaki Brasil. Vou te ligar em instantes sobre a sua solicitação da '+moto+'.\n\n'+
+    'Será uma conversa rápida para confirmar seus dados e te apresentar as condições do Plano Inteligente. Se puder, deixe seu CPF à mão para agilizar.\n\n'+
+    'Se preferir outro horário, me avise por aqui!\n\n'+
+    'Att,\n'+consultor+' — Digital Consórcio';
+  return t;
+}
+function _manDesenharCard(){
+  var canvas=document.getElementById('man-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W=canvas.width,H=canvas.height;
+  var cliente=v('man_cliente')||'Cliente';
+  var analista=v('man_analista')||'Analista Kawasaki';
+  var moto=v('man_moto')||'sua moto';
+  var consultor=v('man_consultor')||'Consultor';
+
+  var grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0B0F19');grad.addColorStop(1,'#131C2E');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#1D9E75';ctx.fillRect(0,0,W,14);
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#1D9E75';ctx.font='bold 32px Arial';
+  ctx.fillText('RED SEA DIGITAL',W/2,95);
+  ctx.font='120px Arial';ctx.fillText('🏍️',W/2,270);
+
+  ctx.fillStyle='#FFFFFF';ctx.font='bold 50px Arial';
+  ctx.fillText('SUA ANÁLISE ESTÁ EM ANDAMENTO',W/2,360);
+
+  ctx.font='34px Arial';ctx.fillStyle='#94A3B8';
+  ctx.fillText('Olá,',W/2,430);
+  ctx.font='bold 50px Arial';ctx.fillStyle='#FFFFFF';
+  ctx.fillText(cliente,W/2,492);
+
+  ctx.font='28px Arial';ctx.fillStyle='#CBD5E1';
+  _agdWrapCentered(ctx,'Solicitação para adquirir a '+moto+' pelo Plano Inteligente',W/2,550,W-200,36);
+
+  // etapas
+  var etapas=['Solicitação\nrecebida','Análise\nem andamento','Contato com\no analista','Resultado'];
+  var atual=1;
+  var x0=190,dx=(W-380)/3,y=700;
+  ctx.strokeStyle='#1E2D4A';ctx.lineWidth=6;
+  ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x0+dx*3,y);ctx.stroke();
+  ctx.strokeStyle='#1D9E75';
+  ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x0+dx*atual,y);ctx.stroke();
+  etapas.forEach(function(e,i){
+    var cx=x0+dx*i;
+    ctx.beginPath();ctx.arc(cx,y,i===atual?30:24,0,Math.PI*2);
+    ctx.fillStyle=i<=atual?'#1D9E75':'#1E2D4A';ctx.fill();
+    ctx.fillStyle='#FFFFFF';ctx.font='bold 26px Arial';
+    ctx.fillText(i<atual?'✓':String(i+1),cx,y+9);
+    ctx.font=(i===atual?'bold ':'')+'22px Arial';
+    ctx.fillStyle=i<=atual?'#FFFFFF':'#64748B';
+    e.split('\n').forEach(function(l,k){ctx.fillText(l,cx,y+68+k*28);});
+  });
+
+  // analista
+  ctx.fillStyle='rgba(29,158,117,0.15)';_agdRoundRect(ctx,90,880,W-180,120,16);ctx.fill();
+  ctx.strokeStyle='#1D9E75';ctx.lineWidth=2;_agdRoundRect(ctx,90,880,W-180,120,16);ctx.stroke();
+  ctx.font='24px Arial';ctx.fillStyle='#94A3B8';
+  ctx.fillText('Analista responsável',W/2,925);
+  ctx.font='bold 38px Arial';ctx.fillStyle='#FFFFFF';
+  ctx.fillText(analista+' · Setor de Análise',W/2,975);
+
+  ctx.font='22px Arial';ctx.fillStyle='#64748B';
+  ctx.fillText(consultor+' · Digital Consórcio',W/2,1050);
+}
+function renderMsgAnalise(){
+  var t=_manTextos();
+  var el=document.getElementById('man-texto');
+  if(el)el.textContent=t[_manTipo]||'';
+  _manDesenharCard();
+}
+function copiarTextoMsgAnalise(){
+  var el=document.getElementById('man-texto');
+  if(!el)return;
+  navigator.clipboard.writeText(el.innerText).then(function(){toast('Mensagem copiada! 📋');});
+}
+function copiarCardMsgAnalise(){
+  var canvas=document.getElementById('man-canvas');
+  if(!canvas)return;
+  canvas.toBlob(function(blob){
+    if(!blob){toast('Não foi possível copiar.','#c0392b');return;}
+    var nome='analise_'+(v('man_cliente')||'cliente');
+    if(navigator.clipboard && window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+        toast('Card copiado! Cole (Ctrl+V) no WhatsApp 📋');
+      }).catch(function(){_baixarImagemFallback(blob,nome);});
+    } else {_baixarImagemFallback(blob,nome);}
   },'image/png');
 }
 

@@ -1385,9 +1385,9 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
 
 <!-- Modal Print Parcial -->
 <div id="parc-print-modal" style="display:none;position:fixed;inset:0;background:#0B1220;z-index:99999;overflow-y:auto;padding:20px;">
-  <div style="max-width:500px;margin:0 auto;">
+  <div style="max-width:760px;margin:0 auto;">
     <button onclick="document.getElementById('parc-print-modal').style.display='none'" style="background:transparent;border:1px solid #2A3650;color:#94A3B8;padding:8px 16px;border-radius:8px;margin-bottom:16px;cursor:pointer;font-size:12px;">✕ Fechar</button>
-    <div style="font-size:11px;color:#5DCAA5;margin-bottom:10px;text-align:center;">📱 Tire um print desta tela e envie no grupo</div>
+    <div style="font-size:11px;color:#5DCAA5;margin-bottom:10px;text-align:center;">📱 Copie ou baixe a imagem e envie no grupo</div>
     <div id="parc-print-card"></div>
   </div>
 </div>
@@ -5057,6 +5057,7 @@ function fCPF(el){let x=el.value.replace(/\D/g,'').slice(0,11);x=x.replace(/(\d{
 function fFone(el){let x=el.value.replace(/\D/g,'').slice(0,11);if(x.length>10)x=x.replace(/^(\d{2})(\d{5})(\d{4})$/,'($1) $2-$3');else x=x.replace(/^(\d{2})(\d{4})(\d{0,4})$/,'($1) $2-$3');el.value=x;}
 function fData(el){let x=el.value.replace(/\D/g,'').slice(0,8);if(x.length>4)x=x.replace(/(\d{2})(\d{2})(\d+)/,'$1/$2/$3');else if(x.length>2)x=x.replace(/(\d{2})(\d+)/,'$1/$2');el.value=x;}
 function hoje(){return new Date().toLocaleDateString('pt-BR');}
+function hojeISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 
 // \u2500\u2500 QR CODE \u2500\u2500
@@ -5911,7 +5912,7 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 // ===== PARCIAIS =====
-var _parcData=hoje();
+var _parcData=hojeISO();
 var _parcPeriodo='12h';
 var _parcDados={};
 var _parcMembros=[];
@@ -5929,7 +5930,7 @@ function _parcAutoPeriodo(){
   return '17h30';
 }
 function renderParciais(){
-  _parcData=hoje();
+  _parcData=hojeISO();
   _parcPeriodo=_parcAutoPeriodo();
   var dt=document.getElementById('parc-data');
   if(dt)dt.value=_parcData;
@@ -6179,7 +6180,7 @@ function parcSalvar(){
 function _parcRenderControle(){
   var host=document.getElementById('parc-controle');
   if(!host)return;
-  var mesAtual=hoje().substring(0,7); // "2026-10"
+  var mesAtual=hojeISO().substring(0,7); // "2026-10"
   // Buscar todas as parciais do mês
   db.collection('parciais').where('timeId','==',_timeAtual).get().then(function(snap){
     // Agrupar por data, pegar o período mais recente de cada dia
@@ -6313,89 +6314,139 @@ function parcGerarPrint(){
   var modal=document.getElementById('parc-print-modal');
   var card=document.getElementById('parc-print-card');
   if(!modal||!card)return;
+  card.innerHTML='<canvas id="parc-canvas" style="width:100%;border-radius:12px;display:block;"></canvas>'+
+    '<div style="display:flex;gap:8px;margin-top:12px;">'+
+    '<button onclick="parcCopiarPrint()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#1D9E75;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">📋 Copiar imagem</button>'+
+    '<button onclick="parcBaixarPrint()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #2A3650;background:transparent;color:#E2F0EC;font-size:13px;font-weight:700;cursor:pointer;">⬇️ Baixar</button></div>';
+  modal.style.display='block';
+  modal.scrollTop=0;
+  _parcDesenharPrint();
+}
+function _parcDesenharPrint(){
+  var canvas=document.getElementById('parc-canvas');
+  if(!canvas)return;
   var periodoLabel={'12h':'12h00','15h':'15h00','17h30':'17h30'}[_parcPeriodo]||_parcPeriodo;
   var dataBR=_parcData.split('-').reverse().join('/');
   var cols=[
-    {id:'campanha',l:'Camp.'},
-    {id:'dados',l:'Fichas'},
-    {id:'aprovacoes',l:'Aprov.'},
-    {id:'contratos',l:'Contr.'},
-    {id:'vendas',l:'Vendas',destaque:true},
-    {id:'premium',l:'Prem.'},
-    {id:'normal',l:'Norm.'},
-    {id:'upgrade',l:'Upgr.',destaque:true},
-    {id:'producao',l:'Produção',currency:true,destaque:true}
+    {id:'campanha',l:'Camp.',w:84},
+    {id:'dados',l:'Fichas',w:84},
+    {id:'aprovacoes',l:'Aprov.',w:84},
+    {id:'contratos',l:'Contr.',w:84},
+    {id:'vendas',l:'Vendas',w:92,destaque:true},
+    {id:'premium',l:'Prem.',w:84},
+    {id:'normal',l:'Norm.',w:84},
+    {id:'upgrade',l:'Upgr.',w:92,destaque:true},
+    {id:'producao',l:'Produção',w:190,currency:true,destaque:true}
   ];
-  // Calcular totais
   var totais={};
   cols.forEach(function(c){
     var t=0;
-    _parcMembros.forEach(function(m){
-      var d=_parcDados[m.uid]||{};
-      if(d.status==='presente')t+=parseFloat(d[c.id]||0);
-    });
+    _parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')t+=parseFloat(d[c.id]||0);});
     totais[c.id]=t;
   });
   var presentes=_parcMembros.filter(function(m){return (_parcDados[m.uid]||{}).status==='presente';}).length;
-  // Header
-  var html='<div style="background:#0B1220;border-radius:14px;overflow:hidden;font-family:Arial,sans-serif;">';
-  html+='<div style="background:linear-gradient(135deg,#0D1524,#111E32);padding:16px 18px;border-bottom:1px solid #1E2D4A;">';
-  html+='<div style="font-size:10px;color:#5DCAA5;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">'+_timeNome+' '+_timeEmoji+' · Parcial do dia</div>';
-  html+='<div style="font-size:20px;font-weight:900;color:#fff;">'+dataBR+' <span style="color:#5DCAA5;">'+periodoLabel+'</span></div>';
-  html+='</div>';
-  // Cards de destaque
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#1E2D4A;">';
-  html+='<div style="background:#0D1524;padding:12px 14px;text-align:center;">';
-  html+='<div style="font-size:9px;color:#5DCAA5;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Vendas</div>';
-  html+='<div style="font-size:28px;font-weight:900;color:#1D9E75;">'+totais['vendas']+'</div></div>';
-  html+='<div style="background:#0D1524;padding:12px 14px;text-align:center;">';
-  html+='<div style="font-size:9px;color:#5DCAA5;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Upgrade</div>';
-  html+='<div style="font-size:28px;font-weight:900;color:#f97316;">'+totais['upgrade']+'</div></div>';
-  html+='<div style="background:#0D1524;padding:12px 14px;text-align:center;">';
-  html+='<div style="font-size:9px;color:#5DCAA5;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Produção</div>';
-  html+='<div style="font-size:14px;font-weight:900;color:#1D9E75;margin-top:4px;">'+_brl(totais['producao'])+'</div></div>';
-  html+='</div>';
-  // Tabela por vendedor
-  html+='<div style="padding:12px 14px;">';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-  html+='<tr style="color:#5DCAA5;border-bottom:1px solid #1E2D4A;">';
-  html+='<th style="padding:6px 6px;text-align:left;font-weight:700;">Vendedor</th>';
-  html+='<th style="padding:6px 4px;font-weight:700;">Sit.</th>';
-  cols.forEach(function(c){
-    html+='<th style="padding:6px 4px;font-weight:700;color:'+(c.destaque?'#fff':'#5DCAA5')+';text-align:center;">'+c.l+'</th>';
+  var W=1360,PAD=40,ROW=64;
+  var nameW=W-PAD*2-70-cols.reduce(function(a,c){return a+c.w;},0);
+  var H=140+150+64+_parcMembros.length*ROW+76+60;
+  canvas.width=W;canvas.height=H;
+  var ctx=canvas.getContext('2d');
+  var F='Arial, sans-serif';
+  ctx.fillStyle='#0B1220';ctx.fillRect(0,0,W,H);
+  // cabeçalho
+  var g=ctx.createLinearGradient(0,0,W,140);g.addColorStop(0,'#0D1524');g.addColorStop(1,'#111E32');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,140);
+  ctx.fillStyle='#1D9E75';ctx.fillRect(0,0,W,8);
+  ctx.textAlign='left';
+  ctx.fillStyle='#5DCAA5';ctx.font='bold 22px '+F;
+  ctx.fillText((_timeNome||'').toUpperCase()+' '+(_timeEmoji||'')+' · PARCIAL DO DIA',PAD,52);
+  ctx.fillStyle='#FFFFFF';ctx.font='bold 54px '+F;
+  ctx.fillText(dataBR,PAD,112);
+  var dw=ctx.measureText(dataBR+'  ').width;
+  ctx.fillStyle='#5DCAA5';ctx.fillText(periodoLabel,PAD+dw,112);
+  // KPIs
+  var ky=140,kh=150,kw=W/3;
+  var kpis=[{l:'VENDAS',v:String(totais.vendas),c:'#1D9E75'},{l:'UPGRADE',v:String(totais.upgrade),c:'#f97316'},{l:'PRODUÇÃO',v:_brl(totais.producao),c:'#1D9E75'}];
+  kpis.forEach(function(k,i){
+    ctx.fillStyle='#0D1524';ctx.fillRect(i*kw+(i?1:0),ky,kw-(i?1:0),kh);
+    ctx.textAlign='center';
+    ctx.fillStyle='#5DCAA5';ctx.font='bold 22px '+F;ctx.fillText(k.l,i*kw+kw/2,ky+46);
+    ctx.fillStyle=k.c;ctx.font='bold '+(k.v.length>9?'56':'72')+'px '+F;ctx.fillText(k.v,i*kw+kw/2,ky+112);
   });
-  html+='</tr>';
-  _parcMembros.forEach(function(m){
+  // cabeçalho da tabela
+  var ty=ky+kh+10;
+  ctx.textAlign='left';ctx.font='bold 22px '+F;ctx.fillStyle='#5DCAA5';
+  ctx.fillText('Vendedor',PAD,ty+34);
+  var x=PAD+nameW;
+  ctx.textAlign='center';
+  ctx.fillText('Sit.',x+35,ty+34);x+=70;
+  cols.forEach(function(c){
+    ctx.fillStyle=c.destaque?'#FFFFFF':'#5DCAA5';
+    ctx.fillText(c.l,x+c.w/2,ty+34);x+=c.w;
+  });
+  ctx.fillStyle='#1E2D4A';ctx.fillRect(PAD,ty+50,W-PAD*2,2);
+  // linhas
+  var y=ty+54;
+  _parcMembros.forEach(function(m,idx){
     var d=_parcDados[m.uid]||{status:'presente'};
     var ausente=d.status!=='presente';
-    var sitLabel={'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—';
-    html+='<tr style="border-bottom:1px solid #1E2D4A;opacity:'+(ausente?'0.4':'1')+'">';
-    html+='<td style="padding:8px 6px;font-weight:700;color:#E2F0EC;font-size:13px;">'+m.nome+'</td>';
-    html+='<td style="padding:8px 4px;text-align:center;font-size:13px;">'+sitLabel+'</td>';
+    if(idx%2===1){ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(PAD,y,W-PAD*2,ROW);}
+    ctx.globalAlpha=ausente?0.4:1;
+    ctx.textAlign='left';ctx.fillStyle='#E2F0EC';ctx.font='bold 28px '+F;
+    var nome=m.nome;
+    while(ctx.measureText(nome).width>nameW-16&&nome.length>3)nome=nome.slice(0,-1);
+    if(nome!==m.nome)nome=nome.trim()+'…';
+    ctx.fillText(nome,PAD,y+42);
+    var cx=PAD+nameW;
+    ctx.textAlign='center';ctx.font='28px '+F;ctx.fillStyle='#fff';
+    ctx.fillText({'presente':'✅','ausente':'😶','afastado':'🤕','ferias':'🏖'}[d.status]||'—',cx+35,y+42);cx+=70;
     cols.forEach(function(c){
-      var val=ausente?'—':c.currency?_brl(d[c.id]||0):(d[c.id]||0);
-      var cor=c.destaque&&!ausente?'#fff':'#94A3B8';
-      var fw=c.destaque&&!ausente?'700':'400';
-      html+='<td style="padding:8px 4px;text-align:center;color:'+cor+';font-weight:'+fw+';font-size:'+(c.currency?'11':'13')+'px;">'+val+'</td>';
+      var val=ausente?'—':c.currency?_brl(d[c.id]||0):String(d[c.id]||0);
+      ctx.font=(c.destaque&&!ausente?'bold ':'')+(c.currency?'26':'30')+'px '+F;
+      ctx.fillStyle=c.destaque&&!ausente?'#FFFFFF':'#94A3B8';
+      ctx.fillText(val,cx+c.w/2,y+42);cx+=c.w;
     });
-    html+='</tr>';
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#1E2D4A';ctx.fillRect(PAD,y+ROW-1,W-PAD*2,1);
+    y+=ROW;
   });
-  // Linha de totais
-  html+='<tr style="border-top:2px solid #1D9E75;margin-top:4px;">';
-  html+='<td style="padding:8px 6px;font-weight:900;color:#1D9E75;font-size:13px;">TOTAL</td>';
-  html+='<td style="padding:8px 4px;text-align:center;font-size:11px;color:#5DCAA5;">'+presentes+' pres.</td>';
+  // total
+  ctx.fillStyle='#1D9E75';ctx.fillRect(PAD,y+4,W-PAD*2,3);
+  ctx.textAlign='left';ctx.fillStyle='#1D9E75';ctx.font='bold 30px '+F;
+  ctx.fillText('TOTAL',PAD,y+52);
+  var tx=PAD+nameW;
+  ctx.textAlign='center';ctx.font='22px '+F;ctx.fillStyle='#5DCAA5';
+  ctx.fillText(presentes+' pres.',tx+35,y+52);tx+=70;
   cols.forEach(function(c){
-    var totStr=c.currency?_brl(totais[c.id]):totais[c.id];
-    html+='<td style="padding:8px 4px;text-align:center;font-weight:900;color:#1D9E75;font-size:'+(c.currency?'11':'14')+'px;">'+totStr+'</td>';
+    ctx.font='bold '+(c.currency?'26':'32')+'px '+F;ctx.fillStyle='#1D9E75';
+    ctx.fillText(c.currency?_brl(totais[c.id]):String(totais[c.id]),tx+c.w/2,y+52);tx+=c.w;
   });
-  html+='</tr>';
-  html+='</table></div>';
-  html+='<div style="padding:10px 18px;border-top:1px solid #1E2D4A;text-align:center;">';
-  html+='<div style="font-size:9px;color:#3A4A5A;">Red Sea Digital · '+_timeNome+'</div></div>';
-  html+='</div>';
-  card.innerHTML=html;
-  modal.style.display='block';
-  modal.scrollTop=0;
+  ctx.textAlign='center';ctx.font='20px '+F;ctx.fillStyle='#3A4A5A';
+  ctx.fillText('Red Sea Digital · '+(_timeNome||''),W/2,H-22);
+}
+function parcCopiarPrint(){
+  var canvas=document.getElementById('parc-canvas');
+  if(!canvas)return;
+  canvas.toBlob(function(blob){
+    if(!blob){toast('Não foi possível gerar a imagem.','#c0392b');return;}
+    var nome='parcial_'+_parcData+'_'+_parcPeriodo;
+    if(navigator.clipboard&&window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+        toast('Imagem copiada! Cole no grupo 📋');
+      }).catch(function(){_baixarImagemFallback(blob,nome);});
+    } else {_baixarImagemFallback(blob,nome);}
+  },'image/png');
+}
+function parcBaixarPrint(){
+  var canvas=document.getElementById('parc-canvas');
+  if(!canvas)return;
+  canvas.toBlob(function(blob){
+    if(!blob)return;
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='parcial_'+_parcData+'_'+_parcPeriodo+'.png';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  },'image/png');
 }
 
 function gPDFCnpj(){

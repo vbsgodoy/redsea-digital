@@ -729,7 +729,8 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
         <div style="font-size:14px;font-weight:700;color:var(--t);font-family:monospace;">52.197.309/0001-17</div></div>
         <button onclick="copiarChave(this)" data-txt="52.197.309/0001-17" style="padding:8px 14px;border:none;border-radius:8px;background:#111;color:#fff;font-family:inherit;font-weight:600;font-size:12px;cursor:pointer;">Copiar CNPJ</button>
       </div></div>
-      <div class="aa"><button class="btn be" onclick="whSinal()">WhatsApp</button><button class="btn bp" onclick="emailSinal()">E-mail</button><button class="btn bl" onclick="limparSinal()">Limpar</button></div></div>
+      <div id="sinal-link-box" style="display:none;padding:0 24px 14px;"><div style="background:var(--ce);border:1px solid var(--cb);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:center;"><input type="text" id="sinal_link" readonly style="flex:1;min-width:0;font-size:12px;font-family:monospace;"/><button class="btn bs2" onclick="copiarLinkSinal()">Copiar link</button></div></div>
+      <div class="aa"><button class="btn bs2" onclick="gerarLinkSinal()">🔗 Gerar link</button><button class="btn be" onclick="whSinal()">WhatsApp</button><button class="btn bp" onclick="emailSinal()">E-mail</button><button class="btn bl" onclick="limparSinal()">Limpar</button></div></div>
     </div>
   </div>
 </div>
@@ -5841,6 +5842,43 @@ function limparPix(){
   document.getElementById('pix_cons').value='';toast('🧹 Tudo limpo!');
 }
 
+// ===== ENVIO (WhatsApp / E-mail) =====
+function _wpag(msg){
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+function _epag(assunto,corpo){
+  _assunto=assunto;_corpo=corpo;
+  abModal();
+}
+
+// ===== LINK DO SINAL (pagina para o cliente) =====
+function _sinalLink(){
+  function val(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+  var p=new URLSearchParams();
+  [['n','sinal_nome'],['v','sinal_valor'],['d2','sinal_data2'],['v2','sinal_valor2'],['c','sinal_cons'],['w','sinal_wcons']].forEach(function(x){
+    var t=val(x[1]);if(t)p.set(x[0],t);
+  });
+  var u=new URL('sinal.html',location.href);
+  u.search='';u.hash=p.toString();
+  return u.href;
+}
+function gerarLinkSinal(){
+  var link=_sinalLink();
+  var box=document.getElementById('sinal-link-box');
+  var inp=document.getElementById('sinal_link');
+  if(inp)inp.value=link;
+  if(box)box.style.display='block';
+  copiarLinkSinal();
+}
+function copiarLinkSinal(){
+  var inp=document.getElementById('sinal_link');
+  if(!inp)return;
+  var ok=function(){toast('🔗 Link copiado! Envie para o cliente');};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(inp.value).then(ok).catch(function(){inp.select();document.execCommand('copy');ok();});
+  } else {inp.select();document.execCommand('copy');ok();}
+}
+
 function whSinal(){
   var n=document.getElementById('sinal_nome').value.trim()||'cliente';
   var v1=document.getElementById('sinal_valor').value.trim()?'R$ '+document.getElementById('sinal_valor').value.trim():'';
@@ -5852,6 +5890,7 @@ function whSinal(){
   msg+=(v1?'Valor: '+v1+'\n':'');
   msg+='\nATENCAO: Pague EXCLUSIVAMENTE para a Digital Consorcio LTDA.\nNao envie para a Ancora - ela interpretaria como pagamento integral.\n';
   if(d2||v2){msg+='\n2a PARCELA - AGENDAMENTO\n'+(d2?'Data: '+d2+'\n':'')+(v2?'Valor: '+v2+'\n':'');}
+  msg+='\nPasso a passo e explicacao (por que pagar para a Digital):\n'+_sinalLink()+'\n';
   msg+='\nApos o pagamento, me avise!\n\n'+c+'\nConsultor | Digital Consorcio LTDA';
   _wpag(msg);
 }
@@ -6461,7 +6500,9 @@ function limparCartao(){
 
 function limparSinal(){
   ['sinal_nome','sinal_valor','sinal_data2','sinal_valor2','sinal_wcons','sinal_email'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-  document.getElementById('sinal_cons').value='';toast('🧹 Tudo limpo!');
+  document.getElementById('sinal_cons').value='';
+  var lb=document.getElementById('sinal-link-box');if(lb)lb.style.display='none';
+  toast('🧹 Tudo limpo!');
 }
 
 function prevPDFCnpj(){const el=document.getElementById('pv-aprov-cnpj');document.getElementById('pv-aprov-cnpj-ct').innerHTML=buildLanceCnpj();el.classList.add('vis');el.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -6671,6 +6712,7 @@ function emailSinal(){
   corpo+=(v1?'Valor: '+v1+'\n':'');
   corpo+='\nImportante: Pagamento exclusivo para a Digital Consorcio LTDA. Se enviado a Ancora, ela interpreta como integral e gera carta menor.\n';
   if(d2||v2){corpo+='\n2a PARCELA - AGENDAMENTO\n'+(d2?'Data: '+d2+'\n':'')+(v2?'Valor: '+v2+'\n':'');}
+  corpo+='\nPasso a passo e explicacao (por que pagar para a Digital):\n'+_sinalLink()+'\n';
   corpo+='\nAtenciosamente,\n'+c+'\nConsultor | Digital Consorcio LTDA';
   _dest=document.getElementById('sinal_email').value.trim();
   _epag('Instrucao de Pagamento - Sinal | Consorcio Kawasaki | '+n, corpo);

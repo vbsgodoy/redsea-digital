@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0B1220">
+<title>Pagamento do sinal | Digital Consórcio</title>
+<style>
+:root{--bg:#0B1220;--card:#111E32;--bd:#1E2D4A;--v:#1D9E75;--vl:#5DCAA5;--t:#E2F0EC;--tm:#94A3B8;--warn:#f59e0b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.55;min-height:100vh;}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px 40px;}
+header{padding:22px 0 10px;text-align:center;}
+.brand{font-size:12px;font-weight:800;letter-spacing:2px;color:var(--vl);text-transform:uppercase;}
+h1{font-size:22px;margin-top:8px;line-height:1.25;}
+.sub{color:var(--tm);font-size:14px;margin-top:6px;}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-top:14px;}
+.lbl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--vl);margin-bottom:6px;}
+.big{font-size:32px;font-weight:800;color:var(--v);}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--bd);font-size:14px;}
+.row:first-of-type{border-top:none;}
+.row span:first-child{color:var(--tm);}
+.row b{text-align:right;}
+.key{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;font-weight:700;letter-spacing:.5px;margin:4px 0 12px;word-break:break-all;}
+button,.btn{display:block;width:100%;padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit;}
+.b1{background:var(--v);color:#fff;}
+.b2{background:#25D366;color:#073b1d;margin-top:10px;}
+.why{border-color:#7a5a12;background:#1b1608;}
+.why h2{font-size:16px;margin-bottom:8px;color:#fcd34d;}
+.why p,.why li{font-size:14px;color:#e8dfc4;}
+.why ul{padding-left:18px;margin-top:8px;}
+.why li{margin-top:6px;}
+.steps{counter-reset:s;list-style:none;}
+.steps li{counter-increment:s;position:relative;padding-left:34px;margin-top:10px;font-size:14px;}
+.steps li:before{content:counter(s);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--v);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;}
+.foot{text-align:center;color:var(--tm);font-size:12px;margin-top:22px;}
+.hide{display:none;}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0d3b2e;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.on{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Digital Consórcio</div>
+    <h1 id="titulo">Pagamento do sinal</h1>
+    <p class="sub">Instruções para iniciar o seu processo</p>
+  </header>
+
+  <div class="card" id="c-valor">
+    <div class="lbl">1ª parcela · Sinal</div>
+    <div class="big" id="valor">—</div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Pague para (Pix · chave CNPJ)</div>
+    <div class="key" id="cnpj">52.197.309/0001-17</div>
+    <div class="row"><span>Favorecido</span><b>Digital Consorcio LTDA</b></div>
+    <button class="b1" id="btn-copiar" type="button" style="margin-top:12px;">Copiar chave Pix (CNPJ)</button>
+  </div>
+
+  <div class="card why">
+    <h2>⚠️ Por que o sinal é pago para a Digital?</h2>
+    <p>O sinal é a <b>1ª parcela</b> do seu processo e deve ser pago <b>somente para a Digital Consórcio LTDA</b>.</p>
+    <ul>
+      <li>Se o valor for enviado diretamente à Âncora, ela interpreta como <b>pagamento integral</b> e isso gera uma <b>carta de crédito menor</b> do que a prevista.</li>
+      <li>Pagando para a Digital, o sinal fica identificado como 1ª parcela e a 2ª parcela segue o agendamento combinado com você.</li>
+    </ul>
+  </div>
+
+  <div class="card hide" id="c-p2">
+    <div class="lbl">2ª parcela · Agendamento</div>
+    <div class="row" id="r-d2"><span>Data</span><b id="d2"></b></div>
+    <div class="row" id="r-v2"><span>Valor</span><b id="v2"></b></div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Passo a passo</div>
+    <ol class="steps">
+      <li>Copie a chave Pix (CNPJ) acima.</li>
+      <li>No app do seu banco, escolha Pix → chave CNPJ e cole.</li>
+      <li>Confira o favorecido: <b>Digital Consorcio LTDA</b>.</li>
+      <li>Faça o pagamento e envie o comprovante para o seu consultor.</li>
+    </ol>
+    <a class="btn b2 hide" id="btn-wpp" target="_blank" rel="noopener">Já paguei · avisar meu consultor</a>
+  </div>
+
+  <p class="foot" id="foot">Digital Consorcio LTDA · CNPJ 52.197.309/0001-17</p>
+</div>
+<div class="toast" id="toast">Chave copiada!</div>
+<script>
+(function(){
+  var p=new URLSearchParams((location.hash||'').replace(/^#/,''));
+  function g(k){return (p.get(k)||'').trim();}
+  function $(id){return document.getElementById(id);}
+  var n=g('n'),v=g('v'),d2=g('d2'),v2=g('v2'),c=g('c'),w=g('w').replace(/\D/g,'');
+  if(n)$('titulo').textContent='Olá, '+n+'! Pagamento do sinal';
+  if(v)$('valor').textContent='R$ '+v; else $('c-valor').classList.add('hide');
+  if(d2||v2){
+    $('c-p2').classList.remove('hide');
+    if(d2)$('d2').textContent=d2; else $('r-d2').classList.add('hide');
+    if(v2)$('v2').textContent='R$ '+v2; else $('r-v2').classList.add('hide');
+  }
+  if(c)$('foot').textContent='Seu consultor: '+c+' · Digital Consorcio LTDA · CNPJ 52.197.309/0001-17';
+  if(w.length>=10){
+    var num=w.indexOf('55')===0&&w.length>=12?w:'55'+w;
+    var msg='Olá'+(c?', '+c:'')+'! Sou '+(n||'cliente')+' e acabei de fazer o pagamento do sinal. Segue o comprovante.';
+    var a=$('btn-wpp');a.href='https://wa.me/'+num+'?text='+encodeURIComponent(msg);a.classList.remove('hide');
+  }
+  function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(function(){e.classList.remove('on');},1800);}
+  $('btn-copiar').addEventListener('click',function(){
+    var chave='52.197.309/0001-17';
+    function fallback(){var ta=document.createElement('textarea');ta.value=chave;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Chave copiada!');}catch(e){toast('Copie manualmente: '+chave);}document.body.removeChild(ta);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(chave).then(function(){toast('Chave copiada!');}).catch(fallback);}else fallback();
+  });
+})();
+</script>
+</body>
+</html>

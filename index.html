@@ -440,6 +440,13 @@ html[data-visual="novo"] #tab-parciais .fc{overflow:visible;}
 html[data-visual="novo"] #tab-parciais .aa button:nth-child(2){box-shadow:inset 0 0 0 1px var(--ln2)!important;}
 html[data-visual="novo"] #parc-historico-lista{padding-top:6px;}
 html[data-visual="novo"] .emo{display:none;}
+html[data-visual="novo"] #parc-print-modal{background:var(--p)!important;}
+html[data-visual="novo"] #parc-print-modal>div>button{border:none!important;box-shadow:inset 0 0 0 1px var(--ln2);color:var(--t)!important;border-radius:999px!important;padding:10px 20px!important;font-size:13px!important;}
+html[data-visual="novo"] #parc-print-modal>div>div:nth-child(2){color:var(--tm)!important;font-size:13px!important;}
+html[data-visual="novo"] #parc-canvas{border-radius:20px!important;}
+html[data-visual="novo"] #parc-print-card button{border-radius:999px!important;padding:15px!important;font-size:14px!important;border:none!important;}
+html[data-visual="novo"] #parc-print-card button:first-of-type{background:var(--btn)!important;color:var(--on-btn)!important;}
+html[data-visual="novo"] #parc-print-card button:last-of-type{background:transparent!important;color:var(--t)!important;box-shadow:inset 0 0 0 1px var(--ln2);}
 
 /* ---- Script em tela cheia ---- */
 html[data-visual="novo"] #script-fullscreen{background:var(--p)!important;}
@@ -6789,9 +6796,95 @@ function parcGerarPrint(){
   modal.scrollTop=0;
   _parcDesenharPrint();
 }
+var _parcFontTent=false;
+function _parcDesenharPrintNovo(canvas){
+  if(document.fonts&&!document.fonts.check('800 20px Unbounded')&&!_parcFontTent){
+    _parcFontTent=true;
+    Promise.all([document.fonts.load('800 20px Unbounded'),document.fonts.load('700 20px Unbounded'),document.fonts.load('600 20px Inter')]).then(function(){_parcDesenharPrint();}).catch(function(){});
+  }
+  var dark=document.documentElement.getAttribute('data-theme')==='dark';
+  var bg=dark?'#0A0E0D':'#F3F5F1',tx=dark?'#EDF3F0':'#0B1512',mu=dark?'#8A9A93':'#5B6B64',gr=dark?'#22D39A':'#0A8A5E',ln=dark?'rgba(255,255,255,.1)':'rgba(10,20,16,.12)';
+  var D='Unbounded, Arial, sans-serif',B='Inter, Arial, sans-serif';
+  var agora=new Date();
+  var hora=String(agora.getHours()).padStart(2,'0')+'h'+String(agora.getMinutes()).padStart(2,'0');
+  var pd=_parcData.split('-');
+  var meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var dataTxt=parseInt(pd[2],10)+' de '+meses[parseInt(pd[1],10)-1];
+  var cols=[
+    {id:'campanha',l:'Camp.',w:84},{id:'dados',l:'Fichas',w:90},{id:'aprovacoes',l:'Aprov.',w:90},{id:'contratos',l:'Contr.',w:90},
+    {id:'vendas',l:'Vendas',w:100,d:true},{id:'premium',l:'Prem.',w:84},{id:'normal',l:'Norm.',w:84},
+    {id:'upgrade',l:'Upgr.',w:100,d:true},{id:'producao',l:'Produção',w:210,c:true,d:true}
+  ];
+  var tot={};
+  cols.forEach(function(c){var t=0;_parcMembros.forEach(function(m){var d=_parcDados[m.uid]||{};if(d.status==='presente')t+=parseFloat(d[c.id]||0);});tot[c.id]=t;});
+  var W=1400,PAD=56,ROW=68,nameW=W-PAD*2-cols.reduce(function(a,c){return a+c.w;},0);
+  var H=250+210+40+70+_parcMembros.length*ROW+110+60;
+  canvas.width=W;canvas.height=H;
+  var ctx=canvas.getContext('2d');
+  function ls(x){try{ctx.letterSpacing=x;}catch(e){}}
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  ls('0px');ctx.fillStyle=mu;ctx.font='500 26px '+B;
+  ctx.fillText((_timeNome||'')+' · Parcial do dia',PAD,86);
+  ls('-3px');ctx.fillStyle=tx;ctx.font='800 70px '+D;ctx.fillText(dataTxt,PAD,168);
+  ls('0px');ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 28px '+B;ctx.fillText(pd[2]+'/'+pd[1]+'/'+pd[0]+' · '+hora,W-PAD,166);
+  // blocos
+  var ky=210,kh=210,gap=18,kwT=W-PAD*2-gap*2,u=kwT/3.9;
+  var ws=[u,u,u*1.9],xs=[PAD,PAD+ws[0]+gap,PAD+ws[0]+ws[1]+gap*2];
+  var bl=[{l:'Vendas',v:String(tot.vendas),bg:'#22D39A',c:'#06281D',big:true},{l:'Upgrades',v:String(tot.upgrade),bg:'#FF7A45',c:'#2A0E02',big:true},{l:'Produção',v:_brl(tot.producao),bg:dark?'#EDF3F0':'#0B1512',c:dark?'#0A0E0D':'#F3F5F1'}];
+  bl.forEach(function(k,i){
+    ctx.fillStyle=k.bg;rr(xs[i],ky,ws[i],kh,30);ctx.fill();
+    ctx.textAlign='left';ctx.fillStyle=k.c;ctx.globalAlpha=.85;ls('0px');ctx.font='600 26px '+B;ctx.fillText(k.l,xs[i]+34,ky+56);ctx.globalAlpha=1;
+    ls('-5px');ctx.font='800 '+(k.big?'108':(k.v.length>12?'50':'58'))+'px '+D;ctx.fillText(k.v,xs[i]+30,ky+kh-34);
+  });
+  ls('0px');
+  // cabeçalho da tabela
+  var ty=ky+kh+60;
+  ctx.textAlign='left';ctx.font='500 22px '+B;ctx.fillStyle=mu;ctx.fillText('Vendedor',PAD,ty);
+  var x=PAD+nameW;ctx.textAlign='center';
+  cols.forEach(function(c){ctx.fillStyle=c.d?tx:mu;ctx.fillText(c.l,x+c.w/2,ty);x+=c.w;});
+  ctx.fillStyle=ln;ctx.fillRect(PAD,ty+22,W-PAD*2,2);
+  var y=ty+24;
+  var stTxt={'presente':'','ausente':'ausente','afastado':'afastado','ferias':'férias'};
+  _parcMembros.forEach(function(m){
+    var d=_parcDados[m.uid]||{status:'presente'};
+    var aus=d.status!=='presente';
+    ctx.globalAlpha=aus?.42:1;
+    ctx.textAlign='left';ctx.fillStyle=tx;ctx.font='600 28px '+B;
+    var maxW=nameW-(aus?150:40);
+    var nome=m.nome;while(ctx.measureText(nome).width>maxW&&nome.length>3)nome=nome.slice(0,-1);
+    if(nome!==m.nome)nome=nome.trim()+'…';
+    ctx.fillText(nome,PAD,y+44);
+    var nw=ctx.measureText(nome).width;
+    ctx.fillStyle=aus?'#6B7A74':'#22D39A';ctx.beginPath();ctx.arc(PAD+nw+22,y+35,6,0,Math.PI*2);ctx.fill();
+    if(aus){ctx.fillStyle=mu;ctx.font='400 22px '+B;ctx.fillText(stTxt[d.status]||'',PAD+nw+38,y+43);}
+    var cx=PAD+nameW;ctx.textAlign='center';
+    cols.forEach(function(c){
+      var val=aus?'—':c.c?_brl(d[c.id]||0):String(d[c.id]||0);
+      ctx.font=(c.d&&!aus?'700 ':'400 ')+(c.c?'26':'30')+'px '+B;
+      ctx.fillStyle=c.d&&!aus?tx:mu;
+      ctx.fillText(val,cx+c.w/2,y+44);cx+=c.w;
+    });
+    ctx.globalAlpha=1;
+    ctx.fillStyle=ln;ctx.fillRect(PAD,y+ROW-1,W-PAD*2,1);
+    y+=ROW;
+  });
+  var pres=_parcMembros.filter(function(m){return (_parcDados[m.uid]||{}).status==='presente';}).length;
+  ctx.textAlign='left';ls('-1px');ctx.fillStyle=gr;ctx.font='700 30px '+D;ctx.fillText('Total',PAD,y+62);
+  ls('0px');ctx.fillStyle=mu;ctx.font='400 22px '+B;ctx.fillText(pres+' presentes',PAD+130,y+60);
+  var tx2=PAD+nameW;ctx.textAlign='center';
+  cols.forEach(function(c){
+    ls(c.c?'0px':'-1px');ctx.font='700 '+(c.c?'27px '+B:'34px '+D);ctx.fillStyle=gr;
+    ctx.fillText(c.c?_brl(tot[c.id]):String(tot[c.id]),tx2+c.w/2,y+62);tx2+=c.w;
+  });
+  ls('0px');ctx.textAlign='center';ctx.font='400 20px '+B;ctx.fillStyle=mu;
+  ctx.fillText('Red Sea Digital · '+(_timeNome||''),W/2,H-26);
+}
 function _parcDesenharPrint(){
   var canvas=document.getElementById('parc-canvas');
   if(!canvas)return;
+  if(document.documentElement.getAttribute('data-visual')==='novo'){_parcDesenharPrintNovo(canvas);return;}
   var agora=new Date();
   var periodoLabel=String(agora.getHours()).padStart(2,'0')+'h'+String(agora.getMinutes()).padStart(2,'0');
   var dataBR=_parcData.split('-').reverse().join('/');

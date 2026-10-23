@@ -1271,6 +1271,7 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
       </div>
       <div class="fc">
         <div class="sh"><span id="an-titulo">1. Abertura e apresentação</span></div>
+        <div id="an-tom"></div>
         <div style="padding:28px 32px;">
           <div id="an-texto" contenteditable="true" style="font-size:19px;line-height:1.9;color:var(--t);white-space:pre-wrap;min-height:200px;outline:none;"></div>
         </div>
@@ -4951,6 +4952,22 @@ var SCRIPT_ANALISE=[
 }
 ];
 var anIndex=0;
+var SCRIPT_ANALISE_TOM=[
+{e:"😄",k:"alegre",curto:"Alegre demais!!",d:"Alegre demais!! Demonstre o prazer de falar com o cliente."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"😊",k:"alegre",curto:"Alegre e amigável",d:"Alegre e amigável. Converse, crie conexão com o cliente."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"🎯",k:"enfase",curto:"ÊNFASE na 1ª parcela",d:"ÊNFASE! A primeira parcela é o ponto mais importante: aumente a entonação e garanta que fique CLARO."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"🎉",k:"alegre",curto:"Alegre demais!!",d:"Alegre demais!! Hora de comemorar com o cliente."},
+{e:"🔥",k:"persuasivo",curto:"Persuasivo, alegre e com tensão",d:"Persuasivo, alegre e criando tensão para o bem: é uma decisão importante. Aumente a entonação."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"😌",k:"calmo",curto:"Calmo",d:"Calmo, tranquilo, passando segurança."},
+{e:"🎉",k:"alegre",curto:"Alegre demais!!",d:"Alegre demais!! Encerre com energia lá em cima."}
+];
+var _tomCor={alegre:["#f59e0b","rgba(245,158,11,0.12)"],calmo:["#0ea5e9","rgba(14,165,233,0.10)"],enfase:["#dc2626","rgba(220,38,38,0.10)"],persuasivo:["#9333ea","rgba(147,51,234,0.10)"]};
 var ligIndex=0;
 function _marcaScript(){
   var m=((document.getElementById('script_marca')||{}).value)||'kw';
@@ -5019,8 +5036,14 @@ function renderAnalise(){
   if(idx){
     idx.innerHTML=SCRIPT_ANALISE.map(function(x,i){
       var on=(i===anIndex);
-      return '<button onclick="anIr('+i+')" style="padding:6px 12px;border-radius:8px;border:1px solid '+(on?'var(--v)':'var(--cb)')+';background:'+(on?'var(--v)':'var(--ce)')+';color:'+(on?'#fff':'var(--t)')+';cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">'+x.t+'</button>';
+      return '<button onclick="anIr('+i+')" style="padding:6px 12px;border-radius:8px;border:1px solid '+(on?'var(--v)':'var(--cb)')+';background:'+(on?'var(--v)':'var(--ce)')+';color:'+(on?'#fff':'var(--t)')+';cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">'+SCRIPT_ANALISE_TOM[i].e+' '+x.t+'</button>';
     }).join('');
+  }
+  var tomEl=document.getElementById('an-tom');
+  if(tomEl){
+    var tm=SCRIPT_ANALISE_TOM[anIndex],cr=_tomCor[tm.k]||_tomCor.calmo;
+    tomEl.style.cssText='margin:18px 32px 0;padding:12px 16px;border-radius:10px;border-left:5px solid '+cr[0]+';background:'+cr[1]+';font-size:14px;font-weight:700;color:'+cr[0]+';';
+    tomEl.textContent='🎭 TOM DE VOZ: '+tm.d;
   }
   var t=document.getElementById('an-titulo'),x=document.getElementById('an-texto'),c=document.getElementById('an-contador');
   if(t)t.textContent=b.t;
@@ -5038,7 +5061,7 @@ function anCopiar(){
 }
 function anCopiarTudo(){
   var v=_scriptVars();
-  var t=SCRIPT_ANALISE.map(function(b){return b.t.toUpperCase()+'\n\n'+_scriptFill(b.c,v);}).join('\n\n----------\n\n');
+  var t=SCRIPT_ANALISE.map(function(b){return b.t.toUpperCase()+'\n[TOM DE VOZ: '+SCRIPT_ANALISE_TOM[SCRIPT_ANALISE.indexOf(b)].d+']\n\n'+_scriptFill(b.c,v);}).join('\n\n----------\n\n');
   navigator.clipboard.writeText(t).then(function(){toast('Script de análise copiado! 📋');});
 }
 function ligNav(dir){
@@ -5084,7 +5107,7 @@ function _fsRender(){
   var arr=_fsArray();
   var b=arr[_fsIndex];
   var vars=_scriptVars();
-  document.getElementById('fs-titulo').textContent=b.t;
+  document.getElementById('fs-titulo').textContent=(_fsTipo==='analise'&&SCRIPT_ANALISE_TOM[_fsIndex])?(SCRIPT_ANALISE_TOM[_fsIndex].e+' '+b.t+'  ·  TOM: '+SCRIPT_ANALISE_TOM[_fsIndex].curto):b.t;
   document.getElementById('fs-texto').textContent=_scriptFill(b.c,vars);
   document.getElementById('fs-contador').textContent='ETAPA '+(_fsIndex+1)+' / '+arr.length;
   document.getElementById('fs-prev').disabled=(_fsIndex===0);

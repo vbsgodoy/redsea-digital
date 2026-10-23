@@ -1225,12 +1225,16 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
         <div class="fi"><label>Nome do consultor</label><input type="text" id="script_consultor" value="Vitor Godoy" oninput="renderScripts()"/></div>
         <div class="fi"><label>Modelo da moto</label><input type="text" id="script_modelo" placeholder="Ex: Z900" oninput="renderScripts()"/></div>
         <div class="fi"><label>Ano</label><input type="text" id="script_ano" placeholder="Ex: 2026" oninput="renderScripts()"/></div>
+        <div class="fi"><label>Marca / Administradora (script de Análise)</label><select id="script_marca" onchange="renderScripts()"><option value="kw">Kawasaki · Âncora</option><option value="bmw">BMW · Recon</option><option value="vw">Volkswagen · Embracon</option><option value="imovel">Imóvel · Âncora</option></select></div>
+        <div class="fi"><label>Nome do analista (script de Análise)</label><input type="text" id="script_analista" value="Vitor Godoy" oninput="renderScripts()"/></div>
+        <div class="fi"><label>Consultor(a) que atendeu o cliente</label><input type="text" id="script_consultor_cli" placeholder="Ex: Mariana" oninput="renderScripts()"/></div>
       </div>
       <div style="padding:0 24px 16px;font-size:11px;color:var(--tm);"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Light%20bulb/3D/light_bulb_3d.png" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;" onerror="this.style.display=&quot;none&quot;;"> O valor das parcelas e outros números você ajusta direto no texto de cada etapa, na hora.</div>
     </div>
     <div class="subtabs" style="margin-bottom:16px;">
       <button class="stab ac" id="stab-script-digital" onclick="subaScript('digital',this)"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Mobile%20phone/3D/mobile_phone_3d.png" style="width:15px;height:15px;object-fit:contain;vertical-align:middle;" onerror="this.style.display=&quot;none&quot;;"> Insta / WhatsApp</button>
       <button class="stab" id="stab-script-ligacao" onclick="subaScript('ligacao',this)"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Telephone%20receiver/3D/telephone_receiver_3d.png" style="width:15px;height:15px;object-fit:contain;vertical-align:middle;" onerror="this.style.display=&quot;none&quot;;"> Ligação</button>
+      <button class="stab" id="stab-script-analise" onclick="subaScript('analise',this)">🔍 Análise</button>
     </div>
 
     <div id="script-digital">
@@ -1257,6 +1261,30 @@ html:not([data-theme="dark"]) .sb-nav-item.active{color:#1D9E75;}
           <button class="btn be" onclick="ligNav(1)" id="lig-next">Próxima →</button>
         </div>
         <div style="padding:0 0 4px;"><button class="btn bs2" style="width:100%;" onclick="abrirTelaCheia('ligacao')">🖥️ Modo Tela Cheia</button></div>
+      </div>
+    </div>
+
+    <div id="script-analise" style="display:none;">
+      <div class="fc" style="margin-bottom:14px;">
+        <div class="sh">📋 Tópicos da análise</div>
+        <div id="an-indice" style="padding:10px 16px 14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+      <div class="fc">
+        <div class="sh"><span id="an-titulo">1. Abertura e apresentação</span></div>
+        <div style="padding:28px 32px;">
+          <div id="an-texto" contenteditable="true" style="font-size:19px;line-height:1.9;color:var(--t);white-space:pre-wrap;min-height:200px;outline:none;"></div>
+        </div>
+        <div class="sd"></div>
+        <div class="aa" style="justify-content:space-between;align-items:center;">
+          <button class="btn bl" onclick="anNav(-1)" id="an-prev">← Anterior</button>
+          <span id="an-contador" style="font-size:12px;color:var(--tm);font-weight:600;letter-spacing:1px;"></span>
+          <button class="btn be" onclick="anNav(1)" id="an-next">Próximo →</button>
+        </div>
+        <div class="aa">
+          <button class="btn bs2" onclick="anCopiar()">📋 Copiar tópico</button>
+          <button class="btn bs2" onclick="anCopiarTudo()">📋 Copiar script inteiro</button>
+          <button class="btn bs2" onclick="abrirTelaCheia('analise')">🖥️ Modo Tela Cheia</button>
+        </div>
       </div>
     </div>
   </div><!-- /page-content -->
@@ -4868,17 +4896,85 @@ var SCRIPT_LIGACAO=[
 {t:"Etapa 9 — Fechamento: Análise e Faixa de Lance",c:"Vamos falar sobre a sua análise agora.\n\nEssa etapa é a mais importante de todo o processo. 👊\n\nÉ justamente aqui que fazemos a análise para definir um valor de lance que tenha reais chances de contemplação. Por isso, precisamos ser bem assertivos.\n\nPelas análises mais recentes (nas últimas 3 assembleias), o valor ideal fica entre (R$ tantos mil) e (R$ tantos mil).\nEssa é a faixa de lance que tem proporcionado contemplações de forma mais rápida para os nossos clientes.\n\nE pode ficar tranquilo: caso consigamos a liberação desse valor, ele não sai do seu bolso.\nEsse benefício é disponibilizado pela Kawasaki, em parceria com a Âncora Administradora, para aumentar as chances de contemplação."},
 {t:"Etapa 10 — Fechamento: Confirmação e Pagamento",c:"Perfeito! Então já definimos o valor de lance que vamos buscar para a sua aprovação. Agora só preciso da sua última confirmação.\n\nCaso a Kawasaki aprove esse valor para o seu perfil, nós vamos efetivar essa condição no seu contrato, realizar o seu cadastro no grupo e garantir a sua participação na próxima assembleia.\nPara assegurar essa condição, basta realizar o pagamento da 1ª parcela, no valor de (R$).\n\nSem essa etapa, infelizmente não conseguimos concluir o cadastro e a oportunidade do Plano Inteligente não poderá ser reservada para você.\nImportante: o pagamento só será realizado após a aprovação do seu perfil no plano.\n\nAgora me diga, qual forma de pagamento fica melhor para você?\n\n✅ Pix\n✅ Boleto\n✅ Cartão de Crédito em até 2x sem juros"}
 ];
+var SCRIPT_ANALISE=[
+{
+"t": "1. Abertura e apresentação",
+"c": "Olá, {{cliente}}! Bom dia, meu amigo, tudo bem?\n\nMuito prazer, eu sou {{analista}} e faço parte do time de análise do Consórcio {{marca}}.\n\nEstou entrando em contato referente ao plano que você está dando andamento junto com {{consultor_cliente}}, para {{bem_art}} {{modelo}} {{ano}}, dentro do nosso Plano Inteligente.\n\nAntes de a gente dar continuidade ao seu atendimento, gostaria de fazer uma pergunta: você tem alguma pergunta ou alguma dúvida que gostaria de tirar comigo antes de darmos andamento?\n\n(Espere a resposta do cliente.)"
+},
+{
+"t": "2. Alinhamento sobre o Plano Inteligente",
+"c": "Perfeito, maravilha! Já que não tem nenhuma pergunta (ou já respondi a que você fez), vamos fazer o seguinte: quero entender se a gente está realmente alinhado, tá bom?\n\n✔ Você entendeu que o Plano Inteligente é um modelo em que, através do consórcio, a gente consegue fazer com que os nossos clientes sejam contemplados de forma rápida, correto?\n\n✔ Você entendeu também que esta etapa da nossa análise é a etapa mais importante do processo? É através dela que a gente sabe se você vai ser aprovado(a) e qual o valor de lance que conseguimos aprovar para você, correto?\n\n✔ E, caso seja aprovado um valor de lance para você, você não paga por ele — nem no começo, nem no meio e nem no final do seu plano, certo?\n\n(Espere a confirmação em cada ponto.)\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "3. Confirmação dos dados pessoais",
+"c": "Perfeito, então vamos dar andamento. Vou fazer algumas confirmações, tá bom?\n\n• O seu nome é (nome completo)?\n• Confirma para mim a sua data de nascimento.\n• Confirma também o seu CPF.\n• Confirma também o seu RG, por gentileza.\n• O seu e-mail é (e-mail)? (Leia sem falar o nome.)\n• O nome da sua mãe é (nome da mãe)?\n\n(Confira cada resposta com a ficha cadastral.)\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "4. Conhecendo o cliente",
+"c": "Maravilha, perfeito, amigo. Vou te fazer algumas perguntas e você vai me respondendo, tá bom?\n\n• Onde você conheceu o nosso plano? Por onde? E o que mais chamou a sua atenção?\n• Você já teve {{ja_teve}} antes? (Trabalhamos com várias marcas: Kawasaki, BMW, Volkswagen e imóveis — fale da que fizer sentido.)\n• O Plano Inteligente você já conhecia ou é a primeira vez?\n\n💡 Como reagir (a seu critério, conforme o cliente):\n\n▸ Se for a PRIMEIRA vez:\n\"Que bacana! Eu fico muito feliz de ter você aqui, porque eu não vou fazer parte apenas de uma conquista para você — vou fazer parte da sua PRIMEIRA conquista com a gente.\"\n\n▸ Se JÁ TEVE:\n\"Caramba, que legal! Então a gente fica muito feliz de fazer parte do seu retorno para a marca. Deus abençoe, meu amigo!\"\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "5. Endereço, profissão e contato",
+"c": "Legal, perfeito. Então vamos dar seguimento. Vou confirmar o seu endereço:\n\n• CEP:\n• Rua:\n• Bairro:\n• Cidade:\n• Estado:\n\nE agora:\n• Sua profissão é (profissão), correto?\n• A sua renda é (valor)?\n• O número para contato é (telefone)?\n\n(Confira cada resposta com a ficha cadastral.)\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "6. Plano: parcelas, vencimento e 1ª parcela",
+"c": "Perfeito. Vamos confirmar agora o seu plano {{bem}}:\n\n• {{bem_art}} é (modelo), ano (ano), correto?\n• O valor das parcelas ficou em (R$), dentro de um plano de (70) vezes, ok?\n(O prazo pode mudar: não precisa ser 70, pode ser 65 etc. Ajuste conforme o plano do cliente.)\n\nAs demais parcelas, caso dê tudo certo na análise, a gente consegue deixar em três possibilidades de data de vencimento: dia 10, dia 20 ou dia 30. Os boletos vão chegar para você por e-mail e também pelo aplicativo. Qual data fica mais interessante para você?\n\n(Registre a data escolhida no sistema.)\n\nE sobre a primeira parcela: {{consultor_cliente}} já deixou claro que, dando tudo certo, você já precisaria finalizar o pagamento na data de hoje — podendo ser comigo ou com o(a) consultor(a). Correto?\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "7. Média de lance e expectativa",
+"c": "Perfeito, maravilha. Vamos dar seguimento.\n\n{{consultor_cliente}} chegou a passar para você a média de lance que tem feito os clientes serem contemplados de forma rápida? Passou? Qual foi o valor?\n\n(Se não passou, apresente a média.)\n\nOlhando realmente para os últimos 3 meses, esse é o valor de lance que tem feito os nossos clientes conseguirem a contemplação de uma forma muito mais rápida. Então precisa ficar bem claro para você: você precisa, realmente, de pelo menos (R$ tanto) para que a gente consiga ter sucesso e cumprir com o seu objetivo. Esse é o nosso trabalho, tudo bem?\n\nFicou claro?\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "8. Última etapa: mudo + pesquisa de satisfação",
+"c": "Vou para a última etapa da nossa análise. A ligação vai ficar no mudo. Peço, por gentileza, que você não desligue e continue na linha, que em alguns instantes eu já te passo o resultado, tá bom? Obrigado!\n\n⏱ AÇÃO INTERNA: coloque a ligação no mudo e aguarde cerca de 1 minuto.\n\nAo voltar:\n\"Opa, amigo, está me escutando? Perfeito. Antes de finalizarmos o processo, temos uma pesquisa para melhorar sempre o atendimento dos nossos consultores. De 0 a 10, qual nota você daria como feedback para o atendimento de {{consultor_cliente}}?\"\n\n▸ Nota BOA: \"Obrigado pelo feedback! O que fez você dar essa nota?\"\n▸ Nota RUIM: \"Caramba, que pena. Qual foi o motivo? O que fez você dar essa nota?\"\n\n\"Perfeito, obrigado pelo feedback! Já estamos quase finalizando.\"\n\n❓ Ficou alguma dúvida nesse tópico?\n\n\"Aguarda mais um pouquinho que eu já volto.\"\n⏱ AÇÃO INTERNA: mudo por mais cerca de 1 minuto."
+},
+{
+"t": "9. Resultado da análise",
+"c": "\"Maravilha, meu amigo! Está conseguindo me escutar? Vamos lá!\n\n{{cliente}}, você foi APROVADO(A) no Plano Inteligente do Consórcio {{marca}}! E não só foi aprovado(a): foi disponibilizado um valor de lance de (R$ valor) para você.\n\nÉ um valor muito alto e que, de fato, faz com que a gente consiga cumprir com o seu objetivo e ter sucesso com ele.\n\nVocê ficou feliz? Ficou contente?\"\n\n(Comemore junto com o cliente: \"Que legal! Fico muito feliz também.\")\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "10. Confirmação final e boas-vindas",
+"c": "Vamos lá, então, para a gente dar seguimento. Vou encaminhar para você o aplicativo, para já ir instalando — você vai precisar ter acesso a ele, tá bom?\n\nE preciso de uma última confirmação sua. O valor que foi disponibilizado para você está, neste momento, no fundo de reserva da administradora ({{adm}}). Ao apertar o Enter, eu faço esse valor de lance sair da administradora e ser efetivado para você conseguir finalizar com {{consultor_cliente}}.\n\nA pergunta é a seguinte: posso desejar boas-vindas para você entrar agora com a gente na marca {{marca}}?\n\n▸ Se SIM: (aperte o Enter) \"Seja muito bem-vindo(a) à família {{marca}}!\"\n▸ Se NÃO: tire as dúvidas do cliente, pergunte o porquê, trate a objeção e volte a perguntar.\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "11. Próximos passos com o consultor",
+"c": "Maravilha! Como a gente já efetivou tudo certinho, vou pedir o seguinte: ao desligar esta ligação, entre em contato com {{consultor_cliente}} de forma imediata, para vocês finalizarem o processo juntos, tá bom?\n\nPeço também que você entenda se realmente faz sentido para você, de forma ainda mais clara do que já está neste momento: peça para o(a) consultor(a) te mostrar o grupo em que você está entrando, para ver se o seu lance realmente vai surtir efeito lá.\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "12. Alternativa: finalizar pelo analista (aplicativo)",
+"c": "💡 Use quando o consultor NÃO apresentar o grupo ou o cliente preferir finalizar agora.\n\n\"Pode ser que, neste momento, não seja possível apresentar o grupo. Nesse caso, eu mesmo posso fazer o acesso ao aplicativo e finalizar com você o pagamento lá dentro.\n\n• Você já baixou o aplicativo? Perfeito.\n• Vou te encaminhar agora um link de pagamento para você finalizar, para daqui a pouco a gente já conseguir efetivar a sua entrada no aplicativo, tá bom?\"\n\n(Envie o link pela aba Pagamento do Red Sea.)\n\n❓ Ficou alguma dúvida nesse tópico?"
+},
+{
+"t": "13. Encerramento",
+"c": "Antes de encerrarmos: até agora, ficou alguma dúvida? Ficou algum ponto que você não entendeu?\n\n(Se não:) Perfeito, {{cliente}}! Foi um prazer. Seja muito bem-vindo(a) à família {{marca}}. Deus abençoe, meu amigo!\n\n❓ Ficou alguma dúvida nesse tópico?"
+}
+];
+var anIndex=0;
 var ligIndex=0;
+function _marcaScript(){
+  var m=((document.getElementById('script_marca')||{}).value)||'kw';
+  var t={
+    kw:{marca:'Kawasaki',adm:'Âncora',bem:'moto',bem_art:'a moto',ja_teve:'uma Kawasaki'},
+    bmw:{marca:'BMW',adm:'Recon',bem:'moto',bem_art:'a moto',ja_teve:'uma BMW'},
+    vw:{marca:'Volkswagen',adm:'Embracon',bem:'carro',bem_art:'o carro',ja_teve:'um Volkswagen'},
+    imovel:{marca:'Âncora',adm:'Âncora',bem:'imóvel',bem_art:'o imóvel',ja_teve:'um imóvel'}
+  };
+  return t[m]||t.kw;
+}
 function _scriptVars(){
   return{
     cliente:(document.getElementById('script_cliente').value.trim())||'(Cliente)',
     consultor:(document.getElementById('script_consultor').value.trim())||'(Seu Nome)',
     modelo:(document.getElementById('script_modelo').value.trim())||'(Modelo)',
-    ano:(document.getElementById('script_ano').value.trim())||'(Ano)'
+    ano:(document.getElementById('script_ano').value.trim())||'(Ano)',
+    analista:((document.getElementById('script_analista')||{}).value||'').trim()||'(Analista)',
+    consultor_cliente:((document.getElementById('script_consultor_cli')||{}).value||'').trim()||'(Consultor)',
+    marca:(_marcaScript().marca),adm:(_marcaScript().adm),bem:(_marcaScript().bem),bem_art:(_marcaScript().bem_art),ja_teve:(_marcaScript().ja_teve)
   };
 }
 function _scriptFill(txt,v){
-  return txt.replace(/\{\{cliente\}\}/g,v.cliente).replace(/\{\{consultor\}\}/g,v.consultor).replace(/\{\{modelo\}\}/g,v.modelo).replace(/\{\{ano\}\}/g,v.ano);
+  return txt.replace(/\{\{([a-z_]+)\}\}/g,function(m,k){return (v[k]!==undefined)?v[k]:m;});
 }
 function renderScripts(){
   var v=_scriptVars();
@@ -4889,6 +4985,7 @@ function renderScripts(){
     }).join('');
   }
   renderLigacao();
+  renderAnalise();
 }
 function copyEtapa(id){
   var el=document.getElementById(id);
@@ -4915,6 +5012,35 @@ function renderLigacao(){
   if(prevBtn)prevBtn.disabled=(ligIndex===0);
   if(nextBtn)nextBtn.disabled=(ligIndex===SCRIPT_LIGACAO.length-1);
 }
+function renderAnalise(){
+  var v=_scriptVars();
+  var b=SCRIPT_ANALISE[anIndex];
+  var idx=document.getElementById('an-indice');
+  if(idx){
+    idx.innerHTML=SCRIPT_ANALISE.map(function(x,i){
+      var on=(i===anIndex);
+      return '<button onclick="anIr('+i+')" style="padding:6px 12px;border-radius:8px;border:1px solid '+(on?'var(--v)':'var(--cb)')+';background:'+(on?'var(--v)':'var(--ce)')+';color:'+(on?'#fff':'var(--t)')+';cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">'+x.t+'</button>';
+    }).join('');
+  }
+  var t=document.getElementById('an-titulo'),x=document.getElementById('an-texto'),c=document.getElementById('an-contador');
+  if(t)t.textContent=b.t;
+  if(x)x.textContent=_scriptFill(b.c,v);
+  if(c)c.textContent='TÓPICO '+(anIndex+1)+' / '+SCRIPT_ANALISE.length;
+  var pv=document.getElementById('an-prev'),nx=document.getElementById('an-next');
+  if(pv)pv.disabled=(anIndex===0);
+  if(nx)nx.disabled=(anIndex===SCRIPT_ANALISE.length-1);
+}
+function anIr(i){anIndex=i;renderAnalise();}
+function anNav(d){var n=anIndex+d;if(n<0||n>=SCRIPT_ANALISE.length)return;anIndex=n;renderAnalise();}
+function anCopiar(){
+  var el=document.getElementById('an-texto');if(!el)return;
+  navigator.clipboard.writeText(el.innerText).then(function(){toast('Tópico copiado! 📋');});
+}
+function anCopiarTudo(){
+  var v=_scriptVars();
+  var t=SCRIPT_ANALISE.map(function(b){return b.t.toUpperCase()+'\n\n'+_scriptFill(b.c,v);}).join('\n\n----------\n\n');
+  navigator.clipboard.writeText(t).then(function(){toast('Script de análise copiado! 📋');});
+}
 function ligNav(dir){
   var novo=ligIndex+dir;
   if(novo<0||novo>=SCRIPT_LIGACAO.length)return;
@@ -4922,9 +5048,11 @@ function ligNav(dir){
   renderLigacao();
 }
 function subaScript(id,btn){
-  var d=document.getElementById('script-digital'),l=document.getElementById('script-ligacao');
+  var d=document.getElementById('script-digital'),l=document.getElementById('script-ligacao'),a=document.getElementById('script-analise');
   if(d)d.style.display=(id==='digital'?'block':'none');
   if(l)l.style.display=(id==='ligacao'?'block':'none');
+  if(a)a.style.display=(id==='analise'?'block':'none');
+  if(id==='analise')renderAnalise();
   if(btn)btn.closest('.subtabs').querySelectorAll('.stab').forEach(function(b){b.classList.remove('ac');});
   if(btn)btn.classList.add('ac');
 }
@@ -4933,11 +5061,11 @@ function subaScript(id,btn){
 var _fsTipo=null;
 var _fsIndex=0;
 function _fsArray(){
-  return _fsTipo==='ligacao'?SCRIPT_LIGACAO:SCRIPT_DIGITAL;
+  return _fsTipo==='ligacao'?SCRIPT_LIGACAO:_fsTipo==='analise'?SCRIPT_ANALISE:SCRIPT_DIGITAL;
 }
 function abrirTelaCheia(tipo){
   _fsTipo=tipo;
-  _fsIndex=(tipo==='ligacao')?ligIndex:0;
+  _fsIndex=(tipo==='ligacao')?ligIndex:(tipo==='analise')?anIndex:0;
   document.getElementById('script-fullscreen').style.display='flex';
   _fsRender();
 }
@@ -4946,6 +5074,10 @@ function fecharTelaCheia(){
   if(_fsTipo==='ligacao'){
     ligIndex=_fsIndex;
     renderLigacao();
+  }
+  if(_fsTipo==='analise'){
+    anIndex=_fsIndex;
+    renderAnalise();
   }
 }
 function _fsRender(){

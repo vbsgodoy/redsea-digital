@@ -329,7 +329,6 @@ html[data-visual="novo"] .hl{color:var(--v);font-weight:600;}
 html[data-visual="novo"] .fc{background:var(--ce);border:none;border-radius:22px;margin-bottom:22px;}
 html[data-visual="novo"] .sh,
 html[data-visual="novo"][data-theme="dark"] .sh{background:transparent!important;border-bottom:1px solid var(--ln);padding:20px 28px 16px;font-size:15px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--t)!important;font-family:'Inter',sans-serif;}
-html[data-visual="novo"] .si{display:none!important;}
 html[data-visual="novo"] .fg{padding:24px 28px;gap:18px;}
 html[data-visual="novo"] label{font-size:13px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--tm);}
 html[data-visual="novo"] input,html[data-visual="novo"] select,html[data-visual="novo"] textarea{background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:12px 14px;color:var(--t);font-size:14px;}
@@ -349,7 +348,7 @@ html[data-visual="novo"] .be{background:var(--t);color:var(--p);}
 html[data-visual="novo"] .be:hover{opacity:.88;transform:none;}
 html[data-visual="novo"] .bl{background:transparent;color:var(--tm);border:none;box-shadow:inset 0 0 0 1px var(--ln2);}
 html[data-visual="novo"] .bl:hover{background:rgba(255,80,80,.08);color:#ff7b7b;box-shadow:inset 0 0 0 1px rgba(255,80,80,.4);}
-html[data-visual="novo"] .btn img,html[data-visual="novo"] .sh img,html[data-visual="novo"] .stab img,html[data-visual="novo"] .stb img,html[data-visual="novo"] .tb img,html[data-visual="novo"] .pt img,html[data-visual="novo"] .mbtn img,html[data-visual="novo"] .fg img[src*="fluentui-emoji"]{display:none!important;}
+html[data-visual="novo"] .si{background:transparent!important;width:auto!important;height:auto!important;display:inline-flex!important;font-size:18px!important;}
 
 /* ---- abas internas (pílulas) ---- */
 html[data-visual="novo"] .subtabs,html[data-visual="novo"] .mode-toggle,html[data-visual="novo"] .stn,html[data-visual="novo"] .tn{background:var(--ce);border:none;border-radius:999px;padding:4px;gap:4px;}
@@ -7382,6 +7381,79 @@ ${assinaturaPDF(cons,'')}
 ${rodapePDF()}
 </div>`;
 }
+</script>
+<style id="emo3d-css">
+.e3{display:inline-block;width:1.2em;height:1.2em;background:var(--e3) center/contain no-repeat;color:transparent!important;overflow:hidden;white-space:nowrap;vertical-align:-.22em;line-height:1;text-indent:0;user-select:text;font-size:inherit;}
+</style>
+<script>
+(function(){
+var B='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/';
+var M={"↩": "Right%20arrow%20curving%20left/3D/right_arrow_curving_left_3d.png", "⏱": "Stopwatch/3D/stopwatch_3d.png", "⏳": "Hourglass%20not%20done/3D/hourglass_not_done_3d.png", "⚠": "Warning/3D/warning_3d.png", "⚡": "High%20voltage/3D/high_voltage_3d.png", "✅": "Check%20mark%20button/3D/check_mark_button_3d.png", "✉": "Envelope/3D/envelope_3d.png", "✏": "Pencil/3D/pencil_3d.png", "❄": "Snowflake/3D/snowflake_3d.png", "❌": "Cross%20mark/3D/cross_mark_3d.png", "❓": "Red%20question%20mark/3D/red_question_mark_3d.png", "⬇": "Down%20arrow/3D/down_arrow_3d.png", "🎂": "Birthday%20cake/3D/birthday_cake_3d.png", "🎈": "Balloon/3D/balloon_3d.png", "🎉": "Party%20popper/3D/party_popper_3d.png", "🎓": "Graduation%20cap/3D/graduation_cap_3d.png", "🎭": "Performing%20arts/3D/performing_arts_3d.png", "🏅": "Sports%20medal/3D/sports_medal_3d.png", "🏆": "Trophy/3D/trophy_3d.png", "🏍": "Motorcycle/3D/motorcycle_3d.png", "🏖": "Beach%20with%20umbrella/3D/beach_with_umbrella_3d.png", "🏠": "House/3D/house_3d.png", "🐆": "Leopard/3D/leopard_3d.png", "👁": "Eye/3D/eye_3d.png", "👑": "Crown/3D/crown_3d.png", "👔": "Necktie/3D/necktie_3d.png", "👤": "Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png", "💔": "Broken%20heart/3D/broken_heart_3d.png", "💡": "Light%20bulb/3D/light_bulb_3d.png", "💬": "Speech%20balloon/3D/speech_balloon_3d.png", "💰": "Money%20bag/3D/money_bag_3d.png", "💳": "Credit%20card/3D/credit_card_3d.png", "💾": "Floppy%20disk/3D/floppy_disk_3d.png", "📁": "File%20folder/3D/file_folder_3d.png", "📄": "Page%20facing%20up/3D/page_facing_up_3d.png", "📅": "Calendar/3D/calendar_3d.png", "📈": "Chart%20increasing/3D/chart_increasing_3d.png", "📊": "Bar%20chart/3D/bar_chart_3d.png", "📋": "Clipboard/3D/clipboard_3d.png", "📌": "Pushpin/3D/pushpin_3d.png", "📎": "Paperclip/3D/paperclip_3d.png", "📘": "Blue%20book/3D/blue_book_3d.png", "📝": "Memo/3D/memo_3d.png", "📞": "Telephone%20receiver/3D/telephone_receiver_3d.png", "📡": "Satellite%20antenna/3D/satellite_antenna_3d.png", "📥": "Inbox%20tray/3D/inbox_tray_3d.png", "📦": "Package/3D/package_3d.png", "📩": "Envelope%20with%20arrow/3D/envelope_with_arrow_3d.png", "📱": "Mobile%20phone/3D/mobile_phone_3d.png", "📷": "Camera/3D/camera_3d.png", "📸": "Camera%20with%20flash/3D/camera_with_flash_3d.png", "📹": "Video%20camera/3D/video_camera_3d.png", "🔄": "Counterclockwise%20arrows%20button/3D/counterclockwise_arrows_button_3d.png", "🔍": "Magnifying%20glass%20tilted%20left/3D/magnifying_glass_tilted_left_3d.png", "🔎": "Magnifying%20glass%20tilted%20right/3D/magnifying_glass_tilted_right_3d.png", "🔒": "Locked/3D/locked_3d.png", "🔔": "Bell/3D/bell_3d.png", "🔗": "Link/3D/link_3d.png", "🔥": "Fire/3D/fire_3d.png", "🔴": "Red%20circle/3D/red_circle_3d.png", "🕐": "One%20oclock/3D/one_oclock_3d.png", "🖥": "Desktop%20computer/3D/desktop_computer_3d.png", "🖨": "Printer/3D/printer_3d.png", "🖼": "Framed%20picture/3D/framed_picture_3d.png", "🗑": "Wastebasket/3D/wastebasket_3d.png", "🗓": "Spiral%20calendar/3D/spiral_calendar_3d.png", "🗣": "Speaking%20head/3D/speaking_head_3d.png", "😄": "Grinning%20face%20with%20smiling%20eyes/3D/grinning_face_with_smiling_eyes_3d.png", "😊": "Smiling%20face%20with%20smiling%20eyes/3D/smiling_face_with_smiling_eyes_3d.png", "😌": "Relieved%20face/3D/relieved_face_3d.png", "😶": "Face%20without%20mouth/3D/face_without_mouth_3d.png", "🚀": "Rocket/3D/rocket_3d.png", "🚨": "Police%20car%20light/3D/police_car_light_3d.png", "🚫": "Prohibited/3D/prohibited_3d.png", "🛡": "Shield/3D/shield_3d.png", "🟢": "Green%20circle/3D/green_circle_3d.png", "🤝": "Handshake/3D/handshake_3d.png", "🥇": "1st%20place%20medal/3D/1st_place_medal_3d.png", "🥈": "2nd%20place%20medal/3D/2nd_place_medal_3d.png", "🥉": "3rd%20place%20medal/3D/3rd_place_medal_3d.png", "🦎": "Lizard/3D/lizard_3d.png", "🧠": "Brain/3D/brain_3d.png", "🧹": "Broom/3D/broom_3d.png", "🎯": "Bullseye/3D/bullseye_3d.png", "👋": "Waving%20hand/Default/3D/waving_hand_3d_default.png", "👏": "Clapping%20hands/Default/3D/clapping_hands_3d_default.png", "👊": "Oncoming%20fist/Default/3D/oncoming_fist_3d_default.png", "📧": "E-mail/3D/e-mail_3d.png", "🤕": "Face%20with%20head-bandage/3D/face_with_head-bandage_3d.png"};
+var keys=Object.keys(M).sort(function(a,b){return b.length-a.length;});
+var RE=new RegExp('('+keys.join('|')+')\\uFE0F?','gu');
+var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,CANVAS:1,TITLE:1,NOSCRIPT:1,INPUT:1,SELECT:1};
+var cache={};
+function ativar(sp,u){
+  if(cache[u]===1){sp.classList.add('e3');return;}
+  if(cache[u]===0)return;
+  var im=new Image();
+  im.onload=function(){cache[u]=1;sp.classList.add('e3');};
+  im.onerror=function(){cache[u]=0;};
+  im.src=u;
+}
+function noTexto(n){
+  var t=n.nodeValue;
+  if(!t||!RE.test(t)){RE.lastIndex=0;return;}
+  RE.lastIndex=0;
+  var frag=document.createDocumentFragment(),last=0,m;
+  while((m=RE.exec(t))){
+    if(m.index>last)frag.appendChild(document.createTextNode(t.slice(last,m.index)));
+    var sp=document.createElement('span');
+    sp.setAttribute('data-e3','1');
+    sp.textContent=m[0];
+    var u=B+M[m[1]];
+    sp.style.setProperty('--e3','url("'+u+'")');
+    ativar(sp,u);
+    frag.appendChild(sp);
+    last=m.index+m[0].length;
+  }
+  if(last<t.length)frag.appendChild(document.createTextNode(t.slice(last)));
+  n.parentNode.replaceChild(frag,n);
+}
+function ok(el){
+  while(el&&el!==document.body){
+    if(el.nodeType===1){
+      if(SKIP[el.tagName]||el.hasAttribute('data-e3')||el.isContentEditable)return false;
+    }
+    el=el.parentNode;
+  }
+  return true;
+}
+function varre(root){
+  if(!root)return;
+  if(root.nodeType===3){if(root.parentNode&&ok(root.parentNode))noTexto(root);return;}
+  if(root.nodeType!==1||!ok(root))return;
+  var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),lista=[],n;
+  while((n=w.nextNode())){if(n.nodeValue&&n.nodeValue.length&&/[^\x00-\u2000]/.test(n.nodeValue))lista.push(n);}
+  lista.forEach(function(t){if(t.parentNode&&ok(t.parentNode))noTexto(t);});
+}
+var pend=[],agendado=false;
+function proc(){
+  agendado=false;var l=pend;pend=[];
+  l.forEach(function(x){if(x.isConnected!==false)varre(x);});
+}
+function iniciar(){
+  varre(document.body);
+  new MutationObserver(function(ms){
+    ms.forEach(function(m){
+      if(m.type==='characterData'){pend.push(m.target);}
+      else m.addedNodes.forEach(function(a){pend.push(a);});
+    });
+    if(!agendado&&pend.length){agendado=true;requestAnimationFrame(proc);}
+  }).observe(document.body,{childList:true,subtree:true,characterData:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);else iniciar();
+})();
 </script>
 </body>
 </html>

@@ -621,7 +621,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="sb-badge" style="flex:1;">Ancora<br>Administradora</div>
     <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(128,128,128,0.35);">
       <span style="display:flex;flex-direction:column;gap:1px;overflow:hidden;">
-        <span id="sb-time-nome" style="font-size:9px;color:var(--v);font-weight:700;letter-spacing:0.5px;">Camaleões 🦎</span>
+        <span id="sb-time-nome" style="font-size:9px;color:var(--v);font-weight:700;letter-spacing:0.5px;">Camaleões <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Lizard/3D/lizard_3d.png" style="width:16px;height:16px;vertical-align:middle;margin-left:3px;"/></span>
         <span id="sb-user-nome" style="font-size:10px;color:var(--tm);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;"></span>
       </span>
       <a onclick="fbLogout()" style="font-size:10px;color:#c0392b;cursor:pointer;font-weight:700;">Sair</a>
@@ -1736,6 +1736,11 @@ function _fbErroTraduzido(code){
 var _currentUID=null;
 var _timeAtual='camaleoes'; // 'camaleoes' ou 'fenix' — definido no login
 var _timeNome='Camaleões';
+var _EMO3D={'🦎':'Lizard/3D/lizard_3d.png','🔥':'Fire/3D/fire_3d.png','🐆':'Leopard/3D/leopard_3d.png','🥇':'1st%20place%20medal/3D/1st_place_medal_3d.png'};
+function _emo3d(e,sz){
+  var p=_EMO3D[e];if(!p)return e;
+  return '<img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/'+p+'" style="width:'+(sz||16)+'px;height:'+(sz||16)+'px;vertical-align:middle;margin-left:3px;" onerror="this.outerHTML=\''+e+'\'"/>';
+}
 var _timeEmoji='🦎';
 
 // ===== CONFIG POR TIME =====
@@ -1790,7 +1795,7 @@ function _setTimeAtual(timeId){
   OCULTO_PAINEL_UIDS=cfg.ocultoPainel;
   // Atualizar label do time na topbar
   var el=document.getElementById('sb-time-nome');
-  if(el)el.textContent=cfg.nome+' '+cfg.emoji;
+  if(el)el.innerHTML=cfg.nome+' '+_emo3d(cfg.emoji,16);
 }
 function _isGestorDoTime(uid){
   var cfg=TIMES_CONFIG[_timeAtual]||TIMES_CONFIG.camaleoes;
@@ -3842,7 +3847,7 @@ function renderPainelGestorHall(){
       '<div class="fc" style="padding:18px 22px;cursor:pointer;border:1.5px solid var(--v);" onclick="irPara(\'gestor\')">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">'+
         '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--v);">'+'<img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crown/3D/crown_3d.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px;" />Painel do Gestor — Resumo do Time</div>'+
-        '<div style="font-size:11px;color:var(--tm);margin-top:2px;">'+(lider?'🥇 Líder do mês: '+lider.nome:'Clique pra ver o detalhe completo')+'</div></div>'+
+        '<div style="font-size:11px;color:var(--tm);margin-top:2px;">'+(lider?_emo3d('🥇',16)+' Líder do mês: '+lider.nome:'Clique pra ver o detalhe completo')+'</div></div>'+
         '<div style="display:flex;gap:22px;">'+
           '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção Time</div><div style="font-size:18px;font-weight:800;color:var(--t);">R$ '+_pjFmt(producaoTotal)+'</div></div>'+
           '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Comissão Time</div><div style="font-size:18px;font-weight:800;color:#16a34a;">R$ '+_pjFmt(comissaoTotal)+'</div></div>'+

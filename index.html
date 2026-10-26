@@ -382,7 +382,9 @@ html[data-visual="novo"] .pvh{background:transparent;border-bottom:1px solid var
 html[data-visual="novo"] .lh{background:var(--p);border:1px solid var(--ln);border-radius:20px;}
 html[data-visual="novo"] .ll{font-size:13px;text-transform:none;letter-spacing:0;color:var(--tm)!important;}
 html[data-visual="novo"] .lp{background:var(--btn);color:var(--on-btn);}
-html[data-visual="novo"] #lance_valor{background:var(--ce);color:var(--t);border-color:var(--v);}
+html[data-visual="novo"] .lh input,html[data-visual="novo"] #lance_valor,html[data-visual="novo"] #cnpj_lance_valor{background:var(--ce)!important;color:var(--t)!important;border:1px solid var(--ln2)!important;border-left:none!important;border-radius:0 12px 12px 0!important;font-family:var(--disp)!important;font-weight:800!important;letter-spacing:-.03em;}
+html[data-visual="novo"] .lh input::placeholder{color:var(--tm)!important;opacity:.6;}
+html[data-visual="novo"] .lp{border-radius:12px 0 0 12px;}
 html[data-visual="novo"] .est-op:has(input:checked){background:rgba(34,211,154,.14);border-color:var(--v);}
 
 /* ---- login ---- */

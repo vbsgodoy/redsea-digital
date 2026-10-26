@@ -206,6 +206,10 @@ input::placeholder,textarea::placeholder{color:#555;}
 .mode-btn.active-bmw{background:#0166B1;color:#fff;}
 .mode-btn.active-gen{background:#1D9E75;color:#fff;}
 .mode-btn.active-vw{background:#003D8F;color:#fff;}
+.mode-btn.active-adm{background:#111;color:#fff;}
+.adm-row{display:inline-flex;align-items:center;gap:10px;margin:0 0 16px 12px;vertical-align:top;}
+.adm-row>span{font-size:12px;color:var(--tm);font-weight:600;}
+.adm-row .mode-toggle{margin-bottom:0;}
 @media(max-width:760px){
   .app-shell{flex-direction:column;}
   .sidebar{width:100%;height:auto;position:relative;}
@@ -358,6 +362,7 @@ html[data-visual="novo"] .mode-btn.active-kw{background:var(--t);color:var(--p);
 html[data-visual="novo"] .mode-btn.active-bmw{background:#2F80D9;color:#fff;}
 html[data-visual="novo"] .mode-btn.active-gen{background:var(--btn);color:var(--on-btn);}
 html[data-visual="novo"] .mode-btn.active-vw{background:#2B63C7;color:#fff;}
+html[data-visual="novo"] .mode-btn.active-adm{background:var(--t);color:var(--p);}
 
 /* ---- tabelas ---- */
 html[data-visual="novo"] .ht th{background:transparent;color:var(--tm);font-size:13px;text-transform:none;letter-spacing:0;font-weight:500;padding:14px 16px;}
@@ -741,6 +746,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
       <button class="mode-btn" id="btn-vw" onclick="setModo('vw')">Volkswagen / Embracon</button>
       <button class="mode-btn" id="btn-gen" onclick="setModo('gen')">Genérico</button>
     </div>
+    <div class="adm-row" id="adm-row"><span>Administradora</span><div class="mode-toggle"><button class="mode-btn active-adm" id="btn-adm-recon" onclick="setAdm('recon')">Recon</button><button class="mode-btn" id="btn-adm-ancora" onclick="setAdm('ancora')">Âncora</button></div></div>
   </div>
   <div id="lance-pf">
   <div class="pt"><h2>Gerador de Aprovação</h2><p>Preencha os dados e <span class="hl">gere o PDF de aprovação</span> do lance</p></div>
@@ -799,9 +805,9 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
   <div class="fc">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Lance Aprovado</div>
       <div class="lh">
-        <div class="ll">Valor do Lance Aprovado pela Kawasaki + Âncora</div>
+        <div class="ll" id="lance-pj-label">Valor do Lance Aprovado pela Kawasaki + Âncora</div>
         <div class="liw"><div class="lp">R$</div><input type="text" id="cnpj_lance_valor" placeholder="0.000,00" oninput="fL(this)"/></div>
-        <div class="lhi">Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente</div>
+        <div class="lhi" id="lance-pj-info">Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente</div>
       </div>
   </div>
   <div class="fc">
@@ -5411,6 +5417,17 @@ function subaPV(id,btn){
   if(btn)btn.classList.add('ac');
 }
 var _modo='kw';
+var _adm='recon';
+try{var _a0=localStorage.getItem('rsd_adm');if(_a0==='ancora'||_a0==='recon')_adm=_a0;}catch(e){}
+function _admEf(){return _modo==='vw'?'embracon':_modo==='bmw'?'recon':_adm;}
+function _admCurto(){var a=_admEf();return a==='embracon'?'Embracon':a==='recon'?'Recon':'\u00C2ncora';}
+function _admLegal(){var a=_admEf();return a==='embracon'?'Embracon Administradora de Cons\u00F3rcio LTDA':a==='recon'?'Cons\u00F3rcio Nacional Recon S.A.':'\u00C2ncora Administradora de Cons\u00F3rcios S.A.';}
+function setAdm(a){
+  _adm=a;
+  try{localStorage.setItem('rsd_adm',a);}catch(e){}
+  setModo(_modo);
+}
+document.addEventListener('DOMContentLoaded',function(){try{setModo(_modo);}catch(e){}});
 function setModo(modo){
   _modo=modo;
   var bkw=document.getElementById('btn-kw');
@@ -5434,6 +5451,11 @@ function setModo(modo){
   var mgen=document.getElementById('modelo-wrap-gen');
   if(mkw)mkw.style.display=(modo==='gen'||modo==='bmw'?'none':'');
   if(mgen)mgen.style.display=(modo==='gen'?'':'none');
+  var admRow=document.getElementById('adm-row');
+  if(admRow)admRow.style.display=(modo==='kw'||modo==='gen')?'':'none';
+  var bar=document.getElementById('btn-adm-recon'),baa=document.getElementById('btn-adm-ancora');
+  if(bar)bar.className='mode-btn'+(_adm==='recon'?' active-adm':'');
+  if(baa)baa.className='mode-btn'+(_adm==='ancora'?' active-adm':'');
   // topbar e textos
   var sub=document.getElementById('sub-aprovacao');
   var ll=document.getElementById('lance-pf-label');
@@ -5448,12 +5470,19 @@ function setModo(modo){
     if(li)li.innerHTML='Este lance é <strong>100% oferecido pela BMW com a Recon</strong> — sem custo ao cliente';
   } else if(modo==='gen'){
     if(sub)sub.textContent='Pessoa Física — Genérico';
-    if(ll)ll.textContent='Valor do Lance Aprovado pela Âncora';
-    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela Âncora</strong> — sem custo ao cliente';
+    if(ll)ll.textContent='Valor do Lance Aprovado pela '+_admCurto();
+    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela '+_admCurto()+'</strong> — sem custo ao cliente';
   } else {
     if(sub)sub.textContent='Pessoa Física — Kawasaki';
-    if(ll)ll.textContent='Valor do Lance Aprovado pela Kawasaki + Âncora';
-    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela Kawasaki com a Âncora</strong> — sem custo ao cliente';
+    if(ll)ll.textContent='Valor do Lance Aprovado pela Kawasaki + '+_admCurto();
+    if(li)li.innerHTML='Este lance é <strong>100% oferecido pela Kawasaki com a '+_admCurto()+'</strong> — sem custo ao cliente';
+  }
+  var pl=document.getElementById('lance-pj-label'),pi=document.getElementById('lance-pj-info');
+  if(pl&&pi){
+    if(modo==='bmw'){pl.textContent='Valor do Lance Aprovado pela BMW + Recon';pi.innerHTML='Este lance é <strong>100% oferecido pela BMW com a Recon</strong> — sem custo ao cliente';}
+    else if(modo==='vw'){pl.textContent='Valor do Lance Aprovado pela Volkswagen + Embracon';pi.innerHTML='Este lance é <strong>100% oferecido pela Volkswagen com a Embracon</strong> — sem custo ao cliente';}
+    else if(modo==='gen'){pl.textContent='Valor do Lance Aprovado pela '+_admCurto();pi.innerHTML='Este lance é <strong>100% oferecido pela '+_admCurto()+'</strong> — sem custo ao cliente';}
+    else{pl.textContent='Valor do Lance Aprovado pela Kawasaki + '+_admCurto();pi.innerHTML='Este lance é <strong>100% oferecido pela Kawasaki com a '+_admCurto()+'</strong> — sem custo ao cliente';}
   }
 }
 
@@ -5603,20 +5632,20 @@ function topoPDF(){
   if(isBMW)
     return`<div style="background:#012A5C;padding:14px 28px;display:flex;align-items:center;gap:20px;"><img src="${L.bmw}" style="height:38px;object-fit:contain;filter:brightness(0) invert(1);"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.3);"></div><img src="${L.recon}" style="height:30px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.3);"></div><img src="${L.d}" style="height:28px;object-fit:contain;"/></div>`;
   if(isGen)
-    return'<div style="background:#111;padding:14px 28px;display:flex;align-items:center;gap:24px;">'+'<img src="'+L.d+'" style="height:34px;object-fit:contain;"/>'+'<div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div>'+'<img src="'+L.a+'" style="height:30px;object-fit:contain;"/></div>';
-  return`<div style="background:#111;padding:14px 28px;display:flex;align-items:center;gap:24px;"><img src="${L.d}" style="height:34px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div><img src="${L.k}" style="height:28px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div><img src="${L.a}" style="height:30px;object-fit:contain;"/></div>`;
+    return'<div style="background:#111;padding:14px 28px;display:flex;align-items:center;gap:24px;">'+'<img src="'+L.d+'" style="height:34px;object-fit:contain;"/>'+'<div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div>'+'<img src="'+(_admEf()==='recon'?L.recon:L.a)+'" style="height:30px;object-fit:contain;"/></div>';
+  return`<div style="background:#111;padding:14px 28px;display:flex;align-items:center;gap:24px;"><img src="${L.d}" style="height:34px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div><img src="${L.k}" style="height:28px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div><img src="${_admEf()==='recon'?L.recon:L.a}" style="height:30px;object-fit:contain;"/></div>`;
 }
 function rodapePDF(){
   var isBMW=(typeof _modo!=='undefined'&&_modo==='bmw');
   if(typeof _modo!=='undefined'&&_modo==='vw')
     return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #003D8F;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Embracon Administradora de Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 58.113.812/0001-23 \u00B7 Alameda Europa, 150 \u2013 Centro Empresarial Tambor\u00E9 \u2013 Santana de Parna\u00EDba/SP \u00B7 Aut. Bacen n\u00BA 3/00/223/88 \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
-  if(isBMW)
-    return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #0166B1;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Cons\u00F3rcio Nacional Recon S.A.</strong> \u00B7 Aut. Bacen \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
+  if(isBMW||_admEf()==='recon')
+    return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid ${isBMW?'#0166B1':'#111'};background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Cons\u00F3rcio Nacional Recon S.A.</strong> \u00B7 Aut. Bacen \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
   return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #111;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">\u00C2ncora Administradora de Cons\u00F3rcios S.A</strong> \u00B7 CNPJ 60.375.243/0001-36 \u00B7 Av. Dr. Ant\u00F4nio Barbosa Filho, 1260 \u2013 Franca/SP \u00B7 Aut. Bacen 03/00/188/89 \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
 }
 function _marcaConsorcio(){
   var m=(typeof _modo!=='undefined')?_modo:'kw';
-  return m==='bmw'?'Cons\u00F3rcio BMW Motorrad':m==='gen'?'Cons\u00F3rcio \u00C2ncora':m==='vw'?'Cons\u00F3rcio Volkswagen':'Cons\u00F3rcio Kawasaki';
+  return m==='bmw'?'Cons\u00F3rcio BMW Motorrad':m==='gen'?(_admEf()==='recon'?'Cons\u00F3rcio Recon':'Cons\u00F3rcio \u00C2ncora'):m==='vw'?'Cons\u00F3rcio Volkswagen':'Cons\u00F3rcio Kawasaki';
 }
 function assinaturaPDF(cons,wcons){return`<div style="margin:0 32px;padding:14px 0;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:flex-end;"><div><div style="font-size:12px;font-weight:700;color:#222;">${cons}</div><div style="font-size:10px;color:#888;">Consultor \u00B7 Digital Cons\u00F3rcio LTDA</div><div style="font-size:10px;color:#888;">${wcons?'WhatsApp: '+wcons:_marcaConsorcio()}</div></div><img src="${L.d}" style="height:30px;object-fit:contain;"/></div>`;}
 function badgesPDF(){return`<div style="display:flex;gap:10px;flex-wrap:wrap;"><a href="https://apps.apple.com/br/app/conta-%C3%A2ncora/id6746348039" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:10px;background:#111;border-radius:8px;padding:8px 14px;min-width:170px;"><img src="${L.a}" style="width:32px;height:32px;border-radius:7px;"/><div><div style="font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;">Dispon\u00EDvel na</div><div style="font-size:13px;font-weight:700;color:#fff;">App Store</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">Conta \u00C2ncora</div></div></a><a href="https://play.google.com/store/apps/details?id=com.ancora.AutoServico_Mobile&hl=pt_BR" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:10px;background:#111;border-radius:8px;padding:8px 14px;min-width:170px;"><img src="${L.a}" style="width:32px;height:32px;border-radius:7px;"/><div><div style="font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;">Dispon\u00EDvel no</div><div style="font-size:13px;font-weight:700;color:#fff;">Google Play</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">Conta \u00C2ncora</div></div></a></div><div style="font-size:11px;color:#888;margin-top:8px;padding:6px 10px;background:#f9f9f9;border-left:3px solid #ddd;">Aguarde o login e senha \u2014 enviados pelo time de p\u00F3s-vendas da \u00C2ncora.</div>`;}
@@ -5631,6 +5660,7 @@ function buildLance(qrURL){
   var isVW=(typeof _modo!=='undefined'&&_modo==='vw');
   var isGen=(typeof _modo!=='undefined'&&_modo==='gen');
   var _corPDF=isVW?'#003D8F':isBMW?'#0166B1':isGen?'#1D9E75':'#006B28';
+  var _ac=_admCurto();
   if(isGen){
     modRaw=v('modelo_gen_pf')||'';
     var anoG=v('ano');
@@ -5672,14 +5702,14 @@ ${refValid}
 </div>
 <div style="padding:24px 32px 0;">
 <p style="font-size:13px;color:#222;margin:0 0 12px;">${isGen?"Prezado(a) representante de \u2014,":isBMW?"Prezado(a) <strong>"+nome+"</strong>,":"Prezado(a) <strong>"+nome+"</strong>,"}</p>
-<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">${isGen?"Informamos que o lance referente \u00E0 cota da empresa no <strong>Plano Inteligente</strong>":isVW?"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio Volkswagen</strong>":isBMW?"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio BMW</strong>":"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki</strong>"} foi analisado e <strong style="color:${_corPDF};">aprovado com sucesso</strong>. O valor ser\u00E1 registrado diretamente no seu contrato junto \u00E0 <strong>${isVW?"Embracon Administradora de Cons\u00F3rcio LTDA":isBMW?"Cons\u00F3rcio Nacional Recon S.A.":"\u00C2ncora Administradora de Cons\u00F3rcios S.A."}</strong>, institui\u00E7\u00E3o regulada e supervisionada pelo <strong>Banco Central do Brasil</strong>.</p>
-<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">${isGen?"Este lance faz parte do programa de incentivo Plano Inteligente e n\u00E3o representa nenhum custo adicional para a empresa \u2014 o valor \u00E9 integralmente disponibilizado em parceria da Digital Cons\u00F3rcios com a \u00C2ncora, com o objetivo de antecipar o acesso ao cr\u00E9dito.":isVW?"Este lance faz parte do programa de incentivo Volkswagen e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Volkswagen em parceria com a Embracon, com o objetivo de antecipar o seu acesso ao cr\u00E9dito.":isBMW?"Este lance faz parte do programa de incentivo BMW e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela BMW em parceria com a Recon, com o objetivo de antecipar o seu acesso ao cr\u00E9dito.":"Este lance faz parte do programa de incentivo Kawasaki e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Kawasaki em parceria com a \u00C2ncora, com o objetivo de antecipar o seu acesso ao cr\u00E9dito."}</p>
+<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">${isGen?"Informamos que o lance referente \u00E0 cota da empresa no <strong>Plano Inteligente</strong>":isVW?"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio Volkswagen</strong>":isBMW?"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio BMW</strong>":"Informamos que o lance referente \u00E0 sua cota no <strong>Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki</strong>"} foi analisado e <strong style="color:${_corPDF};">aprovado com sucesso</strong>. O valor ser\u00E1 registrado diretamente no seu contrato junto \u00E0 <strong>${isVW?"Embracon Administradora de Cons\u00F3rcio LTDA":isBMW?"Cons\u00F3rcio Nacional Recon S.A.":_admLegal()}</strong>, institui\u00E7\u00E3o regulada e supervisionada pelo <strong>Banco Central do Brasil</strong>.</p>
+<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">${isGen?"Este lance faz parte do programa de incentivo Plano Inteligente e n\u00E3o representa nenhum custo adicional para a empresa \u2014 o valor \u00E9 integralmente disponibilizado em parceria da Digital Cons\u00F3rcios com a "+_ac+", com o objetivo de antecipar o acesso ao cr\u00E9dito.":isVW?"Este lance faz parte do programa de incentivo Volkswagen e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Volkswagen em parceria com a Embracon, com o objetivo de antecipar o seu acesso ao cr\u00E9dito.":isBMW?"Este lance faz parte do programa de incentivo BMW e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela BMW em parceria com a Recon, com o objetivo de antecipar o seu acesso ao cr\u00E9dito.":"Este lance faz parte do programa de incentivo Kawasaki e <strong>n\u00E3o representa nenhum custo adicional para voc\u00EA</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Kawasaki em parceria com a "+_ac+", com o objetivo de antecipar o seu acesso ao cr\u00E9dito."}</p>
 </div>
 <div style="margin:20px 32px;border:1.5px solid ${_corPDF};border-radius:4px;overflow:hidden;">
 <div style="background:${_corPDF};padding:8px 20px;"><span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.75);">Valor do Lance Aprovado na An\u00E1lise</span></div>
 <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
 <div style="font-size:36px;font-weight:700;color:${_corPDF};">${lance}</div>
-<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${isGen?"disponibilizado pela \u00C2ncora Administradora.":isVW?"disponibilizado pelo programa de incentivo Volkswagen.":isBMW?"disponibilizado pelo programa de incentivo BMW.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor ao consorciado.</strong></div>
+<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${isGen?"disponibilizado pela "+_ac+" Administradora.":isVW?"disponibilizado pelo programa de incentivo Volkswagen.":isBMW?"disponibilizado pelo programa de incentivo BMW.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor ao consorciado.</strong></div>
 </div></div>
 ${blocoValid}
 <div style="margin:0 32px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -5796,7 +5826,7 @@ function abrirEmail(){
   var cons=v('consultor')||'Vitor Godoy';
   var prot=v('protocolo')||'';
   var marcaNome=isVW?'Volkswagen':isBMW?'BMW':'Kawasaki';
-  var admNome=isVW?'Embracon Administradora de Consórcio':isBMW?'Consórcio Nacional Recon':'Âncora Administradora';
+  var admNome=isVW?'Embracon Administradora de Consórcio':isBMW?'Consórcio Nacional Recon':(_admEf()==='recon'?'Consórcio Nacional Recon':'Âncora Administradora');
   var consorNome=isVW?'Consórcio Volkswagen / Embracon':isBMW?'Consórcio BMW / Recon':'Consórcio Kawasaki';
   if(v('nome')&&v('lance_valor'))abrirPDF(buildLance(),v('nome'),'Análise de Lance');
   _dest=v('email_cli');_wnum='';
@@ -7285,6 +7315,8 @@ function emailSinal(){
 function buildLanceCnpj(qrURL){
   qrURL = qrURL || '';
   var _corPDF=(typeof _modo!=='undefined'&&_modo==='gen')?'#1D9E75':'#006B28';
+  var _ac=_admCurto();
+  var isGen=(typeof _modo!=='undefined'&&_modo==='gen'),isBMW=(typeof _modo!=='undefined'&&_modo==='bmw');
   const empresa=v('cnpj_empresa')||'\u2014', cnpjNum=v('cnpj_numero')||'\u2014', ie=v('cnpj_ie')||'\u2014';
   const fundacao=v('cnpj_fundacao')||'\u2014', forma=v('cnpj_forma')||'\u2014';
   const renda=v('cnpj_renda')?'R$ '+v('cnpj_renda'):'\u2014';
@@ -7328,14 +7360,14 @@ ${refValid}
 </div>
 <div style="padding:24px 32px 0;">
 <p style="font-size:13px;color:#222;margin:0 0 12px;">Prezado(a) representante de <strong>${empresa}</strong>,</p>
-<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">Informamos que o lance referente \u00E0 cota da empresa no <strong>${_modo==="gen"?"Plano Inteligente":"Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki"}</strong> foi analisado e <strong style="color:${_corPDF};">aprovado com sucesso</strong>. O valor ser\u00E1 registrado diretamente no contrato junto \u00E0 <strong>\u00C2ncora Administradora de Cons\u00F3rcios S.A</strong>, institui\u00E7\u00E3o regulada e supervisionada pelo <strong>Banco Central do Brasil</strong>.</p>
-<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">Este lance faz parte do ${_modo==="gen"?"disponibilizado pela Ancora Administradora, sem custo adicional para a empresa.":"programa de incentivo Kawasaki e <strong>n\u00E3o representa nenhum custo adicional para a empresa</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Kawasaki em parceria com a \u00C2ncora, com o objetivo de antecipar o acesso ao cr\u00E9dito."}"}</p>
+<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">Informamos que o lance referente \u00E0 cota da empresa no <strong>${_modo==="gen"?"Plano Inteligente":"Plano Inteligente \u2013 Cons\u00F3rcio Kawasaki"}</strong> foi analisado e <strong style="color:${_corPDF};">aprovado com sucesso</strong>. O valor ser\u00E1 registrado diretamente no contrato junto \u00E0 <strong>${_admLegal()}</strong>, institui\u00E7\u00E3o regulada e supervisionada pelo <strong>Banco Central do Brasil</strong>.</p>
+<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">${_modo==="gen"?"Este lance faz parte do programa de incentivo Plano Inteligente e <strong>n\u00E3o representa nenhum custo adicional para a empresa</strong> \u2014 o valor \u00E9 integralmente disponibilizado em parceria da Digital Cons\u00F3rcios com a "+_ac+", com o objetivo de antecipar o acesso ao cr\u00E9dito.":"Este lance faz parte do programa de incentivo Kawasaki e <strong>n\u00E3o representa nenhum custo adicional para a empresa</strong> \u2014 o valor \u00E9 integralmente disponibilizado pela Kawasaki em parceria com a "+_ac+", com o objetivo de antecipar o acesso ao cr\u00E9dito."}</p>
 </div>
 <div style="margin:20px 32px;border:1.5px solid ${_corPDF};border-radius:4px;overflow:hidden;">
 <div style="background:${_corPDF};padding:8px 20px;"><span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.75);">Valor do Lance Aprovado na An\u00E1lise</span></div>
 <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
 <div style="font-size:36px;font-weight:700;color:${_corPDF};">${lance}</div>
-<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${isGen?"disponibilizado pela \u00C2ncora Administradora.":isBMW?"disponibilizado pelo programa de incentivo BMW.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor \u00E0 empresa.</strong></div>
+<div style="font-size:11px;color:#555;line-height:1.6;max-width:280px;">Valor ${isGen?"disponibilizado pela "+_ac+" Administradora.":isBMW?"disponibilizado pelo programa de incentivo BMW.":"disponibilizado pelo programa de incentivo Kawasaki."}<br><strong style="color:#333;">N\u00E3o h\u00E1 cobran\u00E7a deste valor \u00E0 empresa.</strong></div>
 </div></div>
 ${blocoValid}
 <div style="margin:0 32px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">

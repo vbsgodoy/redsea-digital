@@ -5640,7 +5640,7 @@ function rodapePDF(){
   if(typeof _modo!=='undefined'&&_modo==='vw')
     return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #003D8F;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Embracon Administradora de Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 58.113.812/0001-23 \u00B7 Alameda Europa, 150 \u2013 Centro Empresarial Tambor\u00E9 \u2013 Santana de Parna\u00EDba/SP \u00B7 Aut. Bacen n\u00BA 3/00/223/88 \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
   if(isBMW||_admEf()==='recon')
-    return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid ${isBMW?'#0166B1':'#111'};background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Cons\u00F3rcio Nacional Recon S.A.</strong> \u00B7 Aut. Bacen \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
+    return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid ${isBMW?'#0166B1':'#111'};background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Cons\u00F3rcio Nacional Recon S.A.</strong> \u00B7 CNPJ 23.767.155/0001-53 \u00B7 Aut. Bacen \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
   return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #111;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">\u00C2ncora Administradora de Cons\u00F3rcios S.A</strong> \u00B7 CNPJ 60.375.243/0001-36 \u00B7 Av. Dr. Ant\u00F4nio Barbosa Filho, 1260 \u2013 Franca/SP \u00B7 Aut. Bacen 03/00/188/89 \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
 }
 function _marcaConsorcio(){
@@ -7283,7 +7283,7 @@ function whPix(){
   var c=document.getElementById('pix_cons').value.trim()||'';
   var cod=document.getElementById('pix_codigo').value.trim();
   var adm=document.getElementById('pix_adm').value;
-  var admNome=adm==='recon'?'Consórcio Nacional Recon S.A.\nCNPJ: (a confirmar)':'Âncora Administradora de Consórcios S.A.\nCNPJ: 60.375.243/0001-36';
+  var admNome=adm==='recon'?'Consórcio Nacional Recon S.A.\nCNPJ: 23.767.155/0001-53':'Âncora Administradora de Consórcios S.A.\nCNPJ: 60.375.243/0001-36';
   if(!cod){toast('Informe o código Pix','#c0392b');return;}
   var L1='Olá, '+n+'!\n\n';
   var L2='Para finalizar seu cadastro e efetivar o lance, realize o pagamento via Pix:\n\n';

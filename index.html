@@ -596,7 +596,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div id="greet-ref" class="greet-ref"></div>
   </div>
   <nav class="sb-nav">
-    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span>👑 Painel do Gestor<span id="nav-gestor-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:8px;"></span></div>
+    <div class="sb-nav-item" id="nav-gestor" style="display:none;background:linear-gradient(90deg,rgba(8,145,178,0.18),transparent);border-left:3px solid var(--v);font-weight:800;color:var(--v);" onclick="aba('gestor',this)"><span class="sb-dot"></span><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crown/3D/crown_3d.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px;" onerror="this.outerHTML='👑'"/>Painel do Gestor<span id="nav-gestor-badge" style="display:none;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:8px;"></span></div>
     <div class="sb-nav-item active" onclick="aba('hall',this)"><span class="sb-dot"></span>Hall</div>
     <div class="sb-nav-item" onclick="aba('estudos',this)"><span class="sb-dot"></span>Estudos</div>
     <div class="sb-nav-item" onclick="aba('scripts',this)"><span class="sb-dot"></span>Scripts</div>
@@ -614,7 +614,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
   </nav>
   <div class="sb-footer" style="flex-wrap:wrap;">
     <button id="theme-toggle" onclick="alternarTema()" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--cb);background:var(--ce);cursor:pointer;margin-bottom:8px;color:var(--t);font-size:12px;font-weight:600;transition:all 0.2s;" title="Alternar tema claro/escuro">
-      <span id="theme-icon" style="font-size:16px;">🌙</span>
+      <span id="theme-icon" style="font-size:16px;display:inline-flex;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crescent%20moon/3D/crescent_moon_3d.png" style="width:22px;height:22px;"/></span>
       <span id="theme-label">Modo escuro</span>
     </button>
     <button id="visual-toggle" onclick="alternarVisual()" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--cb);background:transparent;cursor:pointer;margin-bottom:8px;color:var(--tm);font-size:12px;font-weight:600;">Voltar ao visual clássico</button>
@@ -3841,7 +3841,7 @@ function renderPainelGestorHall(){
       (pendentesQtd>0?'<div class="fc" style="padding:12px 22px;margin-bottom:10px;border:1.5px solid #d97706;background:rgba(217,119,6,0.1);cursor:pointer;" onclick="irPara(\'gestor\')"><span style="font-size:13px;font-weight:700;color:#d97706;">⏳ '+pendentesQtd+' cadastro(s) esperando sua aprovação</span></div>':'')+
       '<div class="fc" style="padding:18px 22px;cursor:pointer;border:1.5px solid var(--v);" onclick="irPara(\'gestor\')">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">'+
-        '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--v);">👑 Painel do Gestor — Resumo do Time</div>'+
+        '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--v);">'+'<img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crown/3D/crown_3d.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px;" />Painel do Gestor — Resumo do Time</div>'+
         '<div style="font-size:11px;color:var(--tm);margin-top:2px;">'+(lider?'🥇 Líder do mês: '+lider.nome:'Clique pra ver o detalhe completo')+'</div></div>'+
         '<div style="display:flex;gap:22px;">'+
           '<div style="text-align:right;"><div style="font-size:9px;color:var(--tm);text-transform:uppercase;">Produção Time</div><div style="font-size:18px;font-weight:800;color:var(--t);">R$ '+_pjFmt(producaoTotal)+'</div></div>'+
@@ -6359,7 +6359,7 @@ function whCartao(){
 function _atualizarBotaoTema(isDark){
   var icon=document.getElementById('theme-icon');
   var label=document.getElementById('theme-label');
-  if(icon)icon.textContent=isDark?'☀️':'🌙';
+  if(icon)icon.innerHTML='<img src="'+(isDark?'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sun/3D/sun_3d.png':'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crescent%20moon/3D/crescent_moon_3d.png')+'" style="width:22px;height:22px;"/>';
   if(label)label.textContent=isDark?'Modo claro':'Modo escuro';
 }
 function alternarTema(){

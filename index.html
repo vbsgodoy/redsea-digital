@@ -1160,6 +1160,31 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         </div>
       </div>
     </div>
+
+    <div class="fc" style="margin-top:20px;">
+      <div class="sh"><span>Cadência de follow-up (vale para WhatsApp e Instagram)</span></div>
+      <div class="cad-row">
+        <div class="cad-it"><div class="cad-d">D0</div><div class="cad-t">Combinar o retorno</div><div class="cad-s">Ao enviar a simulação, combine dia e canal para voltar a falar.</div></div>
+        <div class="cad-it"><div class="cad-d">D+2</div><div class="cad-t">O que travou?</div><div class="cad-s">Uma pergunta fácil, respondida com número.</div></div>
+        <div class="cad-it"><div class="cad-d">D+5</div><div class="cad-t">Novidade real</div><div class="cad-s">Nova simulação, condição ou prova social.</div></div>
+        <div class="cad-it"><div class="cad-d">D+10</div><div class="cad-t">Pergunta de momento</div><div class="cad-s">Dê uma saída honesta: segue ou ficou pra depois?</div></div>
+        <div class="cad-it"><div class="cad-d">D+20</div><div class="cad-t">Encerramento</div><div class="cad-s">Porta aberta e pergunta do motivo.</div></div>
+      </div>
+      <div class="reg-grid">
+        <div><strong>Regra de parada:</strong> respondeu? Sai da cadência. Pediu para parar? Pare na hora.</div>
+        <div><strong>Uma pergunta por mensagem.</strong> Várias perguntas juntas derrubam a resposta.</div>
+        <div><strong>Sem escassez inventada.</strong> Vaga, prazo e condição só se forem reais.</div>
+        <div><strong>Consórcio:</strong> nunca prometa contemplação nem prazo de contemplação.</div>
+        <div><strong>Lista e Status:</strong> só envie conteúdo para quem aceitou, e sempre com opção de sair.</div>
+        <div><strong>Instagram:</strong> aqueça (curtir, comentar, Stories) antes da primeira DM e responda rápido.</div>
+      </div>
+    </div>
+    <div class="fc" style="margin-top:20px;">
+      <div class="sh"><span>Banco de ideias de remarketing</span><span id="ideias-cnt" style="margin-left:auto;font-size:11px;color:var(--tm);"></span></div>
+      <div style="padding:0 24px 12px;font-size:12px;color:var(--tm);line-height:1.6;">Mensagens prontas, adaptadas ao consórcio. Preencha nome, modelo e consultor no editor acima e os textos se ajustam sozinhos.</div>
+      <div id="ideias-chips"></div>
+      <div id="ideias-lista"></div>
+    </div>
   </div><!-- /page-content -->
 </div>
 <div id="tab-historico" class="tp" style="display:none;">
@@ -7807,6 +7832,73 @@ try{_hallVideo();}catch(e){}
 
 function _consAsc(){return _LN().consorcio.replace('\u00F3','o');}
 function _admAsc(){return _LN().admCurto.replace('\u00C2','A');}
+
+</script>
+<script>
+/* ===== BANCO DE IDEIAS — Campanhas (WhatsApp, Instagram, e-mail) ===== */
+var _IDEIAS=[
+{id:'i1',m:'sumiu',t:'Retomada: "o que travou?"',c:['wa','ig'],q:'D+2 depois de enviar a simulação ou a análise',how:'Em vez de cobrar resposta, faz UMA pergunta fácil de responder com um número. Quem trava costuma travar em valor, prazo ou confiança.',wa:'Oi, {nome}! Tudo bem? Vi que ainda não conseguimos fechar os detalhes da sua simulação{bem}. Só pra eu te ajudar do jeito certo, o que mais pesou até agora?\n\n1 - Valor da parcela\n2 - Prazo\n3 - Dúvida sobre como funciona\n4 - Ainda não é o momento\n\nPode responder só com o número. Abraço, {cons}',ig:'Oi, {nome}! Passando só pra saber como você ficou com a simulação{bem}. Ficou alguma dúvida que eu possa tirar rapidinho por aqui?'},
+{id:'i2',m:'sumiu',t:'Informação nova de verdade',c:['wa','ig'],q:'D+5 sem resposta',how:'Só use quando existir algo novo e real: outra simulação, ajuste de crédito ou parcela, mudança de condição da administradora. Nada de escassez inventada.',wa:'{nome}, lembrei de você! Refiz a sua simulação{bem} e consegui uma alternativa com parcela mais confortável. Quer que eu te mande os números novos pra você comparar com calma?',ig:'{nome}, refiz aqui uma simulação pensando no que você me contou{bem}. Posso te mandar? Leva 1 minuto pra ler.'},
+{id:'i3',m:'sumiu',t:'Resumo de 3 linhas para decidir junto',c:['wa'],q:'Quando o cliente diz "vou falar com minha esposa/sócio/família"',how:'Facilita a vida de quem precisa convencer outra pessoa: você entrega o resumo pronto para encaminhar.',wa:'Sem problema, {nome}! Decisão assim é bom conversar mesmo. Preparei um resumo de 3 linhas pra você encaminhar:\n\n- Crédito e bem: [crédito]{bem}\n- Parcela: [valor] por mês\n- Sem juros: o consórcio tem taxa de administração, e o custo total fica transparente desde o início\n\nSe a outra pessoa tiver qualquer pergunta, posso falar com ela também. Combinado?'},
+{id:'i4',m:'sumiu',t:'Pergunta direta de momento',c:['wa','ig'],q:'D+10 sem resposta',how:'Dá ao cliente uma saída honesta. Muita gente só precisa de permissão para dizer "ficou pra depois".',wa:'Oi, {nome}! Pra eu não te incomodar à toa: o plano{bem} segue nos seus planos para os próximos meses ou ficou pra mais pra frente? Qualquer resposta é ótima, assim eu me organizo.',ig:'{nome}, uma pergunta sincera: o plano{bem} continua nos seus planos ou ficou pra mais pra frente? Sem pressão, só pra eu me organizar.'},
+{id:'i5',m:'sumiu',t:'Encerramento com porta aberta',c:['wa','ig'],q:'D+20, último toque da cadência',how:'Avisa que vai encerrar o atendimento e pergunta o motivo. Costuma gerar a resposta que os toques anteriores não geraram.',wa:'{nome}, vou encerrar por aqui o seu atendimento pra não te incomodar. Se mudar de ideia, é só me chamar que retomo de onde paramos. Posso te pedir um favor? Me conta em uma frase o que pesou na decisão. Isso me ajuda a melhorar. Valeu e sucesso! {cons}',ig:'{nome}, vou deixar nosso papo em pausa por aqui. Quando fizer sentido, é só me chamar. Se puder, me conta o que pesou na decisão. Ajuda demais! Abraço.'},
+{id:'i6',m:'aprovado',t:'Aprovado e ainda não pagou',c:['wa'],q:'1 e 3 dias depois da análise aprovada',how:'Foca no próximo passo e em tirar o atrito (Pix, cartão), sem pressão artificial. Use o link de Pix copia e cola do Red Sea.',wa:'{nome}, boa notícia que merece comemoração: sua análise foi aprovada! Falta só o primeiro pagamento pra efetivar. Prefere Pix, cartão ou sinal com agendamento? Te mando agora o que for mais fácil pra você.'},
+{id:'i7',m:'sumiu',t:'Áudio curto e personalizado',c:['wa','ig'],q:'Quando o texto já foi ignorado 2 vezes',how:'Áudio de até 30 segundos soa humano e quebra o padrão de mensagem de texto repetida. Fale o nome e cite algo que o cliente comentou.',wa:'Roteiro do áudio (30s): "Oi, {nome}, aqui é o {cons}. Lembrei da nossa conversa sobre {bemtxt} e queria saber se ficou alguma dúvida. Se for mais fácil, me responde por aqui mesmo, sem compromisso. Um abraço!"',ig:'Mesmo roteiro serve no áudio da DM do Instagram. Mande depois de curtir ou comentar algo recente do perfil do cliente.'},
+{id:'i8',m:'sumiu',t:'Prova social: cliente que realizou',c:['wa','ig'],q:'Quando a objeção é confiança ("será que funciona?")',how:'Print ou foto de cliente contemplado ou com a entrega do bem, SEMPRE com autorização. Mostra que o processo é real e tem gente igual a ele.',wa:'{nome}, queria te mostrar uma coisa. Esse é um cliente nosso que começou do mesmo jeito que você, com dúvidas e perguntas, e hoje já está com o bem na garagem. [enviar foto/depoimento autorizado]. Se quiser, te explico como foi o caminho dele.',ig:'{nome}, separei um depoimento de um cliente que tinha as mesmas dúvidas que você. [mandar Story ou vídeo autorizado]. Se quiser, te conto o passo a passo.'},
+{id:'i9',m:'sumiu',t:'Comparativo em 3 linhas: consórcio x financiamento',c:['wa','ig'],q:'Quando o cliente compara com financiamento',how:'Educa sem brigar. Mostre o custo total com números reais da simulação dele, nunca promessa de contemplação.',wa:'{nome}, fiz uma conta simples pra você comparar{bem}:\n\n- Financiamento: parcela com juros, custo total bem maior que o valor do bem\n- Consórcio: sem juros, só taxa de administração\n- Diferença: você pode planejar o lance e acelerar a contemplação\n\nPosso montar essa comparação com os seus números?',ig:'Fiz um comparativo rápido de consórcio x financiamento pensando no seu caso, {nome}. Quer que eu mande aqui?'},
+{id:'i10',m:'antigo',t:'Reativação 60 a 90 dias: "faz um tempo"',c:['wa','ig'],q:'Lead ou cliente sem conversa há 2 a 3 meses',how:'Começa pela pessoa, não pela oferta. Cita o último assunto e traz uma novidade concreta.',wa:'Oi, {nome}! Faz um tempinho que a gente conversou sobre {bemtxt}. Como estão as coisas? Surgiram condições novas por aqui e lembrei de você. Quer que eu te conte rapidinho?',ig:'Oi, {nome}! Vi seu perfil e lembrei da nossa conversa sobre {bemtxt}. Mudou alguma coisa nos seus planos? Tenho umas novidades que podem te interessar.'},
+{id:'i11',m:'antigo',t:'Lead morno: nova moto/modelo lançado',c:['wa','ig'],q:'Lançamento ou mudança de linha (Kawasaki, BMW, Volkswagen)',how:'Aproveita o interesse do cliente por um modelo e conecta com novidade real do mercado.',wa:'{nome}, chegou uma novidade que lembra o que você buscava: [modelo novo]. Se quiser, eu simulo pra você e te mostro como fica a parcela. Sem compromisso!',ig:'{nome}, saiu um modelo novo que combina com o que você curtia. Quer que eu simule pra você?'},
+{id:'i12',m:'antigo',t:'Aniversário e datas especiais',c:['wa','ig'],q:'Aniversário do cliente ou data de assinatura',how:'Relacionamento puro, sem vender. Mantém você na memória para quando o cliente decidir.',wa:'Parabéns, {nome}! Que seu novo ciclo venha com muita saúde, estrada boa e grandes conquistas. Um abraço do time Digital Consórcio! {cons}',ig:'Parabéns, {nome}! Muita saúde e estrada boa pra você. Abraço do time Digital Consórcio!'},
+{id:'i13',m:'posvenda',t:'Pós-venda: 1ª assembleia e planejamento de lance',c:['wa'],q:'3 a 7 dias antes de cada assembleia',how:'Mantém o cliente engajado e abre a conversa sobre lance, que é onde está o seu resultado.',wa:'Oi, {nome}! Nossa assembleia está chegando{bem}. Quer que eu te explique como funciona e a gente monte uma estratégia de lance pro seu caso? Leva 5 minutos.'},
+{id:'i14',m:'posvenda',t:'Pós-venda: check-in do app e cadastro',c:['wa'],q:'2 a 3 dias depois do pagamento',how:'Evita que o cliente fique sem finalizar o pós-vendas na administradora. Reforça cuidado e profissionalismo.',wa:'{nome}, passando pra confirmar: você já conseguiu concluir o pós-vendas pelo canal da administradora? É rapidinho (menos de 3 minutos) e é obrigatório pra liberar o lance. Se travar em algum passo, me chama que eu te guio.'},
+{id:'i15',m:'indicacao',t:'Pedido de indicação com mensagem pronta',c:['wa','ig'],q:'Depois do pós-vendas concluído, quando o cliente está feliz',how:'Entregue ao cliente uma mensagem pronta para encaminhar. Quanto mais fácil, mais indica.',wa:'{nome}, fico muito feliz de ter você com a gente! Se conhecer alguém que também sonha com {bemtxt} ou outro bem, me indica? Já deixo uma mensagem pronta pra você encaminhar:\n\n"Oi! O {cons} me ajudou no consórcio e foi muito tranquilo. Quer que ele te explique como funciona?"',ig:'{nome}, obrigado pela confiança! Se algum amigo seu quiser conhecer o plano, me chama ou manda esse recado: "Conversa com o {cons}, ele me atendeu super bem no consórcio."'},
+{id:'i16',m:'ig',t:'Stories com caixinha de perguntas',c:['ig'],q:'1 a 2 vezes por semana',how:'Pergunte "qual a moto dos seus sonhos?" ou "qual sua maior dúvida sobre consórcio?". Cada resposta vira conversa e lead qualificado.',ig:'Story: "Qual moto você colocaria na garagem hoje? Responde aqui." | Quando responderem: "Boa escolha, {nome}! Já pensou em ter essa moto sem juros? Posso te mostrar como."'},
+{id:'i17',m:'ig',t:'Comentário com palavra-chave: "COMENTE QUERO"',c:['ig'],q:'Em Reels e posts com simulações, entregas e depoimentos',how:'O cliente comenta uma palavra e você abre a DM. Responda o comentário em público e continue no privado.',ig:'Legenda: "Quer simular a sua? Comenta QUERO que eu te chamo no direct." | DM: "Oi, {nome}! Vi seu comentário. Qual modelo você tem em mente?"'},
+{id:'i18',m:'ig',t:'Resposta a Story do cliente (abertura natural)',c:['ig'],q:'Quando o lead posta ou reage a Story',how:'Reagir a algo que a pessoa postou é a abordagem mais natural. Comece pelo assunto dela e só depois vá pro consórcio.',ig:'Reação ao Story: "Que massa, {nome}! [comentário genuíno]" | 1 dia depois: "Aliás, lembrei de você: ainda tem interesse em {bemtxt}? Posso te mostrar uma simulação."'},
+{id:'i19',m:'ig',t:'Aquecimento antes da DM',c:['ig'],q:'Antes de chamar um lead frio',how:'Curta, comente e assista aos Stories do lead por 2 a 3 dias antes de mandar a primeira DM. A resposta costuma ser bem maior.',ig:'Rotina: dia 1 curtir | dia 2 comentar algo útil | dia 3 DM: "Oi, {nome}! Gosto muito do seu conteúdo. Vi que você curte moto, tenho uma dica que pode te interessar."'},
+{id:'i20',m:'canal',t:'Lista VIP: transmissão no WhatsApp ou Melhores amigos',c:['wa','ig'],q:'Aviso quinzenal ou mensal, só para quem aceitou',how:'Quem aceita entrar numa lista quer receber. Envie novidades reais: vagas, simulações exemplo, dicas. Sempre com opção de sair.',wa:'{nome}, criei uma lista só com novidades do consórcio: dicas, condições e vagas reais, no máximo 2 mensagens por mês. Quer entrar? Responde SIM. Pra sair, é só responder SAIR.',ig:'Vou abrir uma lista de "Melhores amigos" com novidades e simulações reais só pra quem quiser. Quer entrar, {nome}? Me responde aqui.'},
+{id:'i21',m:'canal',t:'Status do WhatsApp: "mito ou verdade"',c:['wa'],q:'3 vezes por semana, como remarketing passivo',how:'Quem salvou seu número vê seu Status. Conteúdo curto e útil mantém você na cabeça do cliente sem enviar mensagem.',wa:'Status 1: "Mito ou verdade: consórcio tem juros?" | Status 2: "Dá pra usar o lance embutido?" | Status 3: "Quem é contemplado perde o direito ao grupo?" | Fim de cada: "Respondo qualquer dúvida por aqui!"'},
+{id:'i22',m:'canal',t:'Vaga ou condição real do grupo',c:['wa','ig'],q:'Somente quando existir vaga ou condição real',how:'Cite fatos concretos e verificáveis (grupo, prazo, crédito). Sem número inventado. É a mensagem mais forte, por isso a mais perigosa se for falsa.',wa:'{nome}, abriu uma condição que combina com o que você buscava{bem}: [grupo/crédito/prazo reais]. Se quiser, te passo os detalhes agora e reservo sua análise.',ig:'{nome}, surgiu uma condição que combina com o seu perfil{bem}: [dados reais]. Quer que eu te mande os detalhes por aqui?'}
+];
+var _ideiaMoms=[['todos','Todos'],['sumiu','Sumiu depois da simulação'],['aprovado','Aprovado'],['antigo','Cliente antigo'],['posvenda','Pós-venda'],['indicacao','Indicação'],['ig','Instagram'],['canal','Listas e Status']];
+var _ideiaFiltroM='todos',_ideiaFiltroC='todos';
+function _ideiaFill(t){
+  var n=(document.getElementById('c_nome')||{}).value||'',mo=(document.getElementById('c_moto')||{}).value||'',co=(document.getElementById('c_cons')||{}).value||'Vitor';
+  return t.replace(/\{nome\}/g,n||'[nome]').replace(/\{cons\}/g,co).replace(/\{bem\}/g,mo?' ('+mo+')':'').replace(/\{bemtxt\}/g,mo||'o seu plano');
+}
+function _ideiaEsc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ideiasFiltrar(k,v){if(k==='m')_ideiaFiltroM=v;else _ideiaFiltroC=v;ideiasRender();}
+function ideiasRender(){
+  var host=document.getElementById('ideias-lista');if(!host)return;
+  var ch=document.getElementById('ideias-chips');
+  if(ch)ch.innerHTML=_ideiaMoms.map(function(x){return '<button class="ide-chip'+(_ideiaFiltroM===x[0]?' on':'')+'" onclick="ideiasFiltrar(\'m\',\''+x[0]+'\')">'+x[1]+'</button>';}).join('')+'<span style="flex:1"></span>'+[['todos','Todos os canais'],['wa','WhatsApp'],['ig','Instagram']].map(function(x){return '<button class="ide-chip c'+(_ideiaFiltroC===x[0]?' on':'')+'" onclick="ideiasFiltrar(\'c\',\''+x[0]+'\')">'+x[1]+'</button>';}).join('');
+  var L=_IDEIAS.filter(function(i){return (_ideiaFiltroM==='todos'||i.m===_ideiaFiltroM)&&(_ideiaFiltroC==='todos'||i.c.indexOf(_ideiaFiltroC)>-1);});
+  var cnt=document.getElementById('ideias-cnt');if(cnt)cnt.textContent=L.length+' ideia'+(L.length===1?'':'s');
+  host.innerHTML=L.map(function(i){
+    var box=function(c,txt){return '<div class="ide-msg"><div class="ide-ch">'+(c==='wa'?'WhatsApp':'Instagram')+'</div><div class="ide-tx" id="itx-'+i.id+'-'+c+'">'+_ideiaEsc(_ideiaFill(txt))+'</div><div class="ide-bt"><button onclick="ideiaCopiar(\''+i.id+'\',\''+c+'\')">Copiar</button>'+(c==='wa'?'<button onclick="ideiaWhats(\''+i.id+'\')">Abrir no WhatsApp</button>':'')+'</div></div>';};
+    return '<div class="ide-card"><div class="ide-top"><div class="ide-ti">'+i.t+'</div><div class="ide-tags">'+i.c.map(function(c){return '<span class="ide-tag '+c+'">'+(c==='wa'?'WhatsApp':'Instagram')+'</span>';}).join('')+'</div></div>'+
+      '<div class="ide-q"><strong>Quando:</strong> '+i.q+'</div><div class="ide-how">'+i.how+'</div>'+
+      '<div class="ide-msgs">'+(i.wa?box('wa',i.wa):'')+(i.ig?box('ig',i.ig):'')+'</div></div>';
+  }).join('')||'<div class="hem">Nenhuma ideia com esse filtro.</div>';
+}
+function ideiaCopiar(id,c){var el=document.getElementById('itx-'+id+'-'+c);if(!el)return;navigator.clipboard.writeText(el.textContent).then(function(){toast('Mensagem copiada!');});}
+function ideiaWhats(id){var el=document.getElementById('itx-'+id+'-wa');if(!el)return;window.open('https://wa.me/?text='+encodeURIComponent(el.textContent),'_blank');}
+(function(){
+  var st=document.createElement('style');
+  st.textContent='.ide-chip{padding:7px 14px;border-radius:999px;border:1px solid var(--cb);background:var(--p);color:var(--t);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}.ide-chip.on{background:var(--v);border-color:var(--v);color:#fff;}'+
+  '#ideias-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 24px 8px;}#ideias-lista{padding:8px 24px 24px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}'+
+  '.ide-card{border:1px solid var(--cb);border-radius:14px;background:var(--p);padding:18px;display:flex;flex-direction:column;gap:10px;}.ide-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}.ide-ti{font-size:15px;font-weight:800;color:var(--t);line-height:1.3;}'+
+  '.ide-tags{display:flex;gap:6px;flex-shrink:0;}.ide-tag{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;color:#fff;}.ide-tag.wa{background:#1FA855;}.ide-tag.ig{background:#C13584;}'+
+  '.ide-q{font-size:12px;color:var(--v);}.ide-how{font-size:12px;color:var(--tm);line-height:1.6;}.ide-msgs{display:flex;flex-direction:column;gap:10px;margin-top:4px;}'+
+  '.ide-msg{border:1px solid var(--cb);border-radius:10px;padding:10px 12px;background:var(--ce);}.ide-ch{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--tm);margin-bottom:6px;}'+
+  '.ide-tx{font-size:12px;color:var(--t);line-height:1.6;white-space:pre-wrap;}.ide-bt{display:flex;gap:8px;margin-top:8px;}.ide-bt button{padding:6px 12px;border-radius:999px;border:1px solid var(--cb);background:var(--p);color:var(--t);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}'+
+  '.cad-row{display:flex;gap:10px;flex-wrap:wrap;padding:0 24px 16px;}.cad-it{flex:1 1 130px;border:1px solid var(--cb);border-radius:12px;padding:12px;background:var(--p);}.cad-d{font-size:18px;font-weight:800;color:var(--v);}.cad-t{font-size:12px;color:var(--t);font-weight:700;margin-top:2px;}.cad-s{font-size:11px;color:var(--tm);margin-top:4px;line-height:1.5;}'+
+  '.reg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 24px;padding:0 24px 20px;font-size:12px;color:var(--t);line-height:1.6;}'+
+  '@media(max-width:800px){#ideias-lista,.reg-grid{grid-template-columns:1fr;}}';
+  document.head.appendChild(st);
+  ['c_nome','c_moto','c_cons'].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener('input',ideiasRender);if(e)e.addEventListener('change',ideiasRender);});
+  ideiasRender();
+})();
 
 </script>
 </body>

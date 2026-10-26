@@ -652,6 +652,8 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div id="hall-gestor" style="margin-bottom:20px;"></div>
     <div id="hall-projecao" style="margin-bottom:20px;"></div>
 
+    <div id="hall-video" style="margin-bottom:24px;"></div>
+
     <div class="pt" style="margin-bottom:10px;"><h2 style="font-size:22px;">Para onde vamos?</h2></div>
     <div id="hall-funil" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-bottom:24px;"></div>
 
@@ -883,6 +885,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
       <div><div style="font-size:13px;font-weight:700;color:#DC2626;margin-bottom:3px;">O pagamento finaliza o cadastro e efetiva o lance.</div>
       <div style="font-size:12px;color:var(--tm);line-height:1.6;">Sem confirmacao, o processo nao e concluido mesmo com a analise aprovada.</div></div>
     </div>
+    <div class="linha-host"></div>
     <div class="subtabs">
       <button class="stab ac" onclick="subaPag('pix',this)">Pix Copia e Cola</button>
       <button class="stab" onclick="subaPag('cartao',this)">Cartao de Credito</button>
@@ -894,10 +897,11 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         <div class="fi fw"><label>Nome do cliente</label><input type="text" id="pix_nome" placeholder="Nome do cliente"/></div>
         <div class="fi"><label>Valor</label><input type="text" id="pix_valor" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
         <div class="fi"><label>Descrição / Parcela</label><input type="text" id="pix_label" placeholder="Ex: Primeira Parcela" value="Primeira Parcela"/></div>
-        <div class="fi"><label>Administradora</label>
-          <select id="pix_adm">
-            <option value="ancora">Âncora Administradora (Kawasaki)</option>
-            <option value="recon">Consórcio Nacional Recon (BMW)</option>
+        <div class="fi" style="display:none;"><label>Administradora</label>
+          <select id="pix_adm" onchange="setLinha('adm',this.value)">
+            <option value="ancora">Âncora Administradora</option>
+            <option value="recon">Consórcio Nacional Recon</option>
+            <option value="embracon">Embracon Administradora</option>
           </select>
         </div>
         <div class="fi"><label>E-mail do cliente</label><input type="email" id="pix_email" placeholder="email@cliente.com.br"/></div>
@@ -956,6 +960,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Pos-Venda</div><div class="topbar-sub">Comunicacao pos-pagamento</div></div>
   <div class="page-content">
   <div class="pt"><h2>Pós-Venda</h2><p>Selecione o tipo de <span class="hl">comunicação pós-pagamento</span></p></div>
+    <div class="linha-host"></div>
     <div class="stn">
       <button class="stb ac g" onclick="suba('bemvindo',this)"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" style="width:15px;height:15px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=&quot;none&quot;;"> Boas-vindas</button>
       <button class="stb" onclick="suba('posvendas',this)"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Warning/3D/warning_3d.png" style="width:15px;height:15px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=&quot;none&quot;;"> Alerta Pós-vendas</button>
@@ -967,7 +972,8 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bust%20in%20silhouette/3D/bust_in_silhouette_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Consorciado</div>
         <div class="fg">
           <div class="fi fw"><label>Nome completo</label><input type="text" id="bv_nome" placeholder="Nome do cliente"/></div>
-          <div class="fi"><label>Modelo da moto</label><select id="bv_mod"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 Tourer</option><option>Versys 650</option><option>Versys 650 Tourer</option><option>Versys 1100</option><option>Versys 1100 GT</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja ZX-4R</option><option>Ninja ZX-4RR</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 RS Café</option><option>Z900 RS SE</option><option>Z1100</option><option>Z1100 SE</option><option>ZH2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Vulcan S</option><option>Vulcan S Café</option><option>Eliminator 500</option><option>Eliminator 500 SE</option></optgroup></select></div>
+          <div class="fi"><label>Modelo da moto (Kawasaki)</label><select id="bv_mod"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 Tourer</option><option>Versys 650</option><option>Versys 650 Tourer</option><option>Versys 1100</option><option>Versys 1100 GT</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja ZX-4R</option><option>Ninja ZX-4RR</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 RS Café</option><option>Z900 RS SE</option><option>Z1100</option><option>Z1100 SE</option><option>ZH2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Vulcan S</option><option>Vulcan S Café</option><option>Eliminator 500</option><option>Eliminator 500 SE</option></optgroup></select></div>
+          <div class="fi" style="display:none;"><label>Modelo / bem</label><input type="text" id="bv_mod_outro" placeholder="Ex: R 1300 GS, Polo, Imóvel..."/></div>
           <div class="fi"><label>Data da 1ª Assembleia</label><input type="text" id="bv_assem" placeholder="15/07/2025" maxlength="10" oninput="fData(this)"/></div>
           <div class="fi"><label>E-mail do cliente</label><input type="email" id="bv_email" placeholder="email@cliente.com.br"/></div>
           <div class="fi"><label>Consultor</label><input type="text" id="bv_cons" value="Vitor Godoy"/></div>
@@ -992,8 +998,8 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
             <div class="ai">🚨</div>
             <div class="at">
               <h3>Pós-vendas não realizado — Lance em risco!</h3>
-              <p>Sem o pós-vendas concluído, o lance <strong style="color:#e74c3c;">não pode ser liberado</strong>, mesmo com a 1ª parcela paga. O processo leva <strong style="color:#2ecc71;">menos de 3 minutos</strong> pelo app Conta Âncora.</p>
-              <div class="tp2">⏱ Menos de 3 minutos pelo app</div>
+              <p id="pv-alerta-txt">Sem o pós-vendas concluído, o lance <strong style="color:#e74c3c;">não pode ser liberado</strong>, mesmo com a 1ª parcela paga. O processo leva <strong style="color:#2ecc71;">menos de 3 minutos</strong> pelo app Conta Âncora.</p>
+              <div class="tp2" id="pv-alerta-tag">⏱ Menos de 3 minutos pelo app</div>
             </div>
           </div>
         </div>
@@ -1550,6 +1556,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Agendamento</div><div class="topbar-sub">Confirmação de análise com credibilidade</div></div>
   <div class="page-content">
   <div class="pt"><h2>Agendamento de Análise</h2><p>Gere o <span class="hl">texto + card de confirmação</span> pra passar segurança ao cliente</p></div>
+    <div class="linha-host"></div>
 
     <div class="subtabs">
       <button class="stab ac" onclick="subaAgd('conf',this)">Confirmação</button>
@@ -1592,7 +1599,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         <div class="fg">
           <div class="fi"><label>Nome do cliente</label><input type="text" id="man_cliente" placeholder="Nome do cliente" oninput="renderMsgAnalise()"/></div>
           <div class="fi"><label>Nome do analista</label><input type="text" id="man_analista" placeholder="Quem vai ligar" oninput="renderMsgAnalise()"/></div>
-          <div class="fi"><label>Moto</label><input type="text" id="man_moto" list="dl-modelo-kw" placeholder="Ex: Ninja 300" autocomplete="off" oninput="renderMsgAnalise()"/></div>
+          <div class="fi"><label>Moto / bem</label><input type="text" id="man_moto" list="dl-modelo-kw" placeholder="Ex: Ninja 300" autocomplete="off" oninput="renderMsgAnalise()"/></div>
           <div class="fi"><label>Nome do consultor</label><input type="text" id="man_consultor" value="Vitor Godoy" oninput="renderMsgAnalise()"/></div>
         </div>
       </div>
@@ -3790,7 +3797,8 @@ var FUNIL=[
   {id:'historico',label:'Histórico',icon:ICONE_BASE+'Four oclock/3D/four_oclock_3d.png'},
   {id:'equipe',label:'Equipe',icon:ICONE_BASE+'Trophy/3D/trophy_3d.png'},
   {id:'agenda',label:'Agenda',icon:ICONE_BASE+'Calendar/3D/calendar_3d.png'},
-  {id:'comissao',label:'Projeção',icon:ICONE_BASE+'Money bag/3D/money_bag_3d.png'}
+  {id:'comissao',label:'Projeção',icon:ICONE_BASE+'Money bag/3D/money_bag_3d.png'},
+  {id:'parciais',label:'Parciais',icon:ICONE_BASE+'Bar chart/3D/bar_chart_3d.png'}
 ];
 function _hallDiaChave(){
   var d=new Date();
@@ -3974,7 +3982,7 @@ function renderHall(){
   // atalhos do funil
   var funilEl=document.getElementById('hall-funil');
   if(funilEl){
-    funilEl.innerHTML=FUNIL.map(function(f){
+    funilEl.innerHTML=FUNIL.filter(function(f){var n=document.querySelector('.sb-nav-item[onclick*="\''+f.id+'\'"]');return !n||n.style.display!=='none';}).map(function(f){
       return '<div class="fc" style="flex:1 1 150px;max-width:200px;padding:20px 14px;text-align:center;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'\'" onclick="irPara(\''+f.id+'\')"><img src="'+f.icon+'" style="width:44px;height:44px;margin-bottom:8px;" loading="lazy" onerror="this.style.display=\'none\'"/><div style="font-size:12px;font-weight:700;color:var(--t);">'+f.label+'</div></div>';
     }).join('');
   }
@@ -4289,7 +4297,7 @@ function _agdDesenharNovo(canvas){
   ls('-1px');ctx.fillStyle=tx;ctx.font='700 30px '+D;ctx.fillText('Red Sea',80,108);
   var w1=ctx.measureText('Red Sea ').width;
   ctx.fillStyle=gr;ctx.fillText('Digital',80+w1,108);
-  ls('0px');ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText('Digital Consórcio',W-80,106);
+  ls('0px');ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText(_LN().linhaTxt,W-80,106);
   ctx.textAlign='left';
   ls('-5px');ctx.fillStyle=tx;ctx.font='800 118px '+D;ctx.fillText('Análise',80,290);
   ctx.fillStyle=gr;ctx.fillText('agendada.',80,410);
@@ -4399,7 +4407,8 @@ function renderAgendamento(){
     'Sua análise do Plano Inteligente está confirmada:\n\n'+
     '📅 Data: '+dataFmt+'\n'+
     '🕐 Horário: '+hora+'\n'+
-    '👤 Analista responsável: '+analista+'\n\n'+
+    '👤 Analista responsável: '+analista+'\n'+
+    '🏷️ Linha: '+_LN().linhaTxt+'\n\n'+
     'Por se tratar de um atendimento personalizado, nossa agenda é concorrida — pedimos que fique com o celular por perto no horário combinado, para não perdermos sua vez.\n\n'+
     'Qualquer imprevisto, nos avise com antecedência.\n\n'+
     'Att,\n'+consultor+' — Digital Consórcio';
@@ -5419,7 +5428,8 @@ function subaPV(id,btn){
 var _modo='kw';
 var _adm='recon';
 try{var _a0=localStorage.getItem('rsd_adm');if(_a0==='ancora'||_a0==='recon')_adm=_a0;}catch(e){}
-function _admEf(){return _modo==='vw'?'embracon':_modo==='bmw'?'recon':_adm;}
+var _admOver=null;
+function _admEf(){return _admOver||(_modo==='vw'?'embracon':_modo==='bmw'?'recon':_adm);}
 function _admCurto(){var a=_admEf();return a==='embracon'?'Embracon':a==='recon'?'Recon':'\u00C2ncora';}
 function _admLegal(){var a=_admEf();return a==='embracon'?'Embracon Administradora de Cons\u00F3rcio LTDA':a==='recon'?'Cons\u00F3rcio Nacional Recon S.A.':'\u00C2ncora Administradora de Cons\u00F3rcios S.A.';}
 function setAdm(a){
@@ -5624,28 +5634,29 @@ function abrirPDF(html,nome,tipo){
 
 // \u2500\u2500 TOPO PDF (fun\u00E7\u00E3o \u2014 usa L) \u2500\u2500
 function topoPDF(){
-  var isBMW=(typeof _modo!=='undefined'&&_modo==='bmw');
-  var isGen=(typeof _modo!=='undefined'&&_modo==='gen');
-  var isVW=(typeof _modo!=='undefined'&&_modo==='vw');
-  if(isVW)
-    return`<div style="display:flex;align-items:stretch;"><div style="background:#111;padding:14px 24px;display:flex;align-items:center;"><img src="${L.d}" style="height:34px;object-fit:contain;"/></div><div style="flex:1;background:#f3f3f3;padding:8px 24px;display:flex;align-items:center;justify-content:flex-end;gap:22px;border-bottom:3px solid #003D8F;"><img src="${L.vw}" style="height:50px;object-fit:contain;mix-blend-mode:multiply;"/><div style="width:1px;height:34px;background:#ccc;"></div><img src="${L.embracon}" style="height:40px;object-fit:contain;mix-blend-mode:multiply;"/></div></div>`;
-  if(isBMW)
-    return`<div style="background:#012A5C;padding:14px 28px;display:flex;align-items:center;gap:20px;"><img src="${L.bmw}" style="height:38px;object-fit:contain;filter:brightness(0) invert(1);"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.3);"></div><img src="${L.recon}" style="height:30px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.3);"></div><img src="${L.d}" style="height:28px;object-fit:contain;"/></div>`;
-  if(isGen)
-    return'<div style="background:#111;padding:14px 28px;display:flex;align-items:center;gap:24px;">'+'<img src="'+L.d+'" style="height:34px;object-fit:contain;"/>'+'<div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div>'+'<img src="'+(_admEf()==='recon'?L.recon:L.a)+'" style="height:30px;object-fit:contain;"/></div>';
-  return`<div style="background:#111;padding:14px 28px;display:flex;align-items:center;gap:24px;"><img src="${L.d}" style="height:34px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div><img src="${L.k}" style="height:28px;object-fit:contain;"/><div style="width:1px;height:28px;background:rgba(255,255,255,0.2);"></div><img src="${_admEf()==='recon'?L.recon:L.a}" style="height:30px;object-fit:contain;"/></div>`;
+  var m=(typeof _modo!=='undefined')?_modo:'kw';
+  var sep='<div style="width:1px;height:28px;background:rgba(255,255,255,0.3);"></div>';
+  var dig='<img src="'+L.d+'" style="height:30px;object-fit:contain;"/>';
+  if(m==='vw')
+    return '<div style="display:flex;align-items:stretch;"><div style="background:#111;padding:14px 24px;display:flex;align-items:center;"><img src="'+L.d+'" style="height:34px;object-fit:contain;"/></div><div style="flex:1;background:#f3f3f3;padding:8px 24px;display:flex;align-items:center;justify-content:flex-end;gap:22px;border-bottom:3px solid #003D8F;"><img src="'+L.vw+'" style="height:50px;object-fit:contain;mix-blend-mode:multiply;"/><div style="width:1px;height:34px;background:#ccc;"></div>'+_admLogo(40,true)+'</div></div>';
+  var bg=m==='bmw'?'#012A5C':'#111';
+  var h='<div style="background:'+bg+';padding:14px 28px;display:flex;align-items:center;gap:20px;">';
+  if(m==='bmw')h+='<img src="'+L.bmw+'" style="height:38px;object-fit:contain;filter:brightness(0) invert(1);"/>'+sep+_admLogo(30,false)+sep+dig;
+  else if(m==='gen')h+=dig+sep+_admLogo(30,false);
+  else h+=dig+sep+'<img src="'+L.k+'" style="height:28px;object-fit:contain;"/>'+sep+_admLogo(30,false);
+  return h+'</div>';
 }
 function rodapePDF(){
-  var isBMW=(typeof _modo!=='undefined'&&_modo==='bmw');
-  if(typeof _modo!=='undefined'&&_modo==='vw')
-    return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #003D8F;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Embracon Administradora de Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 58.113.812/0001-23 \u00B7 Alameda Europa, 150 \u2013 Centro Empresarial Tambor\u00E9 \u2013 Santana de Parna\u00EDba/SP \u00B7 Aut. Bacen n\u00BA 3/00/223/88 \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
-  if(isBMW||_admEf()==='recon')
-    return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid ${isBMW?'#0166B1':'#111'};background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">Cons\u00F3rcio Nacional Recon S.A.</strong> \u00B7 CNPJ 23.767.155/0001-53 \u00B7 Aut. Bacen \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
-  return`<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid #111;background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;"><strong style="color:#555;">\u00C2ncora Administradora de Cons\u00F3rcios S.A</strong> \u00B7 CNPJ 60.375.243/0001-36 \u00B7 Av. Dr. Ant\u00F4nio Barbosa Filho, 1260 \u2013 Franca/SP \u00B7 Aut. Bacen 03/00/188/89 \u00B7 www.bcb.gov.br<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>`;
+  var m=(typeof _modo!=='undefined')?_modo:'kw',a=_admEf();
+  var cor=m==='vw'?'#003D8F':m==='bmw'?'#0166B1':'#111';
+  var adm=a==='embracon'?'<strong style="color:#555;">Embracon Administradora de Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 58.113.812/0001-23 \u00B7 Alameda Europa, 150 \u2013 Centro Empresarial Tambor\u00E9 \u2013 Santana de Parna\u00EDba/SP \u00B7 Aut. Bacen n\u00BA 3/00/223/88 \u00B7 www.bcb.gov.br'
+    :a==='recon'?'<strong style="color:#555;">Cons\u00F3rcio Nacional Recon S.A.</strong> \u00B7 CNPJ 23.767.155/0001-53 \u00B7 Aut. Bacen \u00B7 www.bcb.gov.br'
+    :'<strong style="color:#555;">\u00C2ncora Administradora de Cons\u00F3rcios S.A</strong> \u00B7 CNPJ 60.375.243/0001-36 \u00B7 Av. Dr. Ant\u00F4nio Barbosa Filho, 1260 \u2013 Franca/SP \u00B7 Aut. Bacen 03/00/188/89 \u00B7 www.bcb.gov.br';
+  return '<div style="margin-top:14px;padding:10px 32px 14px;border-top:2px solid '+cor+';background:#f9f9f9;"><div style="font-size:8px;color:#999;line-height:1.8;">'+adm+'<br><strong style="color:#555;">Digital Cons\u00F3rcio LTDA</strong> \u00B7 CNPJ 23.921.370/0001-67 \u00B7 Emitido em '+new Date().toLocaleString('pt-BR')+'</div></div>';
 }
 function _marcaConsorcio(){
   var m=(typeof _modo!=='undefined')?_modo:'kw';
-  return m==='bmw'?'Cons\u00F3rcio BMW Motorrad':m==='gen'?(_admEf()==='recon'?'Cons\u00F3rcio Recon':'Cons\u00F3rcio \u00C2ncora'):m==='vw'?'Cons\u00F3rcio Volkswagen':'Cons\u00F3rcio Kawasaki';
+  return m==='bmw'?'Cons\u00F3rcio BMW Motorrad':m==='gen'?('Cons\u00F3rcio '+_admCurto()):m==='vw'?'Cons\u00F3rcio Volkswagen':'Cons\u00F3rcio Kawasaki';
 }
 function assinaturaPDF(cons,wcons){return`<div style="margin:0 32px;padding:14px 0;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:flex-end;"><div><div style="font-size:12px;font-weight:700;color:#222;">${cons}</div><div style="font-size:10px;color:#888;">Consultor \u00B7 Digital Cons\u00F3rcio LTDA</div><div style="font-size:10px;color:#888;">${wcons?'WhatsApp: '+wcons:_marcaConsorcio()}</div></div><img src="${L.d}" style="height:30px;object-fit:contain;"/></div>`;}
 function badgesPDF(){return`<div style="display:flex;gap:10px;flex-wrap:wrap;"><a href="https://apps.apple.com/br/app/conta-%C3%A2ncora/id6746348039" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:10px;background:#111;border-radius:8px;padding:8px 14px;min-width:170px;"><img src="${L.a}" style="width:32px;height:32px;border-radius:7px;"/><div><div style="font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;">Dispon\u00EDvel na</div><div style="font-size:13px;font-weight:700;color:#fff;">App Store</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">Conta \u00C2ncora</div></div></a><a href="https://play.google.com/store/apps/details?id=com.ancora.AutoServico_Mobile&hl=pt_BR" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:10px;background:#111;border-radius:8px;padding:8px 14px;min-width:170px;"><img src="${L.a}" style="width:32px;height:32px;border-radius:7px;"/><div><div style="font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;">Dispon\u00EDvel no</div><div style="font-size:13px;font-weight:700;color:#fff;">Google Play</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">Conta \u00C2ncora</div></div></a></div><div style="font-size:11px;color:#888;margin-top:8px;padding:6px 10px;background:#f9f9f9;border-left:3px solid #ddd;">Aguarde o login e senha \u2014 enviados pelo time de p\u00F3s-vendas da \u00C2ncora.</div>`;}
@@ -6187,7 +6198,7 @@ function sHist(tipo){
   _fbPostarMural('documento',_fbNomeAtual()+' gerou um documento ('+tipo+') 📄');
 }
 function sHistS(tipo,nome){
-  const mod=document.getElementById('bv_mod')?document.getElementById('bv_mod').value?'Kawasaki '+document.getElementById('bv_mod').value:'\u2014':'\u2014';
+  const mod=(typeof _bvModelo==='function'&&_bvModelo(_LN()))||'\u2014';
   var prefixo=tipo==='Boas-vindas'?'bv_':(tipo==='Alerta P\u00F3s-vendas'?'pv_':'cb_');
   var snapshot=_snapshotPorPrefixo(prefixo);
   var cpf=snapshot[prefixo+'cpf']||'\u2014';
@@ -6311,11 +6322,11 @@ function emailPix(){
   var cod=document.getElementById('pix_codigo').value.trim();
   if(!cod){toast('Informe o codigo Pix','#c0392b');return;}
   var corpo='Prezado(a), '+n+'.\n\nPara finalizar seu cadastro, realize o pagamento:\n\n';
-  corpo+='Forma: Pix Copia e Cola\nFavorecido: Ancora Administradora de Consorcios S.A.\nCNPJ: 60.375.243/0001-36\n';
+  corpo+='Forma: Pix Copia e Cola\nFavorecido: '+_admFavTxt()+'\n';
   corpo+=(vr?'Valor: '+vr+'\n':'');
   corpo+='\nCodigo Pix:\n'+cod+'\n\nApos o pagamento, favor nos informar.\n\nAtenciosamente,\n'+c+'\nConsultor | Digital Consorcio LTDA';
   _dest=document.getElementById('pix_email').value.trim();
-  _epag('Instrucao de Pagamento via Pix - Consorcio Kawasaki | '+n, corpo);
+  _epag('Instrucao de Pagamento via Pix - '+_consAsc()+' | '+n, corpo);
   var di=document.getElementById('m-dest-input');if(di)di.value=_dest;
 }
 
@@ -6370,7 +6381,7 @@ function whSinal(){
   var msg='Ola, '+n+'!\n\nPara iniciar o processo e efetivar o lance, realize o pagamento do sinal:\n\n';
   msg+='1a PARCELA - SINAL\nFavorecido: Digital Consorcio LTDA\nChave Pix (CNPJ): 52.197.309/0001-17\n';
   msg+=(v1?'Valor: '+v1+'\n':'');
-  msg+='\nATENCAO: Pague EXCLUSIVAMENTE para a Digital Consorcio LTDA.\nNao envie para a Ancora - ela interpretaria como pagamento integral.\n';
+  msg+='\nATENCAO: Pague EXCLUSIVAMENTE para a Digital Consorcio LTDA.\nNao envie para a '+_admAsc()+' - ela interpretaria como pagamento integral.\n';
   if(d2||v2){msg+='\n2a PARCELA - AGENDAMENTO\n'+(d2?'Data: '+d2+'\n':'')+(v2?'Valor: '+v2+'\n':'');}
   msg+='\nPasso a passo e explicacao (por que pagar para a Digital):\n'+_sinalLink()+'\n';
   msg+='\nApos o pagamento, me avise!\n\n'+c+'\nConsultor | Digital Consorcio LTDA';
@@ -6384,7 +6395,7 @@ function whCartao(){
   var lk=document.getElementById('cartao_link').value.trim();
   if(!lk){toast('Informe o link de pagamento','#c0392b');return;}
   var L1='Ola, '+n+'!\n\nPara finalizar seu cadastro e efetivar o lance, realize o pagamento via cartao:\n\n';
-  var L2='Favorecido: Ancora Administradora de Consorcios S.A.\nCNPJ: 60.375.243/0001-36\n';
+  var L2='Favorecido: '+_admFavTxt()+'\n';
   var L3=(vr?'Valor: '+vr+'\n':'');
   var L4='\nLink de pagamento:\n'+lk+'\n\nApos o pagamento, me avise!\n\n'+c+'\nConsultor | Digital Consorcio LTDA';
   _wpag(L1+L2+L3+L4);
@@ -7080,7 +7091,7 @@ function abrirEmailCnpj(){
   var cons=v('cnpj_consultor')||'', prot=v('cnpj_protocolo')||'';
   if(v('cnpj_empresa')&&v('cnpj_lance_valor'))abrirPDF(buildLanceCnpj(), v('cnpj_empresa'),'Analise de Lance CNPJ');
   _dest=v('cnpj_email');_wnum='';
-  _assunto='Resultado da Analise de Lance - Consorcio Kawasaki'+(prot?' | Processo '+prot:'');
+  _assunto='Resultado da Analise de Lance - '+_consAsc()+(prot?' | Processo '+prot:'');
   _corpo='Prezado(a) representante de '+empresa+'.\n\nInformamos que o lance referente a cota da empresa no Plano Inteligente foi analisado e aprovado com sucesso.\n\nValor do lance: '+lance+'\n'+(modelo?'Modelo de interesse: '+modelo+'\n':'')+'\nEste valor e disponibilizado pelo programa de incentivo Kawasaki em parceria com a Ancora Administradora, sem custo adicional.\n\nEm breve entraremos em contato para orientar sobre os proximos passos.\n\nAtenciosamente,\n'+cons+'\nConsultor | Digital Consorcio LTDA | Consorcio Kawasaki';
   var di=document.getElementById('m-dest-input');
   abModal();
@@ -7107,11 +7118,11 @@ function emailCartao(){
   var lk=document.getElementById('cartao_link').value.trim();
   if(!lk){toast('Informe o link de pagamento','#c0392b');return;}
   var corpo='Prezado(a), '+n+'.\n\nPara finalizar seu cadastro, realize o pagamento:\n\n';
-  corpo+='Forma: Cartao de Credito\nFavorecido: Ancora Administradora de Consorcios S.A.\nCNPJ: 60.375.243/0001-36\n';
+  corpo+='Forma: Cartao de Credito\nFavorecido: '+_admFavTxt()+'\n';
   corpo+=(vr?'Valor: '+vr+'\n':'');
   corpo+='\nLink de pagamento:\n'+lk+'\n\nApos o pagamento, favor nos informar.\n\nAtenciosamente,\n'+c+'\nConsultor | Digital Consorcio LTDA';
   _dest=document.getElementById('cartao_email').value.trim();
-  _epag('Instrucao de Pagamento via Cartao - Consorcio Kawasaki | '+n, corpo);
+  _epag('Instrucao de Pagamento via Cartao - '+_consAsc()+' | '+n, corpo);
   var di=document.getElementById('m-dest-input');if(di)di.value=_dest;
 }
 
@@ -7213,7 +7224,7 @@ function pixVerificarHash(){
 function _pixMostrarTelaCliente(p){
   // Esconde tudo e mostra tela limpa de pagamento
   document.querySelectorAll('.tp,#login-screen,#app-shell').forEach(function(el){el.style.display='none';});
-  var adm=p.a==='recon'?'Consórcio Nacional Recon':'Âncora Administradora';
+  var adm=p.a==='recon'?'Consórcio Nacional Recon':p.a==='embracon'?'Embracon Administradora':'Âncora Administradora';
   var tela=document.createElement('div');
   tela.id='pix-tela-cliente';
   tela.style.cssText='position:fixed;inset:0;background:#0B1220;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:99999;';
@@ -7242,7 +7253,7 @@ function _pixMostrarTelaCliente(p){
       '</div>'+
       // Footer
       '<div style="background:#070D19;padding:12px 24px;text-align:center;border-top:1px solid #1E2D4A;">'+
-        '<div style="font-size:10px;color:#4A6070;">🔒 Pagamento 100% seguro · '+(p.a==='recon'?'Digital Consórcio (Recon - BMW)':'Digital Consórcio (Âncora - Kawasaki)')+'</div>'+
+        '<div style="font-size:10px;color:#4A6070;">🔒 Pagamento 100% seguro · '+(p.a==='recon'?'Digital Consórcio (Recon)':p.a==='embracon'?'Digital Consórcio (Embracon)':'Digital Consórcio (Âncora)')+'</div>'+
       '</div>'+
     '</div>';
   document.body.appendChild(tela);
@@ -7283,7 +7294,7 @@ function whPix(){
   var c=document.getElementById('pix_cons').value.trim()||'';
   var cod=document.getElementById('pix_codigo').value.trim();
   var adm=document.getElementById('pix_adm').value;
-  var admNome=adm==='recon'?'Consórcio Nacional Recon S.A.\nCNPJ: 23.767.155/0001-53':'Âncora Administradora de Consórcios S.A.\nCNPJ: 60.375.243/0001-36';
+  var admNome=_admFavTxt(adm);
   if(!cod){toast('Informe o código Pix','#c0392b');return;}
   var L1='Olá, '+n+'!\n\n';
   var L2='Para finalizar seu cadastro e efetivar o lance, realize o pagamento via Pix:\n\n';
@@ -7303,12 +7314,12 @@ function emailSinal(){
   var corpo='Prezado(a), '+n+'.\n\nPara iniciar o processo e efetivar o lance aprovado, realize o pagamento do sinal:\n\n';
   corpo+='1a PARCELA - SINAL\nFavorecido: Digital Consorcio LTDA\nCNPJ / Chave Pix: 52.197.309/0001-17\n';
   corpo+=(v1?'Valor: '+v1+'\n':'');
-  corpo+='\nImportante: Pagamento exclusivo para a Digital Consorcio LTDA. Se enviado a Ancora, ela interpreta como integral e gera carta menor.\n';
+  corpo+='\nImportante: Pagamento exclusivo para a Digital Consorcio LTDA. Se enviado a '+_admAsc()+', ela interpreta como integral e gera carta menor.\n';
   if(d2||v2){corpo+='\n2a PARCELA - AGENDAMENTO\n'+(d2?'Data: '+d2+'\n':'')+(v2?'Valor: '+v2+'\n':'');}
   corpo+='\nPasso a passo e explicacao (por que pagar para a Digital):\n'+_sinalLink()+'\n';
   corpo+='\nAtenciosamente,\n'+c+'\nConsultor | Digital Consorcio LTDA';
   _dest=document.getElementById('sinal_email').value.trim();
-  _epag('Instrucao de Pagamento - Sinal | Consorcio Kawasaki | '+n, corpo);
+  _epag('Instrucao de Pagamento - Sinal | '+_consAsc()+' | '+n, corpo);
   var di=document.getElementById('m-dest-input');if(di)di.value=_dest;
 }
 
@@ -7486,6 +7497,317 @@ function iniciar(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',iniciar);else iniciar();
 })();
+</script>
+<script>
+/* ===== LINHAS (marca + administradora) — Pós-venda, Pagamento e Agendamento ===== */
+var _linha={marca:'kw',adm:'recon'};
+try{var _l0=JSON.parse(localStorage.getItem('rsd_linha')||'null');if(_l0&&_MARCAS0(_l0.marca)&&_l0.adm)_linha={marca:_l0.marca,adm:_l0.adm};}catch(e){}
+function _MARCAS0(m){return m==='kw'||m==='bmw'||m==='vw'||m==='gen';}
+var _MARCAS={kw:'Kawasaki',bmw:'BMW',vw:'Volkswagen',gen:'Plano Inteligente'};
+var _ADMS={recon:'Recon',ancora:'Âncora',embracon:'Embracon'};
+function _LN(){
+  var m=_linha.marca,a=_linha.adm,o={};
+  o.marca=m;o.adm=a;o.marcaNome=_MARCAS[m];o.admCurto=_ADMS[a];
+  o.admNome=a==='embracon'?'Embracon Administradora':a==='recon'?'Consórcio Nacional Recon':'Âncora Administradora';
+  o.admLegal=a==='embracon'?'Embracon Administradora de Consórcio LTDA':a==='recon'?'Consórcio Nacional Recon S.A.':'Âncora Administradora de Consórcios S.A.';
+  o.junto=a==='recon'?'ao Consórcio Nacional Recon':a==='embracon'?'à Embracon Administradora':'à Âncora Administradora';
+  o.consorcio=m==='gen'?'Plano Inteligente':'Consórcio '+_MARCAS[m];
+  o.familia=m==='gen'?'ao Plano Inteligente':'à Família '+_MARCAS[m];
+  o.parte=m==='gen'?'do Plano Inteligente':'da família '+_MARCAS[m];
+  o.linhaTxt=(m==='gen'?'Imóvel':_MARCAS[m])+' · '+_ADMS[a];
+  o.setor=m==='kw'?'Consórcio Kawasaki Brasil':m==='gen'?'Plano Inteligente':'Consórcio '+_MARCAS[m];
+  o.cor=m==='kw'?'#006B28':m==='bmw'?'#0166B1':m==='vw'?'#003D8F':'#1D9E75';
+  o.ancora=(a==='ancora');
+  o.canal=o.ancora?'app Conta Âncora':'canal oficial da '+_ADMS[a];
+  return o;
+}
+function _withLinha(fn){
+  var m=_modo,ov=_admOver;
+  _modo=_linha.marca;_admOver=_linha.adm;
+  try{return fn();}finally{_modo=m;_admOver=ov;}
+}
+function _admFavTxt(a){
+  a=a||_linha.adm;
+  return a==='recon'?'Consorcio Nacional Recon S.A.\nCNPJ: 23.767.155/0001-53':a==='embracon'?'Embracon Administradora de Consorcio LTDA\nCNPJ: 58.113.812/0001-23':'Ancora Administradora de Consorcios S.A.\nCNPJ: 60.375.243/0001-36';
+}
+function _admLogo(h,onLight){
+  var a=_admEf();
+  if(a==='recon'){
+    var i='<img src="'+L.recon+'" style="height:'+h+'px;object-fit:contain;"/>';
+    return onLight?'<span style="background:#012A5C;padding:6px 10px;border-radius:6px;display:inline-flex;">'+i+'</span>':i;
+  }
+  if(a==='embracon')return '<img src="'+L.embracon+'" style="height:'+h+'px;object-fit:contain;'+(onLight?'mix-blend-mode:multiply;':'border-radius:4px;')+'"/>';
+  return '<img src="'+L.a+'" style="height:'+h+'px;object-fit:contain;'+(onLight?'border-radius:4px;':'')+'"/>';
+}
+function setLinha(k,val){
+  _linha[k]=val;
+  try{localStorage.setItem('rsd_linha',JSON.stringify(_linha));}catch(e){}
+  _linhaSync();
+}
+function _linhaSync(){
+  document.querySelectorAll('.ln-marca').forEach(function(e){e.value=_linha.marca;});
+  document.querySelectorAll('.ln-adm').forEach(function(e){e.value=_linha.adm;});
+  var N=_LN();
+  var o=document.getElementById('bv_mod'),ox=document.getElementById('bv_mod_outro');
+  if(o&&o.closest('.fi'))o.closest('.fi').style.display=(_linha.marca==='kw')?'':'none';
+  if(ox&&ox.closest('.fi'))ox.closest('.fi').style.display=(_linha.marca==='kw')?'none':'';
+  var pa=document.getElementById('pv-alerta-txt');
+  if(pa)pa.innerHTML='Sem o pós-vendas concluído, o lance <strong style="color:#e74c3c;">não pode ser liberado</strong>, mesmo com a 1ª parcela paga. O processo leva <strong style="color:#2ecc71;">menos de 3 minutos</strong> pelo '+N.canal+'.';
+  var pt=document.getElementById('pv-alerta-tag');
+  if(pt)pt.textContent='⏱ Menos de 3 minutos '+(N.ancora?'pelo app':'pelo canal oficial');
+  try{renderAgendamento();}catch(e){}
+  try{if(document.getElementById('man-canvas'))renderMsgAnalise();}catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){_linhaSync();});
+
+function _bvModelo(N){
+  if(N.marca==='kw'){var s=document.getElementById('bv_mod');return s&&s.value?'Kawasaki '+s.value:'';}
+  var t=v('bv_mod_outro');if(!t)return '';
+  return (N.marca==='gen'||t.toLowerCase().indexOf(N.marcaNome.toLowerCase())===0)?t:N.marcaNome+' '+t;
+}
+function _passoPDF(n,cor,corpo,ultimo){
+  return '<div style="display:flex;gap:14px;'+(ultimo?'':'margin-bottom:16px;')+'align-items:flex-start;"><div style="width:26px;height:26px;border-radius:50%;background:'+cor+';color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+n+'</div><div style="font-size:12px;color:#333;line-height:1.7;padding-top:3px;">'+corpo+'</div></div>';
+}
+function buildBV(qrURL){
+  return _withLinha(function(){
+    var N=_LN();qrURL=qrURL||'';
+    var nome=v('bv_nome')||'—',modelo=_bvModelo(N),assem=v('bv_assem')||'—',cons=v('bv_cons')||'Vitor Godoy',wcons=v('bv_wcons')||'';
+    var cor=N.cor;
+    var p1=N.ancora?
+      '<strong style="color:#111;display:block;margin-bottom:4px;">App Conta Âncora — acompanhe sua cota em tempo real</strong>Baixe o aplicativo oficial da Âncora para acompanhar sua cota, assembleias e situação do consórcio.<br><div style="margin-top:8px;">'+badgesPDF()+'</div>':
+      '<strong style="color:#111;display:block;margin-bottom:4px;">Acompanhe sua cota — canais oficiais da '+N.admCurto+'</strong>A '+N.admCurto+' disponibiliza canais oficiais para você acompanhar sua cota, assembleias e a situação do consórcio. Em breve enviaremos o passo a passo de acesso.';
+    var p2='<strong style="color:#111;display:block;margin-bottom:2px;">Pós-vendas Digital Consórcios — aguarde o contato</strong>Nossa equipe entrará em contato em até <strong>2 a 3 dias úteis</strong>.<br><span style="font-size:11px;color:#888;">Qualquer dúvida antes disso, fale diretamente com '+cons+'.</span>';
+    var p3='<strong style="color:#111;display:block;margin-bottom:2px;">Primeira Assembleia</strong>Sua primeira assembleia está prevista para <strong style="color:'+cor+';">'+assem+'</strong>. Acompanhe pelo '+N.canal+'.';
+    var p4='<strong style="color:#111;display:block;margin-bottom:2px;">Precisou de algo?</strong>Sou seu ponto de contato direto. Não hesite em me chamar.'+(wcons?'<br><span style="display:inline-block;margin-top:6px;background:#25D366;color:#fff;border-radius:4px;padding:4px 12px;font-size:11px;font-weight:700;">WhatsApp: '+wcons+'</span>':'');
+    return '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#fff;">'+
+      topoPDF()+
+      '<div style="padding:22px 32px 16px;border-bottom:2px solid '+cor+';"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:5px;">'+(N.marca==='gen'?'Plano Inteligente':'Plano Inteligente · '+N.consorcio)+'</div><div style="font-size:20px;font-weight:700;color:'+cor+';">Bem-vindo '+N.familia+'!</div><div style="font-size:11px;color:#666;margin-top:3px;">Guia de primeiros passos para o seu consórcio</div></div>'+
+      '<div style="padding:22px 32px 8px;"><p style="font-size:13px;color:#222;margin:0 0 10px;">Olá, <strong>'+nome+'</strong>!</p><p style="font-size:12px;color:#444;line-height:1.75;margin:0;">É um prazer enorme ter você fazendo parte '+N.parte+'. Sua cota'+(modelo?' para '+modelo:'')+' está reservada e você deu o primeiro passo para realizá-la.</p></div>'+
+      '<div style="padding:16px 32px 20px;">'+_passoPDF(1,cor,p1)+_passoPDF(2,cor,p2)+_passoPDF(3,cor,p3)+_passoPDF(4,cor,p4,true)+'</div>'+
+      blocoQR(qrURL,'',nome,'Boas-vindas')+blocoQR(qrURL,'',nome,'Alerta Pos-vendas')+assinaturaPDF(cons,wcons)+rodapePDF()+'</div>';
+  });
+}
+function buildPV(qrURL){
+  return _withLinha(function(){
+    var N=_LN();qrURL=qrURL||'';
+    var nome=v('pv_nome')||'—',cons=v('pv_cons')||'Vitor Godoy',wcons=v('pv_wcons')||'';
+    var bol=function(n,t){return '<div style="display:flex;gap:10px;"><span style="background:#006B28;color:#fff;border-radius:50%;width:20px;height:20px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+n+'</span>'+t+'</div>';};
+    var passos=N.ancora?
+      bol(1,'Baixe o app <strong>Conta Âncora</strong>')+bol(2,'Acesse com CPF e senha enviados pela Âncora'):
+      bol(1,'Acesse o <strong>canal oficial da '+N.admCurto+'</strong> (seu consultor envia o link)')+bol(2,'Entre com seu CPF e a senha enviados pela '+N.admCurto);
+    passos+=bol(3,'Localize <strong>Pós-vendas</strong> ou <strong>Completar cadastro</strong>')+bol(4,'Siga as instruções — menos de 3 minutos');
+    return '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#fff;">'+
+      topoPDF()+
+      '<div style="background:#c0392b;padding:12px 32px;display:flex;align-items:center;gap:12px;"><span style="font-size:20px;">⚠️</span><div><div style="font-size:13px;font-weight:800;color:#fff;">AÇÃO NECESSÁRIA — Pós-vendas Pendente</div><div style="font-size:10px;color:rgba(255,255,255,0.8);">'+N.consorcio+' · Digital Consórcios · '+N.admNome+'</div></div></div>'+
+      '<div style="padding:24px 32px 0;"><p style="font-size:13px;color:#222;margin:0 0 12px;">Prezado(a) <strong>'+nome+'</strong>,</p><p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">Identificamos que o seu <strong>cadastro de pós-vendas</strong> junto '+N.junto+' ainda não foi concluído. Essa etapa é <strong style="color:#c0392b;">obrigatória</strong> para que o seu lance seja formalmente registrado e liberado no sistema — mesmo com a primeira parcela já paga.</p><p style="font-size:12px;color:#444;line-height:1.8;margin:0;">Pedimos que realize esse procedimento o quanto antes.</p></div>'+
+      '<div style="margin:20px 32px;background:#f0fff4;border:1.5px solid #006B28;border-radius:6px;padding:16px 20px;display:flex;gap:16px;align-items:center;"><div style="font-size:32px;flex-shrink:0;">✅</div><div><div style="font-size:13px;font-weight:700;color:#006B28;margin-bottom:4px;">Processo rápido — menos de 3 minutos</div><div style="font-size:12px;color:#444;line-height:1.6;">'+(N.ancora?'Feito inteiramente pelo <strong>app Conta Âncora</strong>, direto do seu celular.':'Feito pelos <strong>canais oficiais da '+N.admCurto+'</strong>, com a orientação do seu consultor.')+'</div></div></div>'+
+      (N.ancora?'<div style="padding:0 32px 20px;">'+badgesPDF()+'</div>':'')+
+      '<div style="margin:0 32px 20px;padding:16px 20px;background:#f9f9f9;border-radius:6px;border:1px solid #eee;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#555;margin-bottom:10px;">Como realizar o pós-vendas</div><div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:#444;line-height:1.6;">'+passos+'</div></div>'+
+      '<div style="padding:0 32px 20px;"><p style="font-size:12px;color:#444;line-height:1.8;margin:0;">Qualquer dúvida, entre em contato com '+cons+(wcons?' — WhatsApp: '+wcons:'')+'.</p></div>'+
+      assinaturaPDF(cons,wcons)+rodapePDF()+'</div>';
+  });
+}
+function buildCB(qrURL){
+  return _withLinha(function(){
+    var N=_LN();qrURL=qrURL||'';
+    var nome=v('cb_nome')||'—',valor=v('cb_valor')?'R$ '+v('cb_valor'):'—',qtd=v('cb_qtd')||'1 parcela',prazo=v('cb_prazo')||'—',cons=v('cb_cons')||'Vitor Godoy',wcons=v('cb_wcons')||'';
+    var cons2=N.marca==='gen'?'Plano Inteligente':N.consorcio;
+    return '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#fff;color:#1a1a1a;">'
+      +topoPDF()
+      +'<div style="background:#8B6914;padding:12px 32px;display:flex;align-items:center;gap:12px;"><span style="font-size:18px;"></span><div><div style="font-size:13px;font-weight:800;color:#fff;">AVISO DE COBRANCA — PARCELA EM ATRASO</div>'
+      +'<div style="font-size:10px;color:rgba(255,255,255,0.8);">'+cons2+' — Digital Consórcios — '+N.admNome+'</div></div></div>'
+      +'<div style="padding:24px 32px 0;"><p style="font-size:13px;color:#222;margin:0 0 12px;">Prezado(a) <strong>'+nome+'</strong>,</p>'
+      +'<p style="font-size:12px;color:#444;line-height:1.8;margin:0 0 10px;">Identificamos em nosso sistema que há uma pendência financeira referente ao seu plano no '+cons2+'. Entramos em contato para comunicar formalmente e oferecer a oportunidade de regularização antes que medidas adicionais sejam necessárias.</p>'
+      +'<p style="font-size:12px;color:#444;line-height:1.8;margin:0;">Pedimos que trate este assunto com a devida prioridade, a fim de preservar os benefícios do seu plano e evitar eventuais consequências contratuais.</p></div>'
+      +'<div style="margin:20px 32px;border:1.5px solid #c8a400;border-radius:4px;overflow:hidden;"><div style="background:#c8a400;padding:8px 20px;"><span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(0,0,0,0.7);">Detalhes da Pendência</span></div>'
+      +'<div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Valor em Atraso</div><div style="font-size:28px;font-weight:700;color:#8B6914;">'+valor+'</div></div>'
+      +'<div><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Parcelas</div><div style="font-size:14px;font-weight:600;color:#333;margin-top:4px;">'+qtd+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:10px;margin-bottom:3px;">Data Limite</div><div style="font-size:14px;font-weight:600;color:#c0392b;">'+prazo+'</div></div></div></div>'
+      +'<div style="margin:0 32px 20px;padding:14px 18px;background:#fff8e1;border-left:4px solid #c8a400;border-radius:2px;"><div style="font-size:11px;font-weight:700;color:#8B6914;margin-bottom:6px;">Como regularizar</div><div style="font-size:11px;color:#555;line-height:1.7;">Entre em contato com seu consultor '+cons+(wcons?' pelo WhatsApp '+wcons:'')+' para combinar a melhor forma de quitação. Estamos disponíveis para encontrar uma solução que se adeque à sua situação.</div></div>'
+      +'<div style="padding:0 32px 20px;"><p style="font-size:12px;color:#444;line-height:1.8;margin:0;">Caso já tenha realizado o pagamento, por favor desconsidere este aviso e nos informe para atualizarmos nosso sistema. Agradecemos a sua atenção e compreensão.</p></div>'
+      +blocoQR(qrURL,'',nome,'Cobranca')+assinaturaPDF(cons,wcons)+rodapePDF()+'</div>';
+  });
+}
+function _appLinksTxt(){return '• App Store: https://apps.apple.com/br/app/conta-%C3%A2ncora/id6746348039\n• Play Store: https://play.google.com/store/apps/details?id=com.ancora.AutoServico_Mobile&hl=pt_BR';}
+function whBV(){
+  var N=_LN(),nome=v('bv_nome')||'cliente',assem=v('bv_assem')||'(a confirmar)',cons=v('bv_cons')||'Vitor Godoy';
+  var p1=N.ancora?'*1 — App Conta Âncora*\nBaixe e acompanhe sua cota:\n'+_appLinksTxt()+'\n_(Aguarde login e senha pelo pós-vendas da Âncora)_':'*1 — Canais oficiais da '+N.admCurto+'*\nAcompanhe sua cota, assembleias e a situação do consórcio.\n_(Vou te enviar o passo a passo de acesso)_';
+  var msg='Olá, '+nome+'!\n\nSeja muito bem-vindo(a) '+N.familia.replace('à ','à ').replace('ao ','ao ')+'!\n\n'+p1+'\n\n*2 — Pós-vendas Digital*\nNossa equipe entra em contato em 2-3 dias úteis.\n\n*3 — 1ª Assembleia:* *'+assem+'*\n\n*4 — Dúvidas?*\nMe chama aqui!\n\n*'+cons+'*\nConsultor | Digital Consórcio LTDA';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+function emailBV(){
+  var N=_LN(),nome=v('bv_nome')||'cliente',modelo=_withLinha(function(){return _bvModelo(_LN());})||'sua cota',assem=v('bv_assem')||'(a confirmar)',cons=v('bv_cons')||'Vitor Godoy';
+  var email=v('bv_email');if(!email){toast('⚠️ Informe o e-mail','#c0392b');return;}
+  if(v('bv_nome'))abrirPDF(buildBV(),nome,'Boas-vindas');
+  _dest=email;_wnum='';_assunto='Bem-vindo(a) '+N.familia+', '+nome+'!';
+  var p1=N.ancora?'1. App Conta Âncora:\n   '+_appLinksTxt().replace('\n','\n   '):'1. Canais oficiais da '+N.admCurto+': enviaremos o passo a passo de acesso.';
+  _corpo='Olá, '+nome+'!\n\nÉ um prazer ter você '+N.familia.replace('à Família','na família').replace('ao Plano','no Plano')+'. '+(modelo==='sua cota'?'Sua cota':modelo)+' está reservada!\n\nSeus próximos passos:\n\n'+p1+'\n\n2. Pós-vendas Digital — contato em 2-3 dias úteis\n\n3. 1ª Assembleia: '+assem+'\n\nQualquer dúvida, me chama!\n\n'+cons+'\nConsultor | Digital Consórcio LTDA';
+  abModal();
+}
+function whPV(){
+  var N=_LN(),nome=v('pv_nome')||'cliente',cons=v('pv_cons')||'Vitor Godoy';
+  var como=N.ancora?'Baixe o app *Conta Âncora*:\n'+_appLinksTxt()+'\n\n*Como fazer:*\n1️⃣ Baixe o app\n2️⃣ Acesse com CPF e senha da Âncora\n3️⃣ Localize "Pós-vendas"\n4️⃣ Pronto em menos de 3 min!':'Você faz pelo *canal oficial da '+N.admCurto+'* (vou te enviar o link de acesso).\n\n*Como fazer:*\n1️⃣ Acesse o canal oficial da '+N.admCurto+'\n2️⃣ Entre com CPF e senha da '+N.admCurto+'\n3️⃣ Localize "Pós-vendas"\n4️⃣ Pronto em menos de 3 min!';
+  var msg='⚠️ *ATENÇÃO, '+nome+'!*\n\nSeu *pós-vendas* junto '+N.junto+' ainda não foi concluído.\n\nIsso é *obrigatório* para que o seu lance seja liberado — mesmo com a 1ª parcela paga.\n\n✅ *Leva menos de 3 minutos!*\n\n'+como+'\n\nDúvidas? Me chama!\n\n*'+cons+'*';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+function emailPV(){
+  var N=_LN(),nome=v('pv_nome')||'cliente',cons=v('pv_cons')||'Vitor Godoy',email=v('pv_email');
+  if(!email){toast('⚠️ Informe o e-mail','#c0392b');return;}
+  if(v('pv_nome'))abrirPDF(buildPV(),nome,'Alerta Pós-vendas');
+  _dest=email;_wnum='';_assunto='Ação Necessária — Pós-vendas Pendente | '+N.consorcio;
+  _corpo='Olá, '+nome+'.\n\nSeu pós-vendas junto '+N.junto+' ainda não foi concluído. Essa etapa é obrigatória para que o seu lance seja liberado.\n\nBoa notícia: leva menos de 3 minutos '+(N.ancora?'pelo app Conta Âncora.\n\n'+_appLinksTxt():'pelo canal oficial da '+N.admCurto+'. Vou te enviar o link de acesso.')+'\n\nQualquer dúvida, entre em contato comigo.\n\n'+cons+'\nConsultor | Digital Consórcio LTDA';
+  abModal();
+}
+function whCB(){
+  var N=_LN(),nome=v('cb_nome')||'cliente',valor=v('cb_valor')?'R$ '+v('cb_valor'):'(valor a confirmar)',qtd=v('cb_qtd')||'parcela(s)',prazo=v('cb_prazo')||'a definir',cons=v('cb_cons')||'Vitor Godoy';
+  var c2=N.marca==='gen'?'Plano Inteligente':N.consorcio;
+  var msg='Ola, '+nome+'.\n\nPassando para comunicar que identificamos uma pendencia no seu plano '+c2+'.\n\nValor em atraso: '+valor+'\nParcelas: '+qtd+'\nData limite: '+prazo+'\n\nPedimos que entre em contato para regularizarmos o mais breve possivel. Estamos aqui para encontrar a melhor solucao para voce.\n\nCaso ja tenha realizado o pagamento, por favor nos informe para atualizarmos o sistema.\n\n'+cons+'\nConsultor | Digital Consorcio LTDA | '+c2;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+function emailCB(){
+  var N=_LN(),nome=v('cb_nome')||'cliente',valor=v('cb_valor')?'R$ '+v('cb_valor'):'(ver documento)',qtd=v('cb_qtd')||'parcela(s)',prazo=v('cb_prazo')||'a definir',cons=v('cb_cons')||'Vitor Godoy',email=v('cb_email');
+  if(!email){toast('Informe o e-mail do cliente','#c0392b');return;}
+  var c2=N.marca==='gen'?'Plano Inteligente':N.consorcio;
+  var n=v('cb_nome')||'Cliente',num=(v('cb_wcons')||'').replace(/\D/g,''),numQR=num?'55'+num:'5511999999999';
+  var qrTxt='https://wa.me/'+numQR+'?text='+encodeURIComponent('Ola! Estou verificando o documento de Cobranca do cliente '+n+'. Por favor confirme a autenticidade.');
+  gerarQRDataURL(qrTxt,function(qrURL){abrirPDF(buildCB(qrURL),n,'Cobranca');});
+  _dest=email;_wnum='';
+  _assunto='Aviso de Cobranca — Parcela em Atraso | '+c2;
+  _corpo='Prezado(a), '+nome+'.\n\nIdentificamos uma pendencia no seu plano '+c2+'.\n\nValor em atraso: '+valor+'\nParcelas: '+qtd+'\nData limite para regularizacao: '+prazo+'\n\nPedimos que entre em contato para regularizarmos o quanto antes. Caso ja tenha realizado o pagamento, desconsidere este aviso e nos informe.\n\nAtenciosamente,\n'+cons+'\nConsultor | Digital Consorcio LTDA | '+c2;
+  abModal();
+}
+
+/* ---- Mensagem de análise (texto + card) ---- */
+window._manTextos=function(){
+  var N=_LN();
+  var cliente=v('man_cliente')||'(Nome do cliente)',analista=v('man_analista')||'(Analista)',moto=v('man_moto')||'(Modelo)',consultor=v('man_consultor')||'(Consultor)';
+  var sd=_manSaudacao(),setor='do Setor de Análise do '+N.setor,t={};
+  t.contato=sd+', '+cliente+'!\nTudo bem? 😄\n\nMe chamo '+analista+', sou '+setor+'.\n\nEstou tentando entrar em contato com você referente a sua solicitação de análise para entrar no Plano Inteligente e adquirir '+(N.marca==='gen'?'o seu crédito ('+moto+')':'a '+moto)+'. Posso te ligar?';
+  t.followup=sd+', '+cliente+'! 😊\n\nSou '+analista+', '+setor+'. Tentei falar com você sobre a sua solicitação para adquirir '+(N.marca==='gen'?'o seu crédito ('+moto+')':'a '+moto)+' pelo Plano Inteligente e ainda não consegui contato.\n\nSua solicitação segue ativa, mas preciso falar com você para dar andamento à análise.\n\nQual o melhor horário para eu te ligar hoje? É só me responder por aqui. 🙌';
+  t.preligacao=sd+', '+cliente+'! 👋\n\nAqui é '+analista+', '+setor+'. Vou te ligar em instantes sobre a sua solicitação '+(N.marca==='gen'?'do crédito ('+moto+')':'da '+moto)+'.\n\nSerá uma conversa rápida para confirmar seus dados e te apresentar as condições do Plano Inteligente. Se puder, deixe seu CPF à mão para agilizar.\n\nSe preferir outro horário, me avise por aqui!\n\nAtt,\n'+consultor+' — Digital Consórcio';
+  return t;
+};
+(function(){
+  var velho=window._manDesenharCard;
+  window._manDesenharCard=function(){
+    var canvas=document.getElementById('man-canvas');
+    if(!canvas)return;
+    if(document.documentElement.getAttribute('data-visual')!=='novo'){velho();return;}
+    var N=_LN(),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
+    if(document.fonts&&!document.fonts.check('800 20px Unbounded')&&!window._manFontTent){
+      window._manFontTent=true;
+      Promise.all([document.fonts.load('800 20px Unbounded'),document.fonts.load('700 20px Unbounded'),document.fonts.load('600 20px Inter')]).then(function(){window._manDesenharCard();}).catch(function(){});
+    }
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    var bg=dark?'#0A0E0D':'#F3F5F1',tx=dark?'#EDF3F0':'#0B1512',mu=dark?'#8A9A93':'#5B6B64',gr=dark?'#22D39A':'#0A8A5E',ln=dark?'rgba(255,255,255,.14)':'rgba(10,20,16,.16)';
+    var D='Unbounded, Arial, sans-serif',B='Inter, Arial, sans-serif';
+    function ls(x){try{ctx.letterSpacing=x;}catch(e){}}
+    var cliente=v('man_cliente')||'Cliente',analista=v('man_analista')||'Analista',moto=v('man_moto')||(N.marca==='gen'?'seu crédito':'sua moto'),consultor=v('man_consultor')||'Consultor';
+    ctx.clearRect(0,0,W,H);ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.textBaseline='alphabetic';ctx.textAlign='left';
+    ls('-1px');ctx.fillStyle=tx;ctx.font='700 30px '+D;ctx.fillText('Red Sea',80,108);
+    var w1=ctx.measureText('Red Sea ').width;ctx.fillStyle=gr;ctx.fillText('Digital',80+w1,108);
+    ls('0px');ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText(N.linhaTxt,W-80,106);ctx.textAlign='left';
+    ls('-5px');ctx.fillStyle=tx;ctx.font='800 104px '+D;ctx.fillText('Sua análise',80,280);
+    ctx.fillStyle=gr;ctx.fillText('em andamento.',80,392);ls('0px');
+    ctx.fillStyle=mu;ctx.font='500 30px '+B;ctx.fillText('Olá,',80,470);
+    ctx.fillStyle=tx;ctx.font='600 46px '+B;var nome=cliente;while(ctx.measureText(nome).width>W-160&&nome.length>3)nome=nome.slice(0,-1);ctx.fillText(nome,80,526);
+    ctx.fillStyle=mu;ctx.font='400 28px '+B;
+    var txt='Solicitação para adquirir '+(N.marca==='gen'?'':'a ')+moto+' pelo Plano Inteligente';
+    var ws=txt.split(' '),lin='',y=578;
+    ws.forEach(function(w){var t=lin+w+' ';if(ctx.measureText(t).width>W-160&&lin){ctx.fillText(lin.trim(),80,y);y+=38;lin=w+' ';}else lin=t;});
+    ctx.fillText(lin.trim(),80,y);
+    // etapas
+    var et=['Solicitação\nrecebida','Análise\nem andamento','Contato com\no analista','Resultado'],atual=1,x0=150,dx=(W-300)/3,yy=740;
+    ctx.fillStyle=ln;ctx.fillRect(x0,yy-3,dx*3,6);ctx.fillStyle='#22D39A';ctx.fillRect(x0,yy-3,dx*atual,6);
+    ctx.textAlign='center';
+    et.forEach(function(e,i){
+      var cx=x0+dx*i;ctx.beginPath();ctx.arc(cx,yy,i===atual?26:20,0,Math.PI*2);
+      ctx.fillStyle=i<=atual?'#22D39A':(dark?'#1A2220':'#DCE2DD');ctx.fill();
+      ctx.fillStyle=i<=atual?'#06281D':mu;ctx.font='700 22px '+B;ctx.fillText(i<atual?'✓':String(i+1),cx,yy+8);
+      ctx.font=(i===atual?'600 ':'400 ')+'22px '+B;ctx.fillStyle=i<=atual?tx:mu;
+      e.split('\n').forEach(function(l,k){ctx.fillText(l,cx,yy+64+k*28);});
+    });
+    // analista
+    ctx.textAlign='left';ctx.fillStyle='#22D39A';
+    (function(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();})(80,880,W-160,130,30);ctx.fill();
+    ctx.fillStyle='#06281D';ctx.font='600 24px '+B;ctx.fillText('Analista responsável',116,926);
+    ctx.font='800 40px '+D;ls('-2px');ctx.fillText(analista,116,980);ls('0px');
+    ctx.textAlign='left';ctx.fillStyle=mu;ctx.font='400 22px '+B;ctx.fillText(consultor+' · Digital Consórcio',80,1052);
+  };
+})();
+
+/* ---- seletor visual (marca + administradora) ---- */
+(function(){
+  var st=document.createElement('style');
+  st.textContent='.linha-sel{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:0 0 16px;padding:12px 16px;border:1px solid var(--cb);border-radius:12px;background:var(--ce);}'+
+  '.linha-sel .ls-f{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1 1 150px;}'+
+  '.linha-sel label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tm);}'+
+  '.linha-sel select{padding:9px 10px;border:1px solid var(--cb);border-radius:8px;background:var(--p);color:var(--t);font-family:inherit;font-size:13px;}'+
+  '.linha-sel .ls-chip{margin-left:auto;font-size:12px;font-weight:700;color:var(--v);padding:8px 12px;border-radius:999px;border:1px solid var(--v);white-space:nowrap;}'+
+  '#hall-video .hv-wrap{border:1px solid var(--cb);border-radius:16px;background:var(--ce);overflow:hidden;}'+
+  '#hall-video .hv-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000;}'+
+  '#hall-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}'+
+  '#hall-video .hv-info{padding:16px 20px 18px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;}'+
+  '#hall-video .hv-av{width:42px;height:42px;border-radius:50%;background:var(--v);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}'+
+  '#hall-video .hv-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#fff;background:#e0284d;border-radius:999px;padding:4px 10px;margin-bottom:8px;}'+
+  '#hall-video .hv-ti{font-size:18px;font-weight:800;color:var(--t);line-height:1.3;}'+
+  '#hall-video .hv-sub{font-size:12px;color:var(--tm);margin-top:4px;line-height:1.5;}'+
+  '#hall-video .hv-bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}'+
+  '#hall-video .hv-bt button{padding:9px 16px;border-radius:999px;border:1px solid var(--cb);background:var(--p);color:var(--t);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}'+
+  '#hall-video .hv-bt button.pri{background:var(--v);border-color:var(--v);color:#fff;}';
+  document.head.appendChild(st);
+})();
+function _linhaBar(extra){
+  return '<div class="linha-sel"><div class="ls-f"><label>Marca / linha</label><select class="ln-marca" onchange="setLinha(\'marca\',this.value)">'+
+    '<option value="kw">Kawasaki</option><option value="bmw">BMW Motorrad</option><option value="vw">Volkswagen</option><option value="gen">Imóvel / Genérico (Plano Inteligente)</option></select></div>'+
+    '<div class="ls-f"><label>Administradora</label><select class="ln-adm" onchange="setLinha(\'adm\',this.value)">'+
+    '<option value="recon">Recon</option><option value="ancora">Âncora</option><option value="embracon">Embracon</option></select></div>'+
+    '<div class="ls-chip" data-linha-chip></div></div>';
+}
+var _linhaSyncBase=_linhaSync;
+_linhaSync=function(){
+  _linhaSyncBase();
+  var N=_LN();
+  document.querySelectorAll('[data-linha-chip]').forEach(function(e){e.textContent=N.linhaTxt;});
+  var pa=document.getElementById('pix_adm');if(pa)pa.value=_linha.adm;
+};
+document.querySelectorAll('.linha-host').forEach(function(h){h.innerHTML=_linhaBar();});
+_linhaSync();
+
+/* ---- Hall: vídeo recomendado do treinamento ---- */
+var _hvOffset=0;
+function _hvLista(){
+  var out=[],foco=['lidar com o "não" sem levar para o lado pessoal','vender como consultor, e não como vendedor','abrir a conversa com as perguntas certas','usar gatilhos mentais sem forçar','ancorar valor antes de falar de preço','contornar o "vou pensar" e conduzir ao fechamento'];
+  var k=0;
+  MODULOS.forEach(function(m){m.aulas.forEach(function(a,i){
+    if(a.video){
+      var id=(a.video.match(/embed\/([a-zA-Z0-9_-]+)/)||[])[1];
+      if(id&&id!=='taffy-hqXeo')out.push({mid:m.id,mod:m.titulo,idx:i,t:a.t,vid:id,foco:foco[k]||a.t});
+      k++;
+    }
+  });});
+  return out;
+}
+function _hallVideo(){
+  var host=document.getElementById('hall-video');if(!host)return;
+  var L=_hvLista();if(!L.length){host.innerHTML='';return;}
+  var d=new Date(),dia=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+  var it=L[(dia+_hvOffset)%L.length];
+  if(host.getAttribute('data-vid')===it.vid)return;
+  host.setAttribute('data-vid',it.vid);
+  host.innerHTML='<div class="hv-wrap"><div class="hv-frame"><iframe src="https://www.youtube.com/embed/'+it.vid+'?rel=0&modestbranding=1" title="'+it.t.replace(/"/g,'&quot;')+'" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>'+
+    '<div class="hv-info"><div class="hv-av">RS</div><div style="flex:1;min-width:220px;"><span class="hv-tag">Recomendado para hoje</span>'+
+    '<div class="hv-ti">Assista esse vídeo hoje para treinar: '+it.foco+'</div>'+
+    '<div class="hv-sub">'+it.t+' · Módulo '+it.mod+' · Estudos Red Sea</div>'+
+    '<div class="hv-bt"><button class="pri" onclick="aba(\'estudos\',document.querySelector(\'.sb-nav-item[onclick*=&quot;estudos&quot;]\'));estAbrirAula(\''+it.mid+'\','+it.idx+')">Abrir a aula completa</button><button onclick="_hvOffset++;document.getElementById(\'hall-video\').removeAttribute(\'data-vid\');_hallVideo()">Outro vídeo</button></div></div></div></div>';
+}
+var _renderHallBase=renderHall;
+renderHall=function(){_renderHallBase.apply(this,arguments);_hallVideo();};
+try{_hallVideo();}catch(e){}
+
+function _consAsc(){return _LN().consorcio.replace('\u00F3','o');}
+function _admAsc(){return _LN().admCurto.replace('\u00C2','A');}
+
 </script>
 </body>
 </html>

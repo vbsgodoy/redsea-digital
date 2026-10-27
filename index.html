@@ -612,6 +612,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="sb-nav-item" onclick="aba('estudos',this)"><span class="sb-dot"></span>Estudos</div>
     <div class="sb-nav-item" onclick="aba('scripts',this)"><span class="sb-dot"></span>Scripts</div>
     <div class="sb-nav-item" onclick="aba('proposta',this)"><span class="sb-dot"></span>Proposta</div>
+    <div class="sb-nav-item" onclick="aba('simulacao',this)"><span class="sb-dot"></span>Simulação</div>
     <div class="sb-nav-item" onclick="aba('agendamento',this)"><span class="sb-dot"></span>Agendamento</div>
     <div class="sb-nav-item" onclick="aba('aprovacao',this)"><span class="sb-dot"></span>Analise de Lance</div>
     <div class="sb-nav-item" onclick="aba('pagamento',this)"><span class="sb-dot"></span>Pagamento</div>
@@ -708,6 +709,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         <div class="sh"><span id="est-aula-titulo">Aula</span></div>
         <div id="est-aula-texto" style="padding:22px 26px;font-size:14px;line-height:1.9;color:var(--t);white-space:pre-wrap;"></div>
         <div id="est-aula-video" style="padding:0 26px 22px;"></div>
+        <div style="padding:0 24px 14px;"><button class="btn be" id="est-aula-concluir" onclick="estToggleAula()" style="width:100%;">Marcar aula como concluída</button></div>
         <div class="aa" style="justify-content:space-between;padding:0 24px 20px;">
           <button class="btn bl" onclick="estAulaNav(-1)" id="est-aula-prev">← Anterior</button>
           <span id="est-aula-contador" style="font-size:11px;color:var(--tm);font-weight:600;"></span>
@@ -1194,6 +1196,71 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
       <div id="ideias-lista"></div>
     </div>
   </div><!-- /page-content -->
+</div>
+<div id="tab-simulacao" class="tp" style="display:none;">
+  <div class="topbar"><div class="topbar-title">Simulação</div><div class="topbar-sub">Financiamento x Consórcio</div></div>
+  <div class="page-content">
+    <div class="pt"><h2>Simulação de Financiamento</h2><p>Mostre ao cliente <span class="hl">quanto o financiamento custa</span> e compare com o consórcio</p></div>
+    <div class="linha-host"></div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><span>Cliente</span></div>
+      <div class="fg">
+        <div class="fi"><label>Nome do cliente</label><input type="text" id="sim_nome" placeholder="Nome do cliente" oninput="simCalc()"/></div>
+        <div class="fi"><label>Bem / modelo</label><input type="text" id="sim_bem" list="dl-modelo-kw" placeholder="Ex: Ninja 500, R 1300 GS, Polo..." autocomplete="off" oninput="simCalc()"/></div>
+        <div class="fi"><label>Parcela que cabe no orçamento (opcional)</label><input type="text" id="sim_orc" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
+        <div class="fi"><label>Consultor</label><input type="text" id="sim_cons" value="Vitor Godoy" oninput="simCalc()"/></div>
+        <div class="fi"><label>WhatsApp do consultor</label><input type="text" id="sim_wcons" placeholder="(11) 99999-9999" maxlength="15" oninput="fFone(this);simCalc()"/></div>
+      </div>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><span>Financiamento</span></div>
+      <div class="fg">
+        <div class="fi"><label>Valor do bem</label><input type="text" id="sim_valor" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
+        <div class="fi"><label>Entrada</label><input type="text" id="sim_entrada" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
+        <div class="fi"><label>Prazo (meses)</label><input type="text" id="sim_prazo" value="48" oninput="simCalc()"/></div>
+        <div class="fi"><label>Taxa de juros (%)</label><input type="text" id="sim_taxa" value="1,80" oninput="simCalc()"/></div>
+        <div class="fi"><label>Taxa informada em</label><select id="sim_taxaTipo" onchange="simCalc()"><option value="mes">ao mês</option><option value="ano">ao ano</option></select></div>
+        <div class="fi"><label>Sistema de amortização</label><select id="sim_sistema" onchange="simCalc()"><option value="price">Price (parcelas fixas)</option><option value="sac">SAC (parcelas decrescentes)</option></select></div>
+        <div class="fi"><label>Seguro mensal (R$)</label><input type="text" id="sim_seguro" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
+        <div class="fi"><label>Tarifas e taxas iniciais financiadas (R$)</label><input type="text" id="sim_tarifa" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
+      </div>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><span>Consórcio (para comparar)</span></div>
+      <div class="fg">
+        <div class="fi"><label>Crédito (padrão: valor do bem)</label><input type="text" id="sim_c_credito" placeholder="Igual ao valor do bem" oninput="fBRL(this);simCalc()"/></div>
+        <div class="fi"><label>Prazo (meses)</label><input type="text" id="sim_c_prazo" value="80" oninput="simCalc()"/></div>
+        <div class="fi"><label>Taxa de administração total (%)</label><input type="text" id="sim_c_adm" value="18" oninput="simCalc()"/></div>
+        <div class="fi"><label>Fundo de reserva (%)</label><input type="text" id="sim_c_fr" value="3" oninput="simCalc()"/></div>
+        <div class="fi"><label>Seguro mensal (R$)</label><input type="text" id="sim_c_seg" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
+      </div>
+      <div style="padding:0 24px 16px;font-size:11px;color:var(--tm);line-height:1.6;">Os percentuais do consórcio vêm da simulação oficial do plano na administradora. Os valores padrão são apenas exemplo.</div>
+    </div>
+
+    <div id="sim-res"></div>
+
+    <div class="aa" style="margin:16px 0 24px;">
+      <button class="btn be" onclick="simPDF()">Gerar PDF</button>
+      <button class="btn bs2" onclick="simCopiar()">Copiar resumo</button>
+      <button class="btn bs2" onclick="simWhats()">WhatsApp</button>
+      <button class="btn bl" onclick="simLimpar()">Limpar</button>
+    </div>
+
+    <div class="fc" style="margin-bottom:20px;">
+      <div class="sh"><span>Calculadora de lance</span></div>
+      <div class="fg">
+        <div class="fi"><label>Crédito do plano</label><input type="text" id="lc_credito" placeholder="R$ 0,00" oninput="fBRL(this);lanceCalc()"/></div>
+        <div class="fi"><label>Taxa de administração total (%)</label><input type="text" id="lc_adm" value="18" oninput="lanceCalc()"/></div>
+        <div class="fi"><label>Fundo de reserva (%)</label><input type="text" id="lc_fr" value="3" oninput="lanceCalc()"/></div>
+        <div class="fi"><label>Lance desejado (%)</label><input type="text" id="lc_pct" value="30" oninput="lanceCalc()"/></div>
+        <div class="fi"><label>Base de cálculo do lance</label><select id="lc_base" onchange="lanceCalc()"><option value="total">Crédito + taxas (mais comum)</option><option value="credito">Só o crédito</option></select></div>
+      </div>
+      <div id="lc-res" style="padding:0 24px 20px;"></div>
+    </div>
+  </div>
 </div>
 <div id="tab-historico" class="tp" style="display:none;">
     <div class="topbar"><div class="topbar-title">Historico</div><div class="topbar-sub">Documentos gerados</div></div>
@@ -3824,6 +3891,7 @@ var FUNIL=[
   {id:'estudos',label:'Estudos',icon:ICONE_BASE+'Books/3D/books_3d.png'},
   {id:'scripts',label:'Scripts',icon:ICONE_BASE+'Left speech bubble/3D/left_speech_bubble_3d.png'},
   {id:'proposta',label:'Proposta',icon:ICONE_BASE+'Motorcycle/3D/motorcycle_3d.png'},
+  {id:'simulacao',label:'Simulação',icon:ICONE_BASE+'Abacus/3D/abacus_3d.png'},
   {id:'agendamento',label:'Agendamento',icon:ICONE_BASE+'Spiral calendar/3D/spiral_calendar_3d.png'},
   {id:'aprovacao',label:'Análise de Lance',icon:ICONE_BASE+'Clipboard/3D/clipboard_3d.png'},
   {id:'pagamento',label:'Pagamento',icon:ICONE_BASE+'Credit card/3D/credit_card_3d.png'},
@@ -8481,6 +8549,251 @@ Rotina sugerida: abrir o Hall, assistir ao vídeo do dia, olhar a Agenda, atende
  ]}
 ];
 NOVOS.forEach(function(m){MODULOS.push(m);});
+})();
+
+</script>
+<script>
+/* ===== SIMULAÇÃO: financiamento x consórcio + calculadora de lance ===== */
+function _nb(id){var e=document.getElementById(id);if(!e)return 0;var t=(e.value||'').trim();if(!t)return 0;t=t.replace(/\./g,'').replace(',','.');var n=parseFloat(t);return isNaN(n)?0:n;}
+function _fm(n){return 'R$ '+(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function _pc(n){return (n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
+var _simR=null;
+function simCalcDados(){
+  var valor=_nb('sim_valor'),entrada=_nb('sim_entrada'),n=Math.round(_nb('sim_prazo')),taxa=_nb('sim_taxa'),seg=_nb('sim_seguro'),tar=_nb('sim_tarifa');
+  var tipo=(document.getElementById('sim_taxaTipo')||{}).value,sis=(document.getElementById('sim_sistema')||{}).value;
+  var i=tipo==='ano'?Math.pow(1+taxa/100,1/12)-1:taxa/100;
+  var P=Math.max(valor-entrada,0)+tar;
+  var r={valor:valor,entrada:entrada,n:n,i:i,iAno:Math.pow(1+i,12)-1,P:P,sis:sis,seg:seg,tar:tar,ok:valor>0&&n>0&&P>0,rows:[]};
+  if(!r.ok)return r;
+  var saldo=P,totalParc=0,totalJuros=0,k;
+  var pmt=i===0?P/n:P*i/(1-Math.pow(1+i,-n));
+  for(k=1;k<=n;k++){
+    var j=saldo*i,am=sis==='sac'?P/n:pmt-j,pa=j+am+seg;
+    saldo=Math.max(saldo-am,0);totalParc+=pa;totalJuros+=j;
+    r.rows.push({k:k,parcela:pa,juros:j,amort:am,saldo:saldo});
+  }
+  r.parcela1=r.rows[0].parcela;r.parcelaN=r.rows[n-1].parcela;r.totalParc=totalParc;r.totalJuros=totalJuros;r.totalPago=totalParc+entrada;r.custoExtra=r.totalPago-valor;
+  var cred=_nb('sim_c_credito')||valor,m=Math.round(_nb('sim_c_prazo')),a=_nb('sim_c_adm'),f=_nb('sim_c_fr'),cs=_nb('sim_c_seg');
+  r.c={credito:cred,m:m,a:a,f:f,seg:cs,ok:cred>0&&m>0};
+  if(r.c.ok){r.c.total=cred*(1+a/100+f/100);r.c.parcela=r.c.total/m+cs;r.c.totalPago=r.c.total+cs*m;r.c.taxas=r.c.totalPago-cred;r.c.lancePct=entrada>0?entrada/r.c.total*100:0;}
+  r.orc=_nb('sim_orc');
+  return r;
+}
+function simCalc(){
+  var r=simCalcDados();_simR=r;var host=document.getElementById('sim-res');if(!host)return;
+  if(!r.ok){host.innerHTML='<div class="fc" style="padding:20px;color:var(--tm);font-size:13px;">Preencha o valor do bem, a entrada, o prazo e a taxa para ver a simulação.</div>';return;}
+  var dentro=r.orc>0?(r.parcela1<=r.orc):null;
+  var cards=function(t,cor,itens){return '<div class="fc" style="padding:18px 20px;flex:1 1 280px;"><div style="font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:'+cor+';margin-bottom:10px;">'+t+'</div>'+itens.map(function(x){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--cb);font-size:13px;"><span style="color:var(--tm);">'+x[0]+'</span><strong style="color:var(--t);text-align:right;">'+x[1]+'</strong></div>';}).join('')+'</div>';};
+  var f=[['Valor financiado',_fm(r.P)],['Entrada',_fm(r.entrada)],['Taxa',_pc(r.i*100)+' a.m. ('+_pc(r.iAno*100)+' a.a.)'],['Primeira parcela',_fm(r.parcela1)]];
+  if(r.sis==='sac')f.push(['Última parcela',_fm(r.parcelaN)]);
+  f.push(['Total pago (com entrada)',_fm(r.totalPago)],['Juros pagos',_fm(r.totalJuros)],['Custo acima do valor do bem',_fm(r.custoExtra)]);
+  var html='<div style="display:flex;gap:14px;flex-wrap:wrap;">'+cards('Financiamento · '+(r.sis==='sac'?'SAC':'Price')+' · '+r.n+'x','#dc2626',f);
+  if(r.c.ok){
+    var dif=r.parcela1-r.c.parcela,eco=r.totalPago-(r.c.totalPago+r.entrada*0);
+    var c=[['Crédito',_fm(r.c.credito)],['Taxa de administração',_pc(r.c.a)],['Fundo de reserva',_pc(r.c.f)],['Parcela',_fm(r.c.parcela)],['Prazo',r.c.m+' meses'],['Total pago',_fm(r.c.totalPago)],['Taxas pagas (sem juros)',_fm(r.c.taxas)]];
+    if(r.entrada>0)c.push(['Entrada usada como lance',_pc(r.c.lancePct)+' do plano']);
+    html+=cards('Consórcio · '+r.c.m+'x','#0a8a5e',c);
+    html+='</div><div class="fc" style="padding:18px 22px;margin-top:14px;"><div style="font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--v);margin-bottom:8px;">O que isso significa</div><div style="font-size:14px;color:var(--t);line-height:1.8;">'+
+      (dif>0?'A parcela do consórcio fica <strong>'+_fm(dif)+' menor</strong> que a do financiamento ('+_fm(r.c.parcela)+' contra '+_fm(r.parcela1)+'). ':'A parcela do consórcio fica <strong>'+_fm(-dif)+' maior</strong>, mas em mais meses. ')+
+      (r.totalPago>r.c.totalPago?'No total, o financiamento custa <strong>'+_fm(r.totalPago-r.c.totalPago)+' a mais</strong>, que sai em juros em vez de taxa de administração.':'Compare também o prazo, porque o total muda com ele.')+
+      (dentro===null?'':'<br>Orçamento do cliente ('+_fm(r.orc)+'): o financiamento '+(dentro?'<strong style="color:#0a8a5e;">cabe</strong>':'<strong style="color:#dc2626;">não cabe</strong>')+' e o consórcio '+(r.c.parcela<=r.orc?'<strong style="color:#0a8a5e;">cabe</strong>':'<strong style="color:#dc2626;">não cabe</strong>')+'.')+
+      '</div></div>';
+  } else html+='</div>';
+  var rows=r.rows.slice(0,12);
+  html+='<div class="fc" style="padding:18px 22px;margin-top:14px;overflow-x:auto;"><div style="font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--tm);margin-bottom:8px;">Evolução do financiamento (primeiras '+rows.length+' parcelas)</div><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:420px;"><thead><tr style="color:var(--tm);text-align:right;"><th style="text-align:left;padding:4px 6px;">Parcela</th><th>Valor</th><th>Juros</th><th>Amortização</th><th>Saldo devedor</th></tr></thead><tbody>'+
+    rows.map(function(x){return '<tr style="border-top:1px solid var(--cb);text-align:right;color:var(--t);"><td style="text-align:left;padding:5px 6px;">'+x.k+'</td><td>'+_fm(x.parcela)+'</td><td>'+_fm(x.juros)+'</td><td>'+_fm(x.amort)+'</td><td>'+_fm(x.saldo)+'</td></tr>';}).join('')+'</tbody></table></div>';
+  host.innerHTML=html;
+}
+function simTexto(){
+  var r=_simR||simCalcDados();if(!r.ok)return '';var N=_LN();
+  var nome=v('sim_nome')||'cliente',bem=v('sim_bem')||'o bem',cons=v('sim_cons')||'Vitor Godoy';
+  var t='Olá, '+nome+'! Fiz a simulação para '+bem+':\n\n'+
+   'FINANCIAMENTO ('+(r.sis==='sac'?'SAC':'Price')+', '+r.n+'x, '+_pc(r.i*100)+' a.m.)\n- Valor financiado: '+_fm(r.P)+'\n- Parcela: '+_fm(r.parcela1)+(r.sis==='sac'?' (a última cai para '+_fm(r.parcelaN)+')':'')+'\n- Total pago: '+_fm(r.totalPago)+'\n- Juros: '+_fm(r.totalJuros)+'\n';
+  if(r.c.ok)t+='\nCONSÓRCIO '+N.marcaNome.toUpperCase()+' ('+N.admCurto+', '+r.c.m+'x, sem juros)\n- Crédito: '+_fm(r.c.credito)+'\n- Parcela: '+_fm(r.c.parcela)+'\n- Total pago: '+_fm(r.c.totalPago)+'\n- Economia no total: '+_fm(Math.max(r.totalPago-r.c.totalPago,0))+'\n';
+  t+='\nNo consórcio a contemplação acontece por sorteio ou lance. Quer que eu monte uma estratégia de lance para o seu caso?\n\n'+cons;
+  return t;
+}
+function simCopiar(){var t=simTexto();if(!t){toast('Preencha a simulação primeiro','#c0392b');return;}navigator.clipboard.writeText(t).then(function(){toast('Resumo copiado!');});}
+function simWhats(){var t=simTexto();if(!t){toast('Preencha a simulação primeiro','#c0392b');return;}window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}
+function simLimpar(){['sim_nome','sim_bem','sim_orc','sim_valor','sim_entrada','sim_seguro','sim_tarifa','sim_c_credito','sim_c_seg'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});simCalc();}
+function buildSim(){
+  return _withLinha(function(){
+    var r=_simR||simCalcDados(),N=_LN(),cor=N.cor;
+    var nome=v('sim_nome')||'—',bem=v('sim_bem')||'—',cons=v('sim_cons')||'Vitor Godoy',wcons=v('sim_wcons')||'';
+    var th='padding:6px 8px;text-align:right;font-size:10px;color:#666;border-bottom:1px solid #ddd;',td='padding:5px 8px;text-align:right;font-size:11px;color:#333;border-bottom:1px solid #eee;';
+    var lin=function(a,b){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #eee;font-size:11px;"><span style="color:#777;">'+a+'</span><strong style="color:#222;text-align:right;">'+b+'</strong></div>';};
+    var colF='<div style="flex:1;border:1.5px solid #c0392b;border-radius:6px;padding:14px 16px;"><div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#c0392b;margin-bottom:8px;">Financiamento · '+(r.sis==='sac'?'SAC':'Price')+'</div>'+
+      lin('Valor financiado',_fm(r.P))+lin('Entrada',_fm(r.entrada))+lin('Prazo',r.n+' meses')+lin('Taxa de juros',_pc(r.i*100)+' a.m. ('+_pc(r.iAno*100)+' a.a.)')+lin('Primeira parcela',_fm(r.parcela1))+(r.sis==='sac'?lin('Última parcela',_fm(r.parcelaN)):'')+lin('Juros pagos',_fm(r.totalJuros))+lin('Total pago (com entrada)','<span style="font-size:14px;color:#c0392b;">'+_fm(r.totalPago)+'</span>')+'</div>';
+    var colC=r.c.ok?'<div style="flex:1;border:1.5px solid '+cor+';border-radius:6px;padding:14px 16px;"><div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:'+cor+';margin-bottom:8px;">Consórcio · '+N.marcaNome+' · '+N.admCurto+'</div>'+
+      lin('Crédito',_fm(r.c.credito))+lin('Prazo',r.c.m+' meses')+lin('Taxa de administração',_pc(r.c.a))+lin('Fundo de reserva',_pc(r.c.f))+lin('Parcela',_fm(r.c.parcela))+lin('Taxas pagas (sem juros)',_fm(r.c.taxas))+lin('Total pago','<span style="font-size:14px;color:'+cor+';">'+_fm(r.c.totalPago)+'</span>')+'</div>':'';
+    var eco=r.c.ok?Math.max(r.totalPago-r.c.totalPago,0):0;
+    var rows=r.rows.slice(0,12).map(function(x){return '<tr><td style="'+td+'text-align:left;">'+x.k+'</td><td style="'+td+'">'+_fm(x.parcela)+'</td><td style="'+td+'">'+_fm(x.juros)+'</td><td style="'+td+'">'+_fm(x.amort)+'</td><td style="'+td+'">'+_fm(x.saldo)+'</td></tr>';}).join('');
+    var orc=r.orc>0?'<div style="margin:0 32px 14px;padding:10px 14px;background:#f9f9f9;border-left:4px solid '+(r.parcela1<=r.orc?'#2e7d32':'#c0392b')+';font-size:11px;color:#444;line-height:1.7;">Orçamento informado: <strong>'+_fm(r.orc)+'</strong>. Financiamento: <strong>'+(r.parcela1<=r.orc?'cabe':'não cabe')+'</strong>'+(r.c.ok?' · Consórcio: <strong>'+(r.c.parcela<=r.orc?'cabe':'não cabe')+'</strong>':'')+'.</div>':'';
+    return '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#fff;">'+topoPDF()+
+     '<div style="padding:22px 32px 14px;border-bottom:2px solid '+cor+';"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:5px;">Simulação · '+N.linhaTxt+'</div><div style="font-size:20px;font-weight:700;color:'+cor+';">Financiamento x Consórcio</div><div style="font-size:11px;color:#666;margin-top:3px;">Cliente: <strong>'+nome+'</strong> · Bem: <strong>'+bem+'</strong> · Valor: <strong>'+_fm(r.valor)+'</strong></div></div>'+
+     '<div style="display:flex;gap:14px;padding:18px 32px;">'+colF+colC+'</div>'+
+     (eco>0?'<div style="margin:0 32px 14px;padding:12px 16px;background:#f0fff4;border:1.5px solid '+cor+';border-radius:6px;font-size:13px;color:#222;">No total, o consórcio custa <strong style="color:'+cor+';">'+_fm(eco)+' a menos</strong> que o financiamento, pois não há juros, apenas taxa de administração.</div>':'')+orc+
+     '<div style="padding:0 32px 14px;"><div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#555;margin-bottom:6px;">Evolução do financiamento (primeiras parcelas)</div><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+th+'text-align:left;">Parcela</th><th style="'+th+'">Valor</th><th style="'+th+'">Juros</th><th style="'+th+'">Amortização</th><th style="'+th+'">Saldo devedor</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+     '<div style="margin:0 32px 16px;font-size:9.5px;color:#888;line-height:1.6;">Simulação ilustrativa, sem valor contratual. Os valores do financiamento dependem da instituição financeira, do perfil do cliente e de tributos e tarifas. No consórcio, a contemplação ocorre por sorteio ou lance e não há garantia de data. Os percentuais do consórcio seguem o plano e o contrato da administradora.</div>'+
+     assinaturaPDF(cons,wcons)+rodapePDF()+'</div>';
+  });
+}
+function simPDF(){
+  var r=_simR||simCalcDados();if(!r.ok){toast('Preencha a simulação primeiro','#c0392b');return;}
+  abrirPDF(buildSim(),v('sim_nome')||'cliente','Simulacao');
+}
+/* calculadora de lance */
+function lanceCalc(){
+  var host=document.getElementById('lc-res');if(!host)return;
+  var c=_nb('lc_credito'),a=_nb('lc_adm'),f=_nb('lc_fr'),p=_nb('lc_pct'),base=(document.getElementById('lc_base')||{}).value;
+  if(!c){host.innerHTML='<div style="font-size:12px;color:var(--tm);">Informe o crédito do plano.</div>';return;}
+  var total=c*(1+a/100+f/100),b=base==='credito'?c:total,lance=b*p/100,emb=Math.min(lance,c*0.25),prop=lance-emb;
+  var L=function(x,y){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--cb);font-size:13px;"><span style="color:var(--tm);">'+x+'</span><strong style="color:var(--t);">'+y+'</strong></div>';};
+  host.innerHTML=L('Total do plano (crédito + taxas)',_fm(total))+L('Base usada no cálculo',_fm(b))+L('Valor do lance ('+_pc(p)+')',_fm(lance))+L('Crédito líquido com embutido no limite',_fm(Math.max(c-emb,0)))+L('Máx. embutido comum (25% do crédito)',_fm(c*0.25))+L('Com embutido no limite: embutido + recursos próprios',_fm(emb)+' + '+_fm(prop))+
+    '<div style="font-size:11px;color:var(--tm);margin-top:8px;line-height:1.6;">O limite do lance embutido e a base de cálculo variam por administradora e grupo. Confirme no regulamento antes de passar ao cliente.</div>';
+}
+simCalc();lanceCalc();
+
+/* ===== ESTUDOS: módulo de contas + marcar aula como concluída ===== */
+(function(){
+var NOTA='\n\nVídeo de apoio: conteúdo de canal externo, para reforçar a conta.';
+function V(id){return 'https://www.youtube.com/embed/'+id;}
+MODULOS.push({id:'contas',grupo:'produto',extra:true,icone:'🧮',iconeUrl:'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Abacus/3D/abacus_3d.png',
+ titulo:'As Contas do Consórcio e do Financiamento',desc:'Porcentagem, taxa de administração, parcela, lance, juros, Price e SAC, com exemplos.',
+ aulas:[
+ {t:'Porcentagem sem medo',video:V('jGnossl7ggQ'),c:`Quase tudo no consórcio é porcentagem. A conta base:
+
+X% de Y = Y × X ÷ 100
+
+Exemplos:
+• 18% de R$ 100.000 = 100.000 × 18 ÷ 100 = R$ 18.000
+• 1,8% de R$ 100.000 = R$ 1.800
+• 30% de R$ 277.500 = R$ 83.250
+
+Para descobrir quanto um valor representa em %, faça o inverso: valor ÷ total × 100. Exemplo: R$ 83.250 de lance sobre R$ 277.500 = 30%.
+
+Regra de três (para qualquer dúvida): se R$ 277.500 é 100%, quanto vale 30%? 277.500 × 30 ÷ 100.
+
+Pergunta que evita erro: "percentual de quê?". Todo percentual precisa de uma base (o crédito, o total do plano, o saldo devedor).`+NOTA},
+ {t:'Taxa de administração: total x por mês',c:`A taxa de administração costuma ser informada como um percentual total sobre o crédito, para todo o prazo.
+
+Para saber quanto pesa por mês: taxa total ÷ prazo.
+Exemplo: 18% em 80 meses = 0,225% ao mês sobre o crédito. Em um crédito de R$ 100.000, são R$ 225 por mês.
+
+Taxa em reais: crédito × taxa ÷ 100. Em R$ 100.000, 18% = R$ 18.000 ao longo do plano.
+
+Atenção: algumas administradoras cobram parte da taxa de forma antecipada (nos primeiros meses). Isso muda a distribuição das parcelas, não o total. Confira no contrato.
+
+Frase pronta: "A taxa total é R$ 18.000 para os 80 meses. Dividida por mês, dá R$ 225."`},
+ {t:'Como montar a parcela do consórcio',video:V('K3hG3B7I0r0'),c:`Parcela = crédito × (1 + taxa de administração + fundo de reserva) ÷ prazo, mais o seguro quando houver.
+
+Exemplo: crédito de R$ 100.000, taxa de 18%, fundo de reserva de 3%, 80 meses.
+• Total do plano: 100.000 × 1,21 = R$ 121.000
+• Parcela: 121.000 ÷ 80 = R$ 1.512,50
+• Com seguro de R$ 50 por mês: R$ 1.562,50
+
+A parcela real pode variar conforme o plano (por exemplo, planos com parcela reduzida), o reajuste do crédito e a data. Use sempre a simulação oficial e esta conta para conferir se o número faz sentido.
+
+Treino: refaça a conta com crédito de R$ 80.000, 18% + 3%, 80 meses. Resultado: R$ 96.800 no total e parcela de R$ 1.210.`+NOTA},
+ {t:'Porcentagem do lance',c:`Lance em % precisa de uma base de cálculo. A mais comum soma o crédito, a taxa de administração e o fundo de reserva (confirme no regulamento).
+
+Exemplo: bem de R$ 250.000, taxa de 7,5% e fundo de reserva de 3,5%.
+• Base: 250.000 × (1 + 0,075 + 0,035) = R$ 277.500
+• Lance de 60%: R$ 166.500
+• Lance de 30%: R$ 83.250
+
+Do valor para o percentual: R$ 83.250 ÷ R$ 277.500 × 100 = 30%.
+
+Alguns grupos calculam o lance sobre o crédito apenas. Por isso, antes de falar com o cliente, pergunte "o lance é sobre qual base?" ou use a calculadora da aba Simulação, que permite escolher as duas.`},
+ {t:'Lance embutido na conta',c:`Exemplo completo. Plano de R$ 100.000, taxa de 18% e fundo de reserva de 3%. Total do plano: R$ 121.000.
+
+Lance desejado: 30% do total = R$ 36.300.
+
+O lance embutido costuma ter limite de 25% do crédito (confira no contrato): R$ 25.000.
+• Embutido: R$ 25.000
+• Recursos próprios: 36.300 − 25.000 = R$ 11.300
+• Crédito líquido para comprar o bem: 100.000 − 25.000 = R$ 75.000
+
+O cliente precisa saber disso antes de ofertar: com lance embutido, a carta de crédito que ele recebe é menor. A pergunta decisiva: "Consegue completar a diferença para comprar o bem?"`},
+ {t:'Juros: taxa ao mês x ao ano',video:V('okXoS22pPDA'),c:`Juros são compostos, então não basta multiplicar por 12.
+
+Do mês para o ano: (1 + taxa mensal)^12 − 1
+Exemplo: 1,8% ao mês → 1,018^12 − 1 = 23,87% ao ano (e não 21,6%).
+Outro: 1% ao mês → 12,68% ao ano.
+
+Do ano para o mês: (1 + taxa anual)^(1 ÷ 12) − 1
+Exemplo: 30% ao ano → cerca de 2,21% ao mês.
+
+Na calculadora do celular: some 1 à taxa em decimal, eleve ao expoente 12 e subtraia 1.
+
+Quando o cliente comparar "taxa por ano" com "taxa por mês", converta antes de comparar. E peça o CET (custo efetivo total) do financiamento, que inclui tarifas e seguros.`+NOTA},
+ {t:'Amortização: Price e SAC',video:V('23YuhBZGURk'),c:`Amortizar é reduzir o saldo devedor. Cada parcela tem uma parte de juros e outra de amortização.
+
+Exemplo: R$ 100.000, 1,8% ao mês, 48 meses.
+
+• Tabela Price: parcelas fixas. Parcela = R$ 3.128,93. Total pago: R$ 150.188,74. Juros: R$ 50.188,74.
+• SAC: amortização fixa (100.000 ÷ 48 = R$ 2.083,33) e juros sobre o saldo. 1ª parcela: R$ 3.883,33. Última: R$ 2.120,83. Total pago: R$ 144.100. Juros: R$ 44.100.
+
+Leitura: o Price começa com parcela menor, mas custa mais no total. O SAC começa maior e termina menor.
+
+Fórmula da parcela Price: P × i ÷ (1 − (1 + i)^−n). Na aba Simulação você escolhe Price ou SAC e vê a tabela mês a mês.`+NOTA},
+ {t:'Comparar custo total',video:V('R95aO52m1-g'),c:`Custo total = soma de todas as parcelas + entrada + tarifas.
+
+Financiamento (Price do exemplo): R$ 150.188,74.
+Consórcio (crédito de R$ 100.000, 18% + 3%): R$ 121.000.
+Diferença: R$ 29.188,74, ou cerca de 19% menos no consórcio.
+
+Como apresentar:
+1. Mostre as duas parcelas lado a lado.
+2. Mostre o total pago em cada caso.
+3. Mostre o prazo e o que o cliente leva no meio do caminho (o bem na hora no financiamento, a contemplação no consórcio).
+4. Pergunte: "Qual faz mais sentido para o seu momento?"
+
+Nunca omita que o consórcio depende de contemplação. Venda planejamento, não promessa.`+NOTA},
+ {t:'Usando a aba Simulação',c:`A aba Simulação do Red Sea faz todas essas contas para você.
+
+Passo a passo:
+1. Escolha a marca e a administradora no topo.
+2. Informe o nome do cliente, o bem e, se souber, a parcela que cabe no orçamento.
+3. Preencha valor do bem, entrada, prazo, taxa e sistema (Price ou SAC) do financiamento.
+4. Preencha crédito, prazo e taxas do consórcio.
+5. Veja os dois lados, a diferença total e se cabe no orçamento.
+6. Gere o PDF, copie o resumo ou envie por WhatsApp.
+
+A calculadora de lance, no fim da aba, converte o percentual em reais e mostra o crédito líquido com lance embutido.
+
+Pratique: refaça os exemplos desta trilha na aba e confira os mesmos resultados.`}
+ ],
+ quiz:[
+ {q:'Quanto é 18% de R$ 100.000?',op:['R$ 1.800','R$ 18.000','R$ 180.000','R$ 8.000'],r:1},
+ {q:'Crédito de R$ 100.000, taxa de 18%, fundo de reserva de 3%, 80 meses. Qual a parcela sem seguro?',op:['R$ 1.250,00','R$ 1.512,50','R$ 1.210,00','R$ 1.800,00'],r:1},
+ {q:'Base de R$ 277.500. Quanto vale um lance de 30%?',op:['R$ 83.250','R$ 27.750','R$ 166.500','R$ 8.325'],r:0},
+ {q:'1,8% ao mês equivale a quanto ao ano (juros compostos)?',op:['21,6%','23,87%','18%','30%'],r:1},
+ {q:'Em relação ao Price, o SAC:',op:['Tem parcela inicial menor e custa mais','Tem parcela inicial maior e custa menos no total','Não tem juros','Tem parcelas iguais'],r:1}
+ ]});
+/* ---- marcar aula como concluída (não marca ao abrir) ---- */
+window.estAbrirAula=function(moduloId,idx){
+  _estCurrentModulo=moduloId;_estCurrentAulaIdx=idx;
+  _estEsconderTudo();
+  document.getElementById('estudos-aula').style.display='block';
+  estRenderAula();
+};
+function _aulaVista(){var p=_estProgresso(),mp=p[_estCurrentModulo]||{aulasVistas:[],provaPassada:false};return (mp.aulasVistas||[]).indexOf(_estCurrentAulaIdx)>-1;}
+window._estAtualizaBotaoAula=function(){
+  var b=document.getElementById('est-aula-concluir');if(!b)return;
+  var ok=_aulaVista();
+  b.textContent=ok?'✔ Aula concluída (clique para desmarcar)':'Marcar aula como concluída';
+  b.className=ok?'btn bl':'btn be';
+};
+window.estToggleAula=function(){
+  var prog=_estProgresso(),mp=prog[_estCurrentModulo]||{aulasVistas:[],provaPassada:false},L=(mp.aulasVistas||[]).slice(),i=L.indexOf(_estCurrentAulaIdx);
+  if(i>-1)L.splice(i,1);else L.push(_estCurrentAulaIdx);
+  mp.aulasVistas=L;prog[_estCurrentModulo]=mp;_estSalvarProgresso(prog);
+  _estAtualizaBotaoAula();
+  if(typeof toast==='function')toast(i>-1?'Aula desmarcada':'Aula concluída! ✅');
+};
+var _rA=window.estRenderAula;
+window.estRenderAula=function(){_rA();_estAtualizaBotaoAula();};
 })();
 
 </script>

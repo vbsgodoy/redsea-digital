@@ -737,6 +737,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
 <div id="tab-aprovacao" class="tp" style="display:none;">
     <div class="topbar"><div class="topbar-title">Analise de Lance</div><div class="topbar-sub" id="sub-aprovacao">Pessoa Fisica - Kawasaki</div></div>
   <div class="page-content">
+    <div class="qr-host" data-qr="aprovacao"></div>
   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
     <div class="subtabs">
       <button class="stab ac" onclick="subaLance('pf',this)">Pessoa Fisica</button>
@@ -880,6 +881,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
 <div id="tab-pagamento" class="tp" style="display:none;">
   <div class="topbar"><div class="topbar-title">Pagamento</div><div class="topbar-sub">Selecione o canal</div></div>
   <div class="page-content">
+    <div class="qr-host" data-qr="pagamento"></div>
     <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:14px 20px;display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;">
       <div style="font-size:18px;flex-shrink:0;color:#DC2626;font-weight:900;">!</div>
       <div><div style="font-size:13px;font-weight:700;color:#DC2626;margin-bottom:3px;">O pagamento finaliza o cadastro e efetiva o lance.</div>
@@ -960,6 +962,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Pos-Venda</div><div class="topbar-sub">Comunicacao pos-pagamento</div></div>
   <div class="page-content">
   <div class="pt"><h2>Pós-Venda</h2><p>Selecione o tipo de <span class="hl">comunicação pós-pagamento</span></p></div>
+    <div class="qr-host" data-qr="boasvindas"></div>
     <div class="linha-host"></div>
     <div class="stn">
       <button class="stb ac g" onclick="suba('bemvindo',this)"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Party%20popper/3D/party_popper_3d.png" style="width:15px;height:15px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=&quot;none&quot;;"> Boas-vindas</button>
@@ -1118,6 +1121,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Campanhas</div><div class="topbar-sub">Remarketing e reativacao</div></div>
   <div class="page-content">
   <div class="pt"><h2>Campanhas de Remarketing</h2><p>Modelos prontos e editáveis para <span class="hl">reativar e conquistar clientes</span></p></div>
+    <div class="qr-host" data-qr="campanhas"></div>
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bullseye/3D/bullseye_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Selecione o Perfil</div>
       <div id="camp-grid" style="padding:18px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
@@ -1465,6 +1469,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Scripts</div><div class="topbar-sub">Roteiros de abordagem</div></div>
   <div class="page-content">
   <div class="pt"><h2>Scripts de Abordagem</h2><p>Roteiros prontos para <span class="hl">Insta/WhatsApp e Ligação</span></p></div>
+    <div class="qr-host" data-qr="scripts"></div>
     <div class="linha-host"></div>
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Pencil/3D/pencil_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Preencher antes de usar</div>
@@ -1542,6 +1547,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Proposta</div><div class="topbar-sub">Proposta rápida com imagem da moto</div></div>
   <div class="page-content">
   <div class="pt"><h2>Proposta para o Cliente</h2><p>Gere o <span class="hl">texto formatado + a foto da moto</span> pra mandar no Insta ou WhatsApp</p></div>
+    <div class="qr-host" data-qr="proposta"></div>
 
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados da Proposta</div>
@@ -1582,6 +1588,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="topbar"><div class="topbar-title">Agendamento</div><div class="topbar-sub">Confirmação de análise com credibilidade</div></div>
   <div class="page-content">
   <div class="pt"><h2>Agendamento de Análise</h2><p>Gere o <span class="hl">texto + card de confirmação</span> pra passar segurança ao cliente</p></div>
+    <div class="qr-host" data-qr="agendamento"></div>
     <div class="linha-host"></div>
 
     <div class="subtabs">
@@ -7915,6 +7922,69 @@ function ideiaWhats(id){var el=document.getElementById('itx-'+id+'-wa');if(!el)r
   document.head.appendChild(st);
   ['c_nome','c_moto','c_cons'].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener('input',ideiasRender);if(e)e.addEventListener('change',ideiasRender);});
   ideiasRender();
+})();
+
+</script>
+<script>
+/* ===== PERGUNTAS RÁPIDAS (resposta por número) em todas as abas ===== */
+var _QR={
+scripts:{nome:['script_cliente'],qs:[
+ ['Objetivo','{nome}, pra eu te indicar o melhor plano, qual o seu objetivo?\n\n1 - Realizar o sonho da moto/carro\n2 - Trocar de bem\n3 - Investimento\n4 - Presente para alguém\n\nResponde só com o número.'],
+ ['Prazo para ter o bem','{nome}, em quanto tempo você pretende ter o seu bem?\n\n1 - Em até 3 meses\n2 - De 3 a 6 meses\n3 - Mais de 6 meses\n4 - Estou só pesquisando\n\nPode responder só com o número.'],
+ ['Já teve consórcio?','{nome}, você já participou de algum consórcio antes?\n\n1 - Sim, fui contemplado\n2 - Sim, mas desisti\n3 - Nunca participei\n\nResponde com o número.'],
+ ['Faixa de parcela','{nome}, qual faixa de parcela mensal fica confortável pra você?\n\n1 - Até R$ 500\n2 - De R$ 500 a R$ 1.000\n3 - De R$ 1.000 a R$ 2.000\n4 - Acima de R$ 2.000\n\nPode responder só com o número.'],
+ ['Tem lance?','{nome}, você teria algum valor pra dar de lance no início?\n\n1 - Sim, tenho um valor\n2 - Posso juntar nos próximos meses\n3 - Não, prefiro sem lance\n\nResponde com o número.']]},
+proposta:{nome:['prop_cliente','prop_nome'],qs:[
+ ['Qual proposta?','{nome}, qual opção faz mais sentido pra você?\n\n1 - Menor parcela\n2 - Menor prazo\n3 - Com lance para acelerar\n4 - Quero ver outra simulação\n\nResponde só com o número.'],
+ ['Vamos fechar?','{nome}, o que você achou da proposta?\n\n1 - Gostei, vamos avançar\n2 - Tenho dúvida no valor\n3 - Tenho dúvida em como funciona\n4 - Preciso conversar com alguém\n\nPode responder com o número.'],
+ ['Dados para análise','{nome}, posso já iniciar a sua análise?\n\n1 - Sim, pode iniciar\n2 - Quero ajustar a proposta antes\n3 - Prefiro uma ligação\n\nResponde com o número.']]},
+agendamento:{nome:['agd_cliente','man_cliente'],qs:[
+ ['Confirma o horário?','{nome}, você confirma o horário da sua análise?\n\n1 - Confirmo\n2 - Preciso remarcar\n3 - Prefiro por ligação\n4 - Prefiro por vídeo\n\nResponde só com o número.'],
+ ['Melhor período','{nome}, qual o melhor período pra falarmos?\n\n1 - Manhã\n2 - Tarde\n3 - Noite\n\nPode responder com o número.'],
+ ['Documentos à mão?','{nome}, pra agilizar a análise, você já está com seus documentos em mãos?\n\n1 - Sim, estou com tudo\n2 - Faltam alguns\n3 - Preciso de ajuda pra separar\n\nResponde com o número.']]},
+aprovacao:{nome:['nome','cnpj_empresa'],qs:[
+ ['Como prefere pagar?','{nome}, sua análise foi aprovada! Como prefere fazer o pagamento?\n\n1 - Pix\n2 - Cartão de crédito\n3 - Sinal + agendamento\n\nResponde só com o número.'],
+ ['Ajustar o lance?','{nome}, sobre o valor do lance aprovado:\n\n1 - Manter como está\n2 - Quero aumentar\n3 - Quero diminuir\n4 - Prefiro falar com o analista\n\nPode responder com o número.'],
+ ['Entendeu o resultado?','{nome}, ficou clara a análise do seu lance?\n\n1 - Sim, tudo claro\n2 - Tenho dúvida no valor\n3 - Tenho dúvida nos próximos passos\n\nResponde com o número.']]},
+pagamento:{nome:['pix_nome','cartao_nome','sinal_nome'],qs:[
+ ['Pagamento feito?','{nome}, sobre o pagamento:\n\n1 - Já paguei\n2 - Pago hoje\n3 - Pago amanhã\n4 - Preciso de outra forma\n\nResponde só com o número.'],
+ ['Qual forma de pagamento?','{nome}, qual forma fica melhor pra você?\n\n1 - Pix\n2 - Cartão de crédito\n3 - Sinal + agendamento\n\nPode responder com o número.'],
+ ['Conseguiu pagar?','{nome}, conseguiu fazer o pagamento sem problemas?\n\n1 - Sim, tudo certo\n2 - Deu erro no código/link\n3 - Preciso de ajuda\n\nResponde com o número.']]},
+boasvindas:{nome:['bv_nome','pv_nome','cb_nome'],qs:[
+ ['Conseguiu acessar?','{nome}, você já conseguiu acessar o canal da administradora?\n\n1 - Já acessei\n2 - Não consegui\n3 - Preciso de ajuda com o passo a passo\n\nResponde só com o número.'],
+ ['Pós-vendas concluído?','{nome}, como está o seu pós-vendas?\n\n1 - Já concluí\n2 - Estou fazendo agora\n3 - Travei em algum passo\n4 - Ainda não comecei\n\nPode responder com o número.'],
+ ['Nota do atendimento','{nome}, de 1 a 5, que nota você dá ao nosso atendimento até aqui?\n\n1 - Muito ruim\n2 - Ruim\n3 - Regular\n4 - Bom\n5 - Excelente\n\nResponde só com o número.'],
+ ['Cobrança: situação','{nome}, sobre a pendência da parcela:\n\n1 - Já paguei\n2 - Pago hoje\n3 - Pago até uma data que combinarmos\n4 - Preciso negociar\n\nResponde com o número.'],
+ ['Indicação','{nome}, você conhece alguém que também quer conhecer o plano?\n\n1 - Sim, vou indicar\n2 - Posso pensar em alguém\n3 - No momento não\n\nResponde com o número.']]},
+campanhas:{nome:['c_nome'],qs:[
+ ['O que travou?','{nome}, o que mais pesou até agora?\n\n1 - Valor da parcela\n2 - Prazo\n3 - Dúvida de como funciona\n4 - Ainda não é o momento\n\nResponde só com o número.'],
+ ['Segue nos planos?','{nome}, o plano segue nos seus planos?\n\n1 - Sim, quero retomar\n2 - Daqui a alguns meses\n3 - Mudei de ideia\n\nPode responder com o número.'],
+ ['Receber novidades?','{nome}, quer receber novidades e condições do consórcio?\n\n1 - Sim, pode mandar\n2 - Só de vez em quando\n3 - Prefiro não receber\n\nResponde com o número.'],
+ ['Melhor canal','{nome}, qual o melhor canal pra falarmos?\n\n1 - WhatsApp\n2 - Instagram\n3 - Ligação\n4 - E-mail\n\nResponde com o número.']]}
+};
+function _qrNome(k){var ids=_QR[k].nome;for(var i=0;i<ids.length;i++){var e=document.getElementById(ids[i]);if(e&&e.value&&e.offsetParent!==null)return e.value.trim();}for(i=0;i<ids.length;i++){e=document.getElementById(ids[i]);if(e&&e.value)return e.value.trim();}return '';}
+function qrAtualizar(k){
+  var h=document.querySelector('.qr-host[data-qr="'+k+'"]');if(!h)return;
+  var sel=h.querySelector('select'),ta=h.querySelector('textarea');
+  var q=_QR[k].qs[+sel.value];var n=_qrNome(k);
+  ta.value=q[1].replace(/\{nome\}/g,n||'[nome]');
+}
+function qrCopiar(k){var ta=document.querySelector('.qr-host[data-qr="'+k+'"] textarea');navigator.clipboard.writeText(ta.value).then(function(){toast('Pergunta copiada!');});}
+function qrWhats(k){var ta=document.querySelector('.qr-host[data-qr="'+k+'"] textarea');window.open('https://wa.me/?text='+encodeURIComponent(ta.value),'_blank');}
+function qrToggle(k){var h=document.querySelector('.qr-host[data-qr="'+k+'"]');h.classList.toggle('open');var o=h.classList.contains('open');h.querySelector('.ar').textContent=o?'fechar':'abrir';if(o)qrAtualizar(k);}
+(function(){
+  var st=document.createElement('style');
+  st.textContent='.qr-host{margin:0 0 16px;border:1px solid var(--cb);border-radius:12px;background:var(--ce);}.qr-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:var(--t);}.qr-head span.s{font-weight:500;font-size:12px;color:var(--tm);}.qr-head .ar{margin-left:auto;color:var(--v);font-size:12px;}'+
+  '.qr-body{display:none;padding:0 16px 16px;}.qr-host.open .qr-body{display:block;}.qr-body select{width:100%;padding:9px 10px;border:1px solid var(--cb);border-radius:8px;background:var(--p);color:var(--t);font-family:inherit;font-size:13px;margin-bottom:10px;}'+
+  '.qr-body textarea{width:100%;min-height:170px;border:1px solid var(--cb);border-radius:8px;background:var(--p);color:var(--t);font-family:inherit;font-size:13px;line-height:1.6;padding:10px 12px;resize:vertical;box-sizing:border-box;}.qr-bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}'+
+  '.qr-bt button{padding:8px 14px;border-radius:999px;border:1px solid var(--cb);background:var(--p);color:var(--t);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}.qr-bt button.pri{background:var(--v);border-color:var(--v);color:#fff;}';
+  document.head.appendChild(st);
+  document.querySelectorAll('.qr-host').forEach(function(h){
+    var k=h.getAttribute('data-qr');if(!_QR[k])return;
+    h.innerHTML='<div class="qr-head" onclick="qrToggle(\''+k+'\')">Pergunta rápida <span class="s">o cliente responde só com um número</span><span class="ar">abrir</span></div>'+
+      '<div class="qr-body"><select onchange="qrAtualizar(\''+k+'\')">'+_QR[k].qs.map(function(q,i){return '<option value="'+i+'">'+q[0]+'</option>';}).join('')+'</select><textarea></textarea>'+
+      '<div class="qr-bt"><button class="pri" onclick="qrCopiar(\''+k+'\')">Copiar</button><button onclick="qrWhats(\''+k+'\')">Abrir no WhatsApp</button></div></div>';
+  });
 })();
 
 </script>

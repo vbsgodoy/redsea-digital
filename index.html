@@ -685,7 +685,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
   <div class="page-content">
 
     <div id="estudos-grid">
-      <div class="pt"><h2>Sessão de Estudos</h2><p>8 módulos pra <span class="hl">vender melhor, negociar melhor, viver melhor</span></p></div>
+      <div class="pt"><h2>Sessão de Estudos</h2><p>Trilhas pra <span class="hl">entender o consórcio, vender melhor, negociar melhor, viver melhor</span></p></div>
       <div id="estudos-progresso-geral" style="margin-bottom:20px;"></div>
       <div id="estudos-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;"></div>
       <div id="estudos-cert-cta" style="margin-top:24px;"></div>
@@ -5042,14 +5042,15 @@ function estVoltarModulo(){
 function estRenderGrid(){
   var prog=_estProgresso();
   var host=document.getElementById('estudos-cards');
-  var totalModulos=MODULOS.length;
+  var core=MODULOS.filter(function(m){return !m.extra;});
+  var totalModulos=core.length;
   var modulosCompletos=0;
-  host.innerHTML=MODULOS.map(function(m){
+  core.forEach(function(m){var mp=prog[m.id]||{};if(mp.provaPassada)modulosCompletos++;});
+  function card(m){
     var mp=prog[m.id]||{aulasVistas:[],provaPassada:false};
     var aulasVistas=(mp.aulasVistas||[]).length;
     var totalAulas=m.aulas.length;
     var provaOk=mp.provaPassada;
-    if(provaOk)modulosCompletos++;
     var pct=Math.round((aulasVistas/totalAulas)*100);
     return '<div class="fc" style="padding:20px;cursor:pointer;" onclick="estAbrirModulo(\''+m.id+'\')">'+
       '<div style="margin-bottom:8px;">'+(m.iconeUrl?('<img src="'+m.iconeUrl+'" style="width:32px;height:32px;object-fit:contain;" onerror="this.outerHTML=&quot;'+m.icone+'&quot;;">'):m.icone)+'</div>'+
@@ -5058,6 +5059,13 @@ function estRenderGrid(){
       '<div style="height:6px;background:var(--cb);border-radius:3px;overflow:hidden;margin-bottom:6px;"><div style="height:100%;width:'+pct+'%;background:var(--v);"></div></div>'+
       '<div style="font-size:10px;color:var(--tm);">'+aulasVistas+'/'+totalAulas+' aulas'+(provaOk?' · ✅ prova aprovada':'')+'</div>'+
     '</div>';
+  }
+  var GRUPOS=[['produto','Conhecimento do consórcio','Entenda o produto a fundo: cota, grupo, assembleia, taxas, lances e nossas linhas.'],['vendas','Trilha de vendas','Mentalidade, venda consultiva, negociação, objeções e fechamento.'],['canais','Canais e ferramenta','WhatsApp, Instagram, follow-up e o passo a passo do Red Sea.']];
+  host.innerHTML=GRUPOS.map(function(g){
+    var L=MODULOS.filter(function(m){return (m.grupo||'vendas')===g[0];});
+    if(!L.length)return '';
+    var feitos=L.filter(function(m){return (prog[m.id]||{}).provaPassada;}).length;
+    return '<div style="grid-column:1/-1;margin:'+(g[0]==='produto'?'0':'18px')+' 0 2px;"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;"><div style="font-size:16px;font-weight:800;color:var(--t);">'+g[1]+'</div><div style="font-size:11px;color:var(--tm);">'+feitos+'/'+L.length+' módulos concluídos</div></div><div style="font-size:12px;color:var(--tm);margin-top:2px;">'+g[2]+'</div></div>'+L.map(card).join('');
   }).join('');
 
   var geralEl=document.getElementById('estudos-progresso-geral');
@@ -5181,7 +5189,7 @@ function estGerarCertificado(){
   var nome=document.getElementById('est-cert-nome').value.trim();
   if(!nome){toast('⚠️ Informe seu nome','#c0392b');return;}
   var dataFmt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-  var listaModulos=MODULOS.map(function(m){return '<li style="margin-bottom:4px;">'+m.icone+' '+m.titulo+'</li>';}).join('');
+  var listaModulos=MODULOS.filter(function(m){return !m.extra;}).map(function(m){return '<li style="margin-bottom:4px;">'+m.icone+' '+m.titulo+'</li>';}).join('');
   var html=''+
     topoPDF()+
     '<div style="padding:50px 40px;text-align:center;border:3px solid #111;margin:20px;">'+
@@ -7824,7 +7832,7 @@ var _hvOffset=0;
 function _hvLista(){
   var out=[],foco=['lidar com o "não" sem levar para o lado pessoal','vender como consultor, e não como vendedor','abrir a conversa com as perguntas certas','usar gatilhos mentais sem forçar','ancorar valor antes de falar de preço','contornar o "vou pensar" e conduzir ao fechamento'];
   var k=0;
-  MODULOS.forEach(function(m){m.aulas.forEach(function(a,i){
+  MODULOS.filter(function(m){return !m.extra;}).forEach(function(m){m.aulas.forEach(function(a,i){
     if(a.video){
       var id=(a.video.match(/embed\/([a-zA-Z0-9_-]+)/)||[])[1];
       if(id&&id!=='taffy-hqXeo')out.push({mid:m.id,mod:m.titulo,idx:i,t:a.t,vid:id,foco:foco[k]||a.t});
@@ -8018,6 +8026,461 @@ var _IDEIAS_NOVAS=[
     });
   };
   ideiasRender();
+})();
+
+</script>
+<script>
+/* ===== ESTUDOS: novos módulos (conhecimento do consórcio, vendas e ferramenta) ===== */
+(function(){
+var NOTA_VIDEO='\n\nVídeo de apoio: conteúdo de canal externo. As regras exatas de cada grupo estão no contrato e no regulamento da administradora.';
+function V(id){return 'https://www.youtube.com/embed/'+id;}
+var ICO='https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/';
+var NOVOS=[
+/* ---------------------------------------------------------------- */
+{id:'consorcio-zero',grupo:'produto',extra:true,icone:'📘',iconeUrl:ICO+'Blue%20book/3D/blue_book_3d.png',
+ titulo:'Consórcio do Zero',desc:'O que é cota, grupo, assembleia, fundo de reserva e taxas, explicado do início.',
+ aulas:[
+ {t:'O que é consórcio',video:V('166gopSI9Do'),c:`Consórcio é uma forma de compra planejada. Um grupo de pessoas paga parcelas mensais, essas parcelas formam um fundo comum, e todo mês uma ou mais pessoas do grupo são contempladas e recebem um crédito para comprar o bem.
+
+Ninguém empresta dinheiro para ninguém: o próprio grupo se autofinancia. Por isso o consórcio não cobra juros. O que existe é a taxa de administração (e o fundo de reserva), que paga o trabalho de organizar o grupo.
+
+O consórcio é regulado pela Lei 11.795/2008 e fiscalizado pelo Banco Central. Só administradoras autorizadas podem formar grupos.
+
+Frase para explicar a um leigo: "Imagina um grupo de amigos que se junta todo mês para ajudar um de cada vez a comprar o que sonha. A administradora organiza tudo e o Banco Central fiscaliza."`+NOTA_VIDEO},
+ {t:'Grupo e cota',c:`Grupo é o conjunto de consorciados que pagam parcelas e formam o fundo comum. Cada grupo tem crédito, prazo (em meses) e regras definidos no contrato. Ele se encerra quando o prazo termina ou todos foram atendidos, conforme o regulamento.
+
+Cota é a participação de uma pessoa no grupo. Cada cota tem um número e dá direito a um crédito. Uma mesma pessoa pode ter mais de uma cota.
+
+Situações que você vai ouvir todo dia:
+• Cota ativa: pagando em dia e participando das assembleias.
+• Cota contemplada: já tem direito ao crédito.
+• Cota não contemplada: ainda aguardando, por sorteio ou lance.
+• Cota cancelada ou excluída: deixou de pagar ou desistiu.
+
+Por lei, o grupo é autônomo e tem patrimônio próprio, que não se mistura com o da administradora. É um ponto forte para explicar segurança ao cliente.`},
+ {t:'Administradora e fundo comum',c:`Administradora é a empresa autorizada pelo Banco Central que forma o grupo, conduz as assembleias, cobra as parcelas, entrega o crédito e presta contas aos consorciados. A remuneração dela é a taxa de administração.
+
+Fundo comum é a parte da parcela que fica no "caixa" do grupo. É dele que sai o crédito de quem é contemplado. Quanto mais pessoas pagam em dia, mais forte é o fundo e mais contemplações o grupo consegue fazer por mês.
+
+Por isso a pontualidade importa: o atraso de uma cota afeta o grupo inteiro, e quem atrasa não participa da assembleia do mês.
+
+Dica para vender: quando o cliente perguntar "para onde vai meu dinheiro?", responda que a maior parte da parcela vai para o fundo do grupo, que só serve para pagar créditos dos consorciados.`},
+ {t:'Assembleia: onde a contemplação acontece',video:V('Zvjlyo-bYnQ'),c:`Assembleia é a reunião mensal em que a administradora apura as contemplações do grupo.
+
+• AGO (Assembleia Geral Ordinária): acontece todo mês. Presta contas e define os contemplados por sorteio e por lance.
+• AGE (Assembleia Geral Extraordinária): acontece quando surge um assunto específico fora da rotina.
+
+Só participa quem está com a parcela do mês em dia. Em muitas administradoras o sorteio usa os resultados da Loteria Federal. Quem ofertou lance precisa registrá-lo até o horário limite informado pela administradora, normalmente antes da assembleia (por exemplo, até 18h do dia anterior em algumas).
+
+Em caso de empate de lances, o regulamento do grupo define o critério de desempate. O resultado é divulgado pelos canais da administradora, e o cliente deve ser avisado por você.`+NOTA_VIDEO},
+ {t:'As taxas do consórcio',video:V('QQ8iLE9-rps'),c:`A parcela do consórcio é feita de várias partes:
+
+• Fundo comum: o valor que forma o crédito.
+• Taxa de administração: remunera a administradora. É um percentual sobre o crédito, cobrado ao longo do prazo.
+• Fundo de reserva: percentual adicional que protege o grupo (explicado na próxima aula).
+• Seguro: geralmente cobre morte ou invalidez e quita parcelas, conforme o contrato.
+• Taxa de adesão: existe em algumas administradoras e é cobrada no início, conforme o contrato.
+• Reajuste: o crédito e as parcelas acompanham o valor do bem (tabela FIPE, IPCA, INCC, conforme o grupo).
+
+Exemplo ilustrativo (números hipotéticos): crédito de R$ 100.000, taxa de administração total de 18% e fundo de reserva de 3% resultam em R$ 121.000 pagos no prazo. Em 100 meses, a parcela média seria R$ 1.210, sem seguro e sem reajuste.
+
+Regra de ouro: sempre mostre a taxa total do plano e a parcela, nunca só a parcela.`+NOTA_VIDEO},
+ {t:'Fundo de reserva',video:V('TxpkIMvjGUU'),c:`Fundo de reserva é um percentual cobrado junto com a parcela para dar segurança ao grupo. Ele serve para cobrir eventual falta de recursos no fundo comum, despesas e honorários de cobrança e outros fins previstos no contrato.
+
+O ponto que o cliente mais gosta de saber: quando o grupo termina, o que sobrou do fundo de reserva é devolvido aos consorciados ativos, proporcionalmente e conforme o contrato.
+
+Resumo para explicar:
+• Não é taxa para a administradora: é uma proteção do próprio grupo.
+• Pode ser usado quando há inadimplência.
+• O saldo não utilizado volta para os consorciados no encerramento.`+NOTA_VIDEO},
+ {t:'Contemplação: sorteio e lance',video:V('9RIuG6hZgDw'),c:`Contemplar é liberar o direito ao crédito. Existem dois caminhos:
+
+1. Sorteio: todo mês cada grupo faz o sorteio entre as cotas ativas, e quem for sorteado é contemplado. Não depende de dinheiro extra.
+2. Lance: o cliente oferta um valor ou percentual para antecipar a contemplação. Vence o maior lance dentro das regras do grupo.
+
+O lance pode ser livre (o cliente escolhe quanto ofertar), fixo (percentual definido pelo grupo, em alguns grupos) ou embutido (usa parte do próprio crédito). Há uma aula completa sobre isso no módulo "Lance e Contemplação na Prática".
+
+Atenção na conversa: contemplação por lance depende do grupo e dos outros participantes. Não prometa data nem garanta contemplação. O que você pode garantir é o processo, a transparência e o acompanhamento.`+NOTA_VIDEO},
+ {t:'Carta de crédito e compra do bem',c:`Depois de contemplado, o cliente recebe a carta de crédito: o direito de comprar o bem previsto no contrato (moto, carro, imóvel ou serviço).
+
+Passos comuns:
+1. Aprovação do crédito: a administradora analisa o cadastro e a capacidade de pagamento.
+2. Escolha do bem e da concessionária ou vendedor.
+3. Garantia: em geral o bem fica alienado à administradora até o fim do pagamento (imóveis têm regras próprias).
+4. Pagamento ao vendedor: o crédito é pago direto a quem vende.
+
+Como o cliente compra "à vista" com a carta, ele costuma ter poder de negociação com o vendedor. Peça sempre que ele confirme o prazo de utilização do crédito e as regras de atualização do valor.`},
+ {t:'Desistência, cancelamento e devolução',c:`Quem desiste ou deixa de pagar tem a cota cancelada (exclusão). O consórcio não devolve o dinheiro na hora: os valores pagos ao fundo comum são restituídos conforme o contrato, descontadas multas e taxas, em geral depois de a cota ser sorteada ou ao final do grupo.
+
+Por isso o consórcio é um compromisso de planejamento. Combine com o cliente:
+• Que a parcela cabe no orçamento por todo o prazo.
+• Que ele entende que a devolução tem regras.
+• Que existe a opção de transferir a cota ou trocar de bem em situações previstas.
+
+Falar disso com clareza na venda evita reclamação e cancelamento depois, e passa muita confiança.`},
+ {t:'Consórcio x financiamento',video:V('SX7nrcpBdUI'),c:`Financiamento: o banco empresta, o cliente recebe o bem na hora e paga juros ao longo do prazo.
+Consórcio: o cliente espera a contemplação, mas paga taxa de administração em vez de juros. Em geral, o custo total é menor.
+
+Quando cada um faz mais sentido:
+• Precisa do bem agora: financiamento (ou lance forte no consórcio).
+• Pode planejar: consórcio, pelo menor custo total.
+• Quer poder de compra à vista: consórcio contemplado.
+
+Nunca fale mal do financiamento. Mostre os números das duas opções com a simulação real do cliente e deixe ele decidir. Quem entende, escolhe consórcio por conta própria.`+NOTA_VIDEO},
+ {t:'Glossário rápido',c:`Termos que o cliente (e você) precisa dominar:
+• Crédito: valor da carta de crédito do plano.
+• Bem de referência: bem usado para atualizar o valor do crédito.
+• Parcela: fundo comum + taxa de administração + fundo de reserva (+ seguro).
+• Adimplente: cliente com parcelas em dia.
+• Contemplado: tem direito ao crédito.
+• Prazo: número de meses do grupo.
+• Cotas remanescentes: o que ainda falta pagar.
+• Lance: oferta para antecipar a contemplação.
+• Alienação: garantia do bem em favor da administradora.
+• Quadro resumo: documento do contrato com todas as condições.
+
+Se o cliente perguntar algo que você não sabe, responda: "Vou confirmar no regulamento do grupo e já te retorno." É melhor do que improvisar.`}
+ ],
+ quiz:[
+ {q:'Por que o consórcio não cobra juros?',op:['Porque o governo paga os juros','Porque o grupo se autofinancia e a administradora cobra taxa de administração','Porque o crédito vem do banco, sem custo','Porque só existe para quem tem lance'],r:1},
+ {q:'O que é uma cota?',op:['O valor total do grupo','A participação de uma pessoa no grupo, com direito a um crédito','O prêmio do sorteio','A taxa da administradora'],r:1},
+ {q:'Quem participa da assembleia do mês?',op:['Qualquer pessoa, em dia ou não','Só quem está com a parcela do mês em dia','Apenas quem deu lance','Só quem já foi contemplado'],r:1},
+ {q:'O que acontece com o saldo do fundo de reserva ao fim do grupo?',op:['Fica com a administradora','É devolvido aos consorciados ativos, conforme o contrato','É usado em outro grupo','Some'],r:1},
+ {q:'Quem desiste do consórcio recebe o dinheiro de volta quando?',op:['No mesmo dia','Conforme o contrato, geralmente após sorteio ou no fim do grupo, com descontos','Nunca recebe','Só se for contemplado por lance'],r:1}
+ ]},
+/* ---------------------------------------------------------------- */
+{id:'lance-pratico',grupo:'produto',extra:true,icone:'🏁',iconeUrl:ICO+'Chequered%20flag/3D/chequered_flag_3d.png',
+ titulo:'Lance e Contemplação na Prática',desc:'Tipos de lance, como calcular, lance embutido e o Plano Inteligente.',
+ aulas:[
+ {t:'Sorteio x lance: quem contempla mais rápido',c:`No sorteio, todo mês um grupo contempla por sorte: a chance de cada cota é pequena e depende do tamanho do grupo. No lance, o cliente oferta para furar a fila: quem oferta mais, leva.
+
+Para o cliente decidir:
+• Sem pressa e sem reserva: aguarda sorteio.
+• Quer acelerar e tem dinheiro ou crédito para usar: dá lance.
+• Quer o melhor dos dois: participa do sorteio todo mês e planeja o lance.
+
+Lembre sempre: a contemplação por lance não é garantida e depende dos lances dos outros participantes. Explique que o objetivo do planejamento é aumentar a chance, não prometer data.`},
+ {t:'Lance livre, fixo e embutido',video:V('64enWB3ox3w'),c:`• Lance livre: o cliente escolhe quanto ofertar, em valor ou parcelas, dentro das regras do grupo.
+• Lance fixo: percentual definido pelo grupo (existe só em alguns). Quem oferta aquele percentual entra numa disputa específica.
+• Lance embutido: o cliente usa parte da própria carta de crédito para pagar o lance. Costuma ter limite (muitos grupos usam 25% do crédito, mas confira no contrato).
+
+Formas de pagar o lance:
+• Recursos próprios.
+• Embutido.
+• FGTS, em grupos de imóveis, nos casos previstos.
+
+Sempre confira no regulamento do grupo as regras de cada tipo.`+NOTA_VIDEO},
+ {t:'Como calcular o lance',video:V('RQ4l3VsjbMs'),c:`A base do cálculo é a soma do fundo comum, da taxa de administração e do fundo de reserva (regra comum, confira no regulamento).
+
+Exemplo do material de uma administradora: bem de R$ 250.000, taxa de administração de 7,5% e fundo de reserva de 3,5% geram uma base de R$ 277.500. Um lance de 60% representa R$ 166.500.
+
+Se o lance for por parcelas, a conta usa o valor da última parcela. Mesmo que o grupo cobre parte da taxa de administração de forma antecipada, o cálculo considera o que o contrato definir.
+
+Passo prático: use sempre a simulação do plano e a planilha da administradora para confirmar o valor exato antes de passar para o cliente.`+NOTA_VIDEO},
+ {t:'Lance embutido: vale a pena?',video:V('hvCxe62FOuE'),c:`Vantagem: o cliente participa da disputa sem desembolsar dinheiro do bolso, porque o lance sai da própria carta.
+
+Desvantagem: o crédito disponível fica menor. Exemplo: carta de R$ 100.000 com lance embutido de 25% ficam R$ 75.000 para comprar o bem.
+
+Quando recomendar:
+• O cliente consegue completar o valor do bem com outros recursos.
+• Prefere antecipar a contemplação e aceita receber menos crédito.
+
+Quando evitar:
+• O bem exige o crédito inteiro e ele não tem como complementar.
+
+A pergunta que resolve: "Se a carta vier menor, você consegue completar a diferença?"`+NOTA_VIDEO},
+ {t:'Estratégia de lance para o cliente',c:`Um bom planejamento de lance tem cinco passos:
+1. Definir o objetivo: qual bem e até quando o cliente quer.
+2. Juntar uma reserva mensal para o lance (mesmo que pequena).
+3. Manter parcelas em dia: sem isso não há lance.
+4. Ofertar com consistência nas assembleias, ajustando o valor ao histórico do grupo.
+5. Combinar sorteio e lance e revisar a estratégia a cada três meses.
+
+Sua função: acompanhar o cliente de perto, lembrar das datas e propor o ajuste certo. Esse acompanhamento é o que diferencia um consultor de um vendedor de cota.`},
+ {t:'Plano Inteligente: o lance da marca',c:`Plano Inteligente é a modalidade em que a marca disponibiliza um lance para antecipar o acesso ao crédito do cliente, sem custo adicional para ele. Por isso há uma análise: a marca e a administradora não liberam o benefício para qualquer perfil.
+
+Como o processo anda no Red Sea:
+1. Scripts e Proposta: apresentar o plano e simular.
+2. Agendamento: marcar a análise com o analista.
+3. Análise de Lance: gerar o PDF de aprovação com a marca e a administradora certas.
+4. Pagamento: Pix, cartão ou sinal.
+5. Pós-venda: concluir o cadastro na administradora. Sem esse passo, o lance não é liberado, mesmo com a primeira parcela paga.
+
+Explique ao cliente cada etapa antes dela acontecer. Quem sabe o que vem depois não desiste no meio do caminho.`}
+ ],
+ quiz:[
+ {q:'O que é lance embutido?',op:['Lance pago só com dinheiro do cliente','Lance que usa parte da própria carta de crédito','Lance dado pela administradora','Lance sorteado'],r:1},
+ {q:'Qual é a desvantagem do lance embutido?',op:['Exige entrada','O crédito disponível para o bem fica menor','Não pode ser usado em imóveis','Cancela a cota'],r:1},
+ {q:'Na conta do lance, a base costuma ser:',op:['Só o fundo comum','Fundo comum + taxa de administração + fundo de reserva','Só a taxa de administração','O valor da primeira parcela'],r:1},
+ {q:'O que o consultor pode garantir ao cliente sobre contemplação?',op:['A data da contemplação','Que ele será contemplado no próximo mês','O processo transparente e o acompanhamento, não a data','Que o lance sempre vence'],r:2},
+ {q:'No Plano Inteligente, o que é obrigatório antes de o lance ser liberado?',op:['Pagar duas parcelas','Concluir o pós-vendas na administradora','Dar um lance em dinheiro','Cancelar outra cota'],r:1}
+ ]},
+/* ---------------------------------------------------------------- */
+{id:'taxas-custo',grupo:'produto',extra:true,icone:'🧮',iconeUrl:ICO+'Abacus/3D/abacus_3d.png',
+ titulo:'Taxas e Custo Total sem Enrolação',desc:'Como explicar taxa de administração, reajuste, seguro e comparar com financiamento.',
+ aulas:[
+ {t:'Consórcio tem juros?',c:`Resposta curta: não. Consórcio não tem juros, tem taxa de administração. A diferença:
+
+• Juros: preço do dinheiro emprestado, cobrado sobre o saldo devedor.
+• Taxa de administração: percentual fixo sobre o crédito, para pagar a administradora, definido em contrato.
+
+Frase pronta: "No consórcio ninguém te empresta dinheiro, o grupo se ajuda. Por isso você não paga juros, só uma taxa pelo trabalho de organizar tudo, que está no contrato desde o primeiro dia."
+
+Se o cliente insistir que "tem taxa, então é juro", mostre a conta: crédito, taxa total, fundo de reserva e parcela. Transparência vence a objeção.`},
+ {t:'Como explicar a taxa de administração',c:`A taxa é um percentual sobre o crédito, dividido pelas parcelas do prazo. Um plano mais longo costuma ter taxa total maior, mas parcela mais baixa.
+
+Roteiro de explicação:
+1. "O crédito do plano é X."
+2. "A taxa total de administração é Y%, dividida em todas as parcelas."
+3. "Mais o fundo de reserva de Z%, que volta para os consorciados no fim."
+4. "A parcela fica em R$ ..., com atualização anual pelo bem."
+
+Sempre compare planos pelo custo total (crédito + taxas), não só pela parcela. Uma parcela menor pode esconder um prazo muito mais longo.`},
+ {t:'Reajuste e atualização do crédito',c:`O crédito do consórcio acompanha o valor do bem. Isso é bom: o cliente não perde poder de compra quando o bem sobe de preço. Em contrapartida, a parcela também é atualizada.
+
+O índice de atualização depende do grupo: pode ser a tabela FIPE (veículos), IPCA ou INCC (imóveis), entre outros. Está no contrato.
+
+Como falar: "Seu crédito acompanha o preço do bem, então você não corre o risco de ficar com uma carta que não compra mais nada. Em troca, a parcela é ajustada de tempos em tempos."
+
+Evite prometer valores futuros de parcela. Mostre a simulação atual e explique que ela é atualizada.`},
+ {t:'Seguro e taxa de adesão',c:`• Seguro prestamista: cobre o pagamento das parcelas em casos como morte ou invalidez, conforme o contrato. Entra na parcela e é, em geral, opcional ou obrigatório conforme o grupo. Confira.
+• Taxa de adesão: cobrada no início por algumas administradoras. Pode estar embutida na primeira parcela.
+
+Como apresentar: junte tudo no "valor completo da parcela" e mostre o que cada parte faz. O cliente aceita bem o seguro quando entende que protege a família e o bem.
+
+Nunca omita nenhum desses itens. Uma surpresa na cobrança vira cancelamento e má avaliação.`},
+ {t:'Exemplo: consórcio x financiamento',video:V('T0SI_RLFVls'),c:`Exemplo ilustrativo, com números hipotéticos para treinar a conta:
+
+Financiamento: R$ 100.000 a 1,8% ao mês, em 48 meses. Parcela de cerca de R$ 3.129. Total pago: cerca de R$ 150.189.
+
+Consórcio: crédito de R$ 100.000 com taxa total de 18% e fundo de reserva de 3%, em 100 meses. Total pago: R$ 121.000, parcela média de R$ 1.210, sem seguro e sem reajuste.
+
+Os prazos são diferentes, então a leitura correta é: o consórcio custa menos no total e tem parcela menor, mas exige planejamento para a contemplação. O financiamento entrega o bem na hora, ao custo dos juros.
+
+Use sempre a simulação real do cliente. Os números acima são só para treinar o raciocínio.`+NOTA_VIDEO}
+ ],
+ quiz:[
+ {q:'Qual a diferença entre juros e taxa de administração?',op:['São a mesma coisa','Juros são preço do dinheiro emprestado; a taxa é percentual do crédito que paga a administradora','Juros são menores','A taxa só vale para imóveis'],r:1},
+ {q:'Por que comparar planos pelo custo total?',op:['Porque a parcela não importa','Porque uma parcela menor pode esconder um prazo muito maior','Porque o custo total é sempre igual','Porque o cliente só olha o crédito'],r:1},
+ {q:'O que o reajuste do crédito garante ao cliente?',op:['Que a parcela nunca muda','Que o crédito acompanha o preço do bem','Que ele será contemplado','Que não paga taxa'],r:1},
+ {q:'Ao apresentar o seguro, o ideal é:',op:['Omitir para a parcela parecer menor','Mostrar dentro do valor completo da parcela e explicar a proteção','Cobrar por fora','Dizer que é obrigatório sempre'],r:1}
+ ]},
+/* ---------------------------------------------------------------- */
+{id:'objecoes-consorcio',grupo:'vendas',extra:true,icone:'🛡️',iconeUrl:ICO+'Shield/3D/shield_3d.png',
+ titulo:'Objeções do Consórcio (na prática)',desc:'Respostas para as objeções mais comuns, com perguntas para entender o cliente.',
+ aulas:[
+ {t:'A fórmula: escutar, validar, perguntar, responder',video:V('7uoyFgsIfdU'),c:`Objeção quase nunca é um "não": é uma dúvida que não foi respondida. A fórmula de quatro passos:
+
+1. Escutar sem interromper.
+2. Validar: "Faz sentido você pensar assim."
+3. Perguntar para entender: "O que mais pesa pra você nisso?"
+4. Responder só o que ele perguntou, com exemplo e número.
+
+Depois, confirme: "Isso responde sua dúvida?". Se sim, volte ao próximo passo da venda.
+
+Nas Campanhas do Red Sea existem mensagens prontas para cada objeção, com perguntas que o cliente responde só com um número.`+NOTA_VIDEO},
+ {t:'"Achei caro"',c:`Primeiro descubra o que "caro" significa: parcela alta, taxa, ou comparação com outro produto?
+
+Perguntas:
+• "Caro em relação a quê?"
+• "Qual parcela ficaria confortável pra você?"
+
+Saídas:
+• Plano com prazo maior e parcela menor.
+• Crédito menor para caber no orçamento.
+• Lance embutido para entrar sem desembolsar.
+
+Resposta modelo: "Entendo. Consigo montar duas opções: uma com parcela menor e prazo maior e outra com crédito um pouco menor. Qual delas faz mais sentido pra você?"
+
+Nunca desconte taxa por conta própria: mostre alternativas dentro do plano.`},
+ {t:'"Tenho medo de não ser contemplado"',video:V('Zmjo8P7BrN8'),c:`É a objeção mais comum. Acolha primeiro: "Essa dúvida é normal, todo mundo tem."
+
+Explique que existem dois caminhos: sorteio todo mês e lance planejado. Mostre que o cliente tem controle sobre o lance e que o acompanhamento ajuda.
+
+Prova social: relate casos reais de clientes contemplados, com autorização.
+
+Resposta modelo: "Você não precisa depender só da sorte. Vamos montar uma estratégia de lance e acompanhar mês a mês. Quer que eu simule com os seus números?"
+
+Nunca prometa data. Prometa acompanhamento.`+NOTA_VIDEO},
+ {t:'"Prefiro financiamento"',c:`Pergunte o motivo: "Você precisa do bem agora ou consegue planejar?"
+
+• Se precisa agora: reconheça que o financiamento resolve, e mostre o lance como forma de antecipar no consórcio.
+• Se pode planejar: compare o custo total com a simulação dele.
+
+Resposta modelo: "Financiamento é uma ótima opção quando a urgência é total. Se você pode planejar um pouco, o consórcio costuma custar bem menos no total. Quer comparar com os seus números?"
+
+Mostre os números lado a lado e deixe o cliente concluir.`},
+ {t:'"Não tenho valor para lance"',c:`Muita gente acha que só participa quem tem lance. Não é verdade.
+
+Respostas:
+• O sorteio acontece todo mês, sem lance.
+• Dá para juntar um valor aos poucos e ofertar depois.
+• O lance embutido usa parte da carta, sem desembolso.
+• Em alguns planos, como o Plano Inteligente, a marca oferece o lance.
+
+Pergunta que ajuda: "Qual valor mensal você conseguiria guardar para o lance?". A resposta já desenha a estratégia.`},
+ {t:'"Será que é seguro?"',video:V('tgSeeVBMbIE'),c:`Quem pergunta isso quer um motivo para confiar. Entregue fatos:
+
+• Consórcio é regulado pela Lei 11.795/2008 e fiscalizado pelo Banco Central.
+• A administradora é autorizada, e o grupo tem patrimônio próprio, separado do dela.
+• Todas as condições estão no contrato e no quadro resumo.
+• O pagamento é feito para os canais oficiais informados no processo.
+
+Seja um consultor fácil de verificar: passe seu nome, WhatsApp e CNPJ da Digital Consórcio, ofereça uma videochamada e mostre os documentos. Segurança se constrói com transparência.`+NOTA_VIDEO}
+ ],
+ quiz:[
+ {q:'Qual o primeiro passo diante de uma objeção?',op:['Rebater imediatamente','Escutar e validar o que o cliente sente','Dar desconto','Encerrar a conversa'],r:1},
+ {q:'O cliente diz "não tenho lance". Qual resposta correta?',op:['Então não dá para participar','O sorteio acontece todo mês e dá para juntar um valor depois ou usar lance embutido','Pague o lance depois','Só o Plano Inteligente existe'],r:1},
+ {q:'Diante do medo de não ser contemplado, você deve:',op:['Prometer uma data','Acolher, explicar sorteio e lance e propor estratégia','Evitar o assunto','Dizer que é impossível não contemplar'],r:1},
+ {q:'Como transmitir segurança ao cliente?',op:['Falando rápido','Mostrando regulação, contrato, quadro resumo e se identificando','Só enviando o PDF','Evitando perguntas'],r:1}
+ ]},
+/* ---------------------------------------------------------------- */
+{id:'linhas',grupo:'produto',extra:true,icone:'🧭',iconeUrl:ICO+'Compass/3D/compass_3d.png',
+ titulo:'Nossas Linhas: Kawasaki, BMW, Volkswagen e Imóvel',desc:'Como atender cada linha e escolher marca e administradora no Red Sea.',
+ aulas:[
+ {t:'Marca e administradora: não confunda',c:`Duas coisas diferentes:
+• Marca / linha: o bem que o cliente quer (Kawasaki, BMW, Volkswagen, imóvel).
+• Administradora: quem administra o grupo (Recon, Embracon, Âncora).
+
+Uma mesma marca pode ter mais de uma administradora, e uma mesma administradora pode atender mais de uma marca. Por isso o Red Sea tem o seletor de Marca e Administradora no topo das abas de Pós-venda, Pagamento, Agendamento e Scripts, e a mesma escolha na Análise de Lance.
+
+Antes de gerar qualquer documento, confira os dois campos. Um PDF com a administradora errada gera retrabalho e perda de confiança.`},
+ {t:'Kawasaki',c:`O cliente de Kawasaki geralmente é apaixonado pelo modelo. Comece pela moto: qual modelo, para que uso (cidade, estrada, trilha) e em quanto tempo quer ter.
+
+Pontos de atenção:
+• Use o campo de modelo para personalizar propostas, agendamentos e cards.
+• Confirme com a simulação qual administradora está ativa para o grupo.
+• Na Análise de Lance, use o modo Kawasaki e confira a administradora escolhida.`},
+ {t:'BMW Motorrad',c:`O cliente BMW costuma ter perfil mais exigente, com ticket maior e mais atenção a detalhes. Dê um atendimento mais consultivo e documentado.
+
+Pontos de atenção:
+• Linguagem mais formal, com mais clareza em custo total e prazos.
+• Ofereça videochamada com o analista para dar mais segurança.
+• Use sempre o modelo no card de agendamento (por exemplo, R 1300 GS) para reforçar a personalização.`},
+ {t:'Volkswagen',c:`Linha de carros, com perfil de cliente diferente da moto: decisão geralmente envolve a família, e o crédito vem com mais comparação com financiamento.
+
+Pontos de atenção:
+• Pergunte quem decide junto e envie o resumo para encaminhar.
+• Explique bem o lance embutido e a atualização do crédito.
+• No Red Sea, escolha a marca Volkswagen e a administradora correspondente antes de gerar documentos.`},
+ {t:'Imóvel',c:`Consórcio imobiliário tem prazos mais longos e valores maiores. A decisão é mais racional e planejada.
+
+Pontos de atenção:
+• Explique o uso do FGTS nos casos previstos e a atualização do crédito por índice.
+• Planeje o lance com bastante antecedência.
+• No Red Sea, use a opção Imóvel / Genérico e a administradora do grupo.
+
+Cliente de imóvel valoriza paciência, números claros e acompanhamento de longo prazo.`}
+ ],
+ quiz:[
+ {q:'Qual a diferença entre marca e administradora?',op:['São sinônimos','Marca é o bem; administradora é quem administra o grupo','Administradora é o bem','Marca é o banco'],r:1},
+ {q:'Por que conferir marca e administradora antes de gerar um PDF?',op:['Para o PDF ficar bonito','Para evitar documento com administradora errada','Porque o PDF muda de cor','Não precisa conferir'],r:1},
+ {q:'Em imóveis, qual ponto exige atenção especial?',op:['Só o design','Prazo longo, atualização por índice e uso do FGTS nos casos previstos','Nenhum','Lances são proibidos'],r:1}
+ ]},
+/* ---------------------------------------------------------------- */
+{id:'canais',grupo:'canais',extra:true,icone:'💬',iconeUrl:ICO+'Speech%20balloon/3D/speech_balloon_3d.png',
+ titulo:'WhatsApp e Instagram: atendimento e follow-up',desc:'Primeira mensagem, cadência, áudios, Stories e reativação de clientes.',
+ aulas:[
+ {t:'A primeira mensagem',video:V('oPt_87xc0Vo'),c:`A primeira mensagem decide se haverá resposta. Regras:
+• Chame pelo nome e se identifique em uma linha.
+• Cite o motivo do contato (simulação, proposta, indicação).
+• Faça uma única pergunta, fácil de responder.
+• Evite blocos de texto: mensagens curtas e áudio de até 30 segundos funcionam melhor.
+
+Exemplo: "Oi, João! Aqui é o Vitor, da Digital Consórcio. Vi que você pediu uma simulação da R 1300 GS. Posso te mandar agora os números?"
+
+Responda rápido: o interesse esfria em minutos.`+NOTA_VIDEO},
+ {t:'Cadência de follow-up',c:`Cliente que some precisa de uma sequência, não de insistência.
+
+• D0: combinar a data do retorno ao enviar a proposta.
+• D+2: perguntar o que travou, com opções numeradas.
+• D+5: trazer uma novidade real (nova simulação, condição, depoimento).
+• D+10: perguntar o momento do cliente.
+• D+20: encerrar com porta aberta e perguntar o motivo.
+
+Regras: quem responde sai da cadência; quem pede para parar, você para. A aba Campanhas do Red Sea tem as mensagens prontas de cada etapa.`},
+ {t:'Perguntas com resposta por número',c:`Respostas por número reduzem o esforço do cliente e aumentam a taxa de resposta.
+
+Modelo: "Pra eu te ajudar melhor, o que mais pesou? 1 - Valor da parcela, 2 - Prazo, 3 - Dúvida de como funciona, 4 - Ainda não é o momento. Pode responder só com o número."
+
+Dicas:
+• Máximo de 4 ou 5 opções.
+• Uma pergunta por mensagem.
+• Use a resposta para decidir o próximo passo.
+
+Na aba Campanhas, cada campanha e cada ideia tem a opção de enviar com perguntinha.`},
+ {t:'Instagram: DM, Stories e comentários',c:`No Instagram a conversa começa com conteúdo e relacionamento.
+
+• Stories com caixinha de perguntas geram respostas que viram conversa.
+• Comentário com palavra-chave (por exemplo "QUERO") abre a DM.
+• Antes de chamar um lead frio, curta e comente por 2 ou 3 dias.
+• Responda a Stories do cliente começando pelo assunto dele.
+• Lista de Melhores amigos para novidades de quem aceitou.
+
+A aba Campanhas tem ideias prontas para cada formato.`},
+ {t:'Reativar clientes antigos',c:`Cliente de 60 a 90 dias atrás ainda é seu melhor lead: ele já te conhece.
+
+Roteiro:
+1. Comece pela pessoa: "Faz um tempo que a gente conversou sobre a sua moto."
+2. Traga uma novidade concreta (nova simulação, nova condição, depoimento).
+3. Faça uma pergunta de resposta simples.
+4. Deixe a porta aberta.
+
+Também use datas especiais (aniversário, data de assinatura) para manter relacionamento sem vender, e peça indicação quando o cliente estiver satisfeito.`}
+ ],
+ quiz:[
+ {q:'Qual característica de uma boa primeira mensagem?',op:['Texto longo com todas as informações','Nome, motivo do contato e uma única pergunta fácil de responder','Só um emoji','Só o preço'],r:1},
+ {q:'Quando um cliente responde durante a cadência, o que fazer?',op:['Continuar a sequência normalmente','Tirar o cliente da cadência e conversar','Enviar o D+10','Ignorar'],r:1},
+ {q:'Por que usar perguntas com resposta por número?',op:['Para economizar crédito','Porque reduzem o esforço do cliente e aumentam a taxa de resposta','Porque o WhatsApp exige','Para evitar áudio'],r:1}
+ ]},
+/* ---------------------------------------------------------------- */
+{id:'ferramenta',grupo:'canais',extra:true,icone:'🧰',iconeUrl:ICO+'Toolbox/3D/toolbox_3d.png',
+ titulo:'Dominando o Red Sea',desc:'Passo a passo de cada aba da ferramenta, para o consultor novo começar rápido.',
+ aulas:[
+ {t:'Visão geral e fluxo de venda',c:`O Red Sea acompanha o fluxo do atendimento:
+1. Scripts: roteiros de abordagem (WhatsApp/Insta e ligação).
+2. Proposta: texto e imagem do bem.
+3. Agendamento: confirmação da análise e mensagem de análise.
+4. Análise de Lance: gera o PDF de aprovação.
+5. Pagamento: Pix, cartão ou sinal.
+6. Pós-venda: boas-vindas, alerta, cobrança e anunciar venda.
+7. Campanhas: follow-up e remarketing.
+Também há Hall, Estudos, Histórico, Agenda, Projeção e Parciais.
+
+Em várias abas existe o seletor de Marca e Administradora. Confira sempre antes de gerar.`},
+ {t:'Scripts e Proposta',c:`Em Scripts, preencha nome do cliente, consultor, modelo e ano. Os textos se adaptam à marca e à administradora escolhidas. Há três partes: Digital (WhatsApp/Insta), Ligação (com tom de voz) e Análise.
+
+Em Proposta, informe modelo, parcela, quantidade de parcelas e valor do bem para gerar o texto formatado e a imagem para enviar ao cliente.
+
+Dica: use os scripts como guia, não como robô. Personalize a primeira frase com algo que o cliente disse.`},
+ {t:'Agendamento e Mensagem de análise',c:`Em Agendamento (Confirmação), preencha cliente, modelo, data, hora, analista e consultor. O card mostra marca, modelo e administradora em destaque, no visual claro ou escuro. Basta copiar o card e o texto.
+
+Em Mensagem de análise, escolha o tipo de contato (primeiro contato, follow-up ou pré-ligação), preencha o analista e o modelo, e copie a mensagem e o card de acompanhamento.`},
+ {t:'Análise de Lance e Pagamento',c:`Análise de Lance: escolha Pessoa Física ou Jurídica, o modo (Kawasaki, BMW, Volkswagen, Genérico) e a administradora. Preencha os dados e gere o PDF com o logotipo e o rodapé corretos.
+
+Pagamento: Pix Copia e Cola (gera link com QR para o cliente), Cartão e Sinal + Agendamento. Escolha a marca e a administradora no topo: favorecido, CNPJ e texto mudam sozinhos.
+
+Dica de segurança: pague sempre usando os dados oficiais gerados pela ferramenta.`},
+ {t:'Pós-venda e Campanhas',c:`Pós-venda: Boas-vindas (passo a passo do cliente novo), Alerta Pós-vendas (cadastro pendente na administradora), Cobrança (parcela em atraso) e Anunciar Venda (card de comemoração com o comprovante).
+
+Campanhas: escolha uma campanha pronta (follow-up, reconquista, prospect frio, vaga, reengajamento, data comemorativa) ou use o banco de ideias, com filtro por momento e canal. Cada mensagem pode ir com perguntinha de resposta por número.
+
+Use o Histórico para acompanhar o que já foi enviado.`},
+ {t:'Hall, Parciais e Projeção',c:`Hall: seu ponto de partida. Mostra aniversários, metas, vídeo recomendado do treinamento e atalhos para todas as abas.
+
+Parciais: acompanhamento dos resultados da equipe com cards prontos para divulgar.
+
+Projeção: simule suas comissões e metas do mês.
+
+Rotina sugerida: abrir o Hall, assistir ao vídeo do dia, olhar a Agenda, atender e fechar o dia registrando as Parciais.`}
+ ],
+ quiz:[
+ {q:'Antes de gerar um documento no Red Sea, o que conferir?',op:['A cor do PDF','O seletor de marca e administradora','O nome do navegador','Nada'],r:1},
+ {q:'Onde ficam as mensagens prontas de follow-up e remarketing?',op:['Hall','Campanhas','Parciais','Projeção'],r:1},
+ {q:'O card de Agendamento mostra em destaque:',op:['Só o nome do consultor','Marca, modelo e administradora','Apenas a data','O valor do lance'],r:1}
+ ]}
+];
+NOVOS.forEach(function(m){MODULOS.push(m);});
 })();
 
 </script>

@@ -1593,6 +1593,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Spiral%20calendar/3D/spiral_calendar_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados do Agendamento</div>
       <div class="fg">
         <div class="fi"><label>Nome do cliente</label><input type="text" id="agd_cliente" placeholder="Nome do cliente" oninput="renderAgendamento()"/></div>
+        <div class="fi"><label>Modelo da moto / bem</label><input type="text" id="agd_modelo" list="dl-modelo-kw" placeholder="Ex: R 1300 GS, Ninja 500, Polo..." autocomplete="off" oninput="renderAgendamento()"/></div>
         <div class="fi"><label>Nome do analista</label><input type="text" id="agd_analista" placeholder="Quem vai atender" oninput="renderAgendamento()"/></div>
         <div class="fi"><label>Data da análise</label><input type="date" id="agd_data" oninput="renderAgendamento()"/></div>
         <div class="fi"><label>Horário</label><input type="time" id="agd_hora" oninput="renderAgendamento()"/></div>
@@ -4322,24 +4323,35 @@ function _agdDesenharNovo(canvas){
   ls('-1px');ctx.fillStyle=tx;ctx.font='700 30px '+D;ctx.fillText('Red Sea',80,108);
   var w1=ctx.measureText('Red Sea ').width;
   ctx.fillStyle=gr;ctx.fillText('Digital',80+w1,108);
-  ls('0px');ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText(_LN().linhaTxt,W-80,106);
+  ls('0px');ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='600 24px '+B;ctx.fillText('Análise agendada',W-80,106);
   ctx.textAlign='left';
-  ls('-5px');ctx.fillStyle=tx;ctx.font='800 118px '+D;ctx.fillText('Análise',80,290);
-  ctx.fillStyle=gr;ctx.fillText('agendada.',80,410);
-  ls('0px');
-  ctx.fillStyle=mu;ctx.font='500 30px '+B;ctx.fillText('Prezado(a)',80,490);
-  ctx.fillStyle=tx;ctx.font='600 46px '+B;
+  var N=_LN(),modelo=v('agd_modelo');
+  ctx.fillStyle=mu;ctx.font='600 22px '+B;try{ctx.letterSpacing='4px';}catch(e){}ctx.fillText('MARCA',80,190);ls('0px');
+  var marca=N.marca==='gen'?'Imóvel':N.marcaNome,fs=190;
+  ctx.font='800 '+fs+'px '+D;ls('-8px');
+  while(ctx.measureText(marca).width>W-160&&fs>70){fs-=6;ctx.font='800 '+fs+'px '+D;}
+  ctx.fillStyle=tx;ctx.fillText(marca,80,350);ls('0px');
+  ctx.fillStyle=modelo?gr:mu;ctx.font='700 58px '+D;ls('-2px');
+  var md=modelo||'Modelo a confirmar';while(ctx.measureText(md).width>W-160&&md.length>3)md=md.slice(0,-1);
+  ctx.fillText(md,80,432);ls('0px');
+  // administradora
+  ctx.fillStyle=dark?'#141C19':'#E4EAE5';_agdRoundRect(ctx,80,468,W-160,100,26);ctx.fill();
+  ctx.fillStyle=mu;ctx.font='600 22px '+B;try{ctx.letterSpacing='4px';}catch(e){}ctx.fillText('ADMINISTRADORA',116,508);ls('0px');
+  ctx.fillStyle=tx;ctx.font='800 40px '+D;ls('-1px');ctx.fillText(N.admNome,116,552);ls('0px');
+  // cliente
+  ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText('Prezado(a)',80,628);
+  ctx.fillStyle=tx;ctx.font='600 44px '+B;
   var nome=cliente;while(ctx.measureText(nome).width>W-160&&nome.length>3)nome=nome.slice(0,-1);
-  ctx.fillText(nome,80,545);
-  ctx.fillStyle='#22D39A';_agdRoundRect(ctx,80,600,W-160,270,34);ctx.fill();
-  ctx.fillStyle='#06281D';ctx.font='600 34px '+B;ctx.fillText(dataFmt,120,665);
-  ls('-4px');ctx.font='800 126px '+D;ctx.fillText(hora,120,810);ls('0px');
-  ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText('Analista responsável',80,940);
-  ctx.fillStyle=tx;ctx.font='600 38px '+B;ctx.fillText(analista,80,988);
-  ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 26px '+B;ctx.fillText('Consultor',W-80,940);
-  ctx.fillStyle=tx;ctx.font='600 38px '+B;ctx.fillText(consultor,W-80,988);
-  ctx.textAlign='left';ctx.fillStyle=mu;ctx.font='400 22px '+B;
-  ctx.fillText('Nossa agenda é concorrida — fique com o celular por perto no horário combinado.',80,1040);
+  ctx.fillText(nome,80,680);
+  ctx.fillStyle='#22D39A';_agdRoundRect(ctx,80,716,W-160,184,34);ctx.fill();
+  ctx.fillStyle='#06281D';ctx.font='600 32px '+B;ctx.fillText(dataFmt,120,770);
+  ls('-4px');ctx.font='800 104px '+D;ctx.fillText(hora,120,872);ls('0px');
+  ctx.fillStyle=mu;ctx.font='500 24px '+B;ctx.fillText('Analista responsável',80,950);
+  ctx.fillStyle=tx;ctx.font='600 36px '+B;ctx.fillText(analista,80,992);
+  ctx.textAlign='right';ctx.fillStyle=mu;ctx.font='500 24px '+B;ctx.fillText('Consultor',W-80,950);
+  ctx.fillStyle=tx;ctx.font='600 36px '+B;ctx.fillText(consultor,W-80,992);
+  ctx.textAlign='left';ctx.fillStyle=mu;ctx.font='400 21px '+B;
+  ctx.fillText('Nossa agenda é concorrida — fique com o celular por perto no horário combinado.',80,1046);
 }
 function _agdDesenharCard(){
   var canvas=document.getElementById('agd-canvas');
@@ -4433,7 +4445,7 @@ function renderAgendamento(){
     '📅 Data: '+dataFmt+'\n'+
     '🕐 Horário: '+hora+'\n'+
     '👤 Analista responsável: '+analista+'\n'+
-    '🏷️ Linha: '+_LN().linhaTxt+'\n\n'+
+    '🏷️ Linha: '+_LN().linhaTxt+'\n'+(v('agd_modelo')?'🏍️ Modelo: '+v('agd_modelo')+'\n':'')+'🏢 Administradora: '+_LN().admNome+'\n\n'+
     'Por se tratar de um atendimento personalizado, nossa agenda é concorrida — pedimos que fique com o celular por perto no horário combinado, para não perdermos sua vez.\n\n'+
     'Qualquer imprevisto, nos avise com antecedência.\n\n'+
     'Att,\n'+consultor+' — Digital Consórcio';

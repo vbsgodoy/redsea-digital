@@ -1224,9 +1224,10 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         <div class="fi"><label>Tarifa de cadastro (R$)</label><input type="text" id="sim_tarifa" oninput="fBRL(this);simCalc()"/></div>
         <div class="fi"><label>Registro / gravame (R$)</label><input type="text" id="sim_registro" oninput="fBRL(this);simCalc()"/></div>
         <div class="fi"><label>IOF (%)</label><input type="text" id="sim_iof" oninput="simCalc()"/></div>
+        <div class="fi"><label>Cenário: alta da Selic (p.p.)</label><input type="text" id="sim_alta" value="0,75" oninput="simCalc()"/></div>
         <div class="fi"><label>Seguro mensal (R$, opcional)</label><input type="text" id="sim_seguro" placeholder="R$ 0,00" oninput="fBRL(this);simCalc()"/></div>
       </div>
-      <div style="padding:0 24px 16px;font-size:11px;color:var(--tm);line-height:1.6;">Valores de referência de mercado. Troque pelos da instituição financeira quando o cliente tiver a taxa dele. Tarifas e IOF entram no valor financiado.</div>
+      <div style="padding:0 24px 16px;font-size:11px;color:var(--tm);line-height:1.6;">Selic hoje: 13,75% a.a. (Copom de 04/11). Depois da eleição o mercado passou a precificar alta de juros (cerca de 0,75 p.p. até janeiro), por isso o cenário já vem com 0,75 p.p. repassados à taxa. Coloque 0 para usar a taxa exata, sem cenário. Valores de referência de mercado. Troque pelos da instituição financeira quando o cliente tiver a taxa dele. Tarifas e IOF entram no valor financiado.</div>
     </div>
 
     <div id="sim-res"></div>
@@ -8556,8 +8557,8 @@ function simPreset(){
 }
 function simCalcDados(){
   var valor=_nb('sim_valor'),entrada=_nb('sim_entrada'),taxa=_nb('sim_taxa'),tar=_nb('sim_tarifa'),reg=_nb('sim_registro'),iofp=_nb('sim_iof'),seg=_nb('sim_seguro'),pd=_nb('sim_parcela');
-  var i=taxa/100,base=Math.max(valor-entrada,0)+tar+reg,iof=base*iofp/100,P=base+iof;
-  var r={valor:valor,entrada:entrada,i:i,taxa:taxa,tar:tar,reg:reg,iofp:iofp,iof:iof,P:P,seg:seg,pd:pd,ok:valor>0&&P>0&&valor>entrada,op:[]};
+  var alta=_nb('sim_alta'),taxaBase=taxa;if(alta>0&&taxa>0){var aa=Math.pow(1+taxa/100,12)-1+alta/100;taxa=(Math.pow(1+aa,1/12)-1)*100;}var i=taxa/100,base=Math.max(valor-entrada,0)+tar+reg,iof=base*iofp/100,P=base+iof;
+  var r={valor:valor,entrada:entrada,i:i,taxa:taxa,taxaBase:taxaBase,alta:alta,tar:tar,reg:reg,iofp:iofp,iof:iof,P:P,seg:seg,pd:pd,ok:valor>0&&P>0&&valor>entrada,op:[]};
   if(!r.ok)return r;
   _SIM_PRAZOS.forEach(function(n){
     var pmt=i===0?P/n:P*i/(1-Math.pow(1+i,-n)),parc=pmt+seg,total=parc*n+entrada;
@@ -8573,7 +8574,7 @@ function simCalc(){
   var cab=r.pd>0;
   var html='<div class="fc" style="padding:18px 22px;"><div style="display:flex;gap:22px;flex-wrap:wrap;font-size:13px;">'+
     [['Valor do bem',_fm(r.valor)],['Entrada',_fm(r.entrada)],['Valor financiado',_fm(r.P)],['Juros',_pc(r.taxa)+' a.m.']].map(function(x){return '<div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--tm);">'+x[0]+'</div><div style="font-size:16px;font-weight:800;color:var(--t);margin-top:2px;">'+x[1]+'</div></div>';}).join('')+
-    '</div><div style="font-size:11px;color:var(--tm);margin-top:10px;">Inclui tarifa de cadastro ('+_fm(r.tar)+'), registro ('+_fm(r.reg)+') e IOF ('+_fm(r.iof)+').</div></div>'+
+    '</div><div style="font-size:11px;color:var(--tm);margin-top:10px;">'+(r.alta>0?'Cenário de juros: taxa de '+_pc(r.taxaBase)+' a.m. hoje vira '+_pc(r.taxa)+' a.m. com alta de '+r.alta.toLocaleString('pt-BR')+' p.p. na Selic. ':'')+'Inclui tarifa de cadastro ('+_fm(r.tar)+'), registro ('+_fm(r.reg)+') e IOF ('+_fm(r.iof)+').</div></div>'+
     '<div class="fc" style="padding:18px 22px;margin-top:14px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;min-width:460px;"><thead><tr style="color:var(--tm);font-size:11px;text-align:right;"><th style="text-align:left;padding:6px;">Prazo</th><th>Parcela</th><th>Total pago</th><th>Custo acima do bem</th>'+(cab?'<th>Bem de até*</th><th>Cabe?</th>':'')+'</tr></thead><tbody>'+
     r.op.map(function(o){return '<tr style="border-top:1px solid var(--cb);text-align:right;color:var(--t);'+(cab&&o.cabe?'background:rgba(34,211,154,.10);':'')+'"><td style="text-align:left;padding:9px 6px;font-weight:800;">'+o.n+'x</td><td style="font-weight:800;">'+_fm(o.parcela)+'</td><td>'+_fm(o.total)+'</td><td>'+_fm(o.custo)+'</td>'+(cab?'<td>'+_fm(o.bemAte)+'</td><td style="font-weight:800;color:'+(o.cabe?'#0a8a5e':'#dc2626')+';">'+(o.cabe?'Cabe':'Não cabe')+'</td>':'')+'</tr>';}).join('')+
     '</tbody></table>'+(cab?'<div style="font-size:11px;color:var(--tm);margin-top:8px;">*Valor máximo do bem que cabe na parcela desejada ('+_fm(r.pd)+') com esta entrada.</div>':'')+'</div>';
@@ -8739,6 +8740,140 @@ Pratique: refaça os exemplos desta trilha na aba e confira os mesmos resultados
  {q:'Base de R$ 277.500. Quanto vale um lance de 30%?',op:['R$ 83.250','R$ 27.750','R$ 166.500','R$ 8.325'],r:0},
  {q:'1,8% ao mês equivale a quanto ao ano (juros compostos)?',op:['21,6%','23,87%','18%','30%'],r:1},
  {q:'Em relação ao Price, o SAC:',op:['Tem parcela inicial menor e custa mais','Tem parcela inicial maior e custa menos no total','Não tem juros','Tem parcelas iguais'],r:1}
+ ]});
+/* ---- módulo: Quebra de Objeções (clássicas + cenário atual) ---- */
+MODULOS.push({id:'quebra-objecoes',grupo:'vendas',extra:true,icone:'🎯',iconeUrl:'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Direct%20hit/3D/direct_hit_3d.png',
+ titulo:'Quebra de Objeções: clássicas e cenário atual',desc:'Do "vou pensar" ao "juros e dólar subindo": como responder, o que perguntar e como puxar para a análise de lance.',
+ aulas:[
+ {t:'Objeção ou oportunidade?',c:`Muita coisa que parece objeção é uma abertura. "Está tudo instável" pode ser exatamente o motivo para o cliente olhar um produto sem juros.
+
+Contexto de hoje (confira os números no dia da conversa): depois da eleição, o dólar disparou, a bolsa caiu e o mercado passou a prever juros mais altos. Com a Selic em 13,75% ao ano e a expectativa de alta, o financiamento e o empréstimo tendem a ficar mais caros e o poder de compra aperta.
+
+Como usar isso sem exagero:
+• Mostre o fato, não aposte no medo: "Com o crédito mais caro, muita gente está comparando alternativas."
+• Compare com número: abra o Simulador de Financiamento, mostre a parcela e o custo total, e depois o plano de consórcio.
+• Lembre o que o consórcio tem: não cobra juros, cobra taxa de administração e fundo de reserva, que estão no contrato.
+• Nunca prometa data de contemplação nem que "o consórcio vai bombar". Quem decide é o sorteio e os lances, conforme o regulamento.
+
+Pergunta de abertura: "Com esse cenário de juros, você já parou pra comparar financiar com consórcio?"`},
+ {t:'"Vou falar com minha esposa / meu marido"',c:`Quase sempre é sincero: a decisão é do casal. Trate como parceria, não como fuga.
+
+Passos:
+1. Valide: "Faz todo sentido, é uma decisão de vocês dois."
+2. Pergunte: "O que você acha que ela(e) vai querer saber primeiro?"
+3. Ofereça material: mande a análise de lance ou a simulação resumida, para ele levar a conversa pronta.
+4. Proponha uma chamada a três: "Posso explicar rapidinho pra vocês dois hoje à noite?"
+5. Feche o próximo passo: "Combinado, te chamo amanhã às 19h pra ouvir o que vocês decidiram?"
+
+Evite: "Então eu espero seu retorno". Sem data marcada, a conversa esfria.`},
+ {t:'"Vou pensar"',c:`"Vou pensar" quer dizer que ficou uma dúvida que ele não disse. Descubra qual.
+
+Perguntas:
+• "Claro! Só pra eu te ajudar a pensar: o que ainda ficou em aberto, o valor, o prazo ou a confiança?"
+• "De 0 a 10, qual a chance de você seguir? E o que faria subir um ponto?"
+
+Depois responda só essa dúvida e combine data: "Posso te chamar quinta pra gente ver o que você decidiu?"
+
+Dica: mensagem curta no WhatsApp com pergunta de número ("1 valor, 2 prazo, 3 confiança, 4 outro") faz o cliente responder mais fácil. Há modelos prontos na aba Campanhas.`},
+ {t:'"Vou esperar o mercado estabilizar / os juros caírem"',c:`Com juros e dólar instáveis, é comum o cliente querer esperar. Mostre o custo de esperar, sem pressão.
+
+Perguntas:
+• "Você espera estabilizar para comprar à vista ou para financiar?"
+• "Se os juros subirem em vez de cair, o plano muda?"
+
+Pontos:
+• Ninguém sabe a data em que os juros caem. Em cenário de alta, esperar pode encarecer o financiamento.
+• O consórcio não é aposta no mercado: a taxa é a do contrato, e o cliente pode usar a cota quando contemplado.
+• O bem também pode ficar mais caro com o tempo, e a carta de crédito acompanha o reajuste previsto no contrato.
+• Entrar agora permite acompanhar assembleias e preparar lance enquanto o cenário se define.
+
+Fechamento: "Não precisa decidir o mercado. A gente decide o primeiro passo: quanto cabe por mês pra você?"`},
+ {t:'"Consórcio demora"',c:`Valide primeiro: contemplação não tem data garantida e você não deve prometer uma.
+
+Resposta honesta:
+• "Quem fica esperando só o sorteio pode demorar mesmo. Por isso existe o lance."
+• "Na Digital a gente faz análise de lance: mostro quanto você precisaria ofertar e como montar esse valor (recurso próprio, lance embutido, quando o grupo permite)."
+• "Cada assembleia é uma chance. Você participa todo mês."
+
+Pergunta: "Você precisa do bem para uma data específica ou prefere ir se preparando?"
+
+Se a necessidade for imediata e o cliente não tem lance, seja claro: talvez financiar ou comprar à vista seja melhor agora. Honestidade gera indicação.`},
+ {t:'"Já fiz consórcio e não gostei"',c:`Não discuta. Entenda a história.
+
+Perguntas:
+• "O que aconteceu? Foi com qual administradora?"
+• "Faltou informação, demorou, ou teve cobrança que você não esperava?"
+• "Chegou a ser contemplado?"
+
+Direção da resposta:
+• Se faltou informação: "Vou te mostrar tudo no papel: taxa, fundo de reserva, seguro, reajuste e como funciona o lance."
+• Se demorou: explique lance e análise de lance.
+• Se foi cobrado algo inesperado: mostre linha por linha do contrato.
+
+Reconheça: "Obrigado por contar. Era isso que eu queria evitar com você."`},
+ {t:'"Vou juntar para pagar à vista"',c:`É um objetivo bom. Não vá contra: ajude a planejar.
+
+Perguntas:
+• "Quanto você já juntou?"
+• "Quanto consegue guardar por mês?"
+• "Em quanto tempo você chega ao valor do bem?"
+• "Esse valor fica parado ou rende? E o preço do bem pode subir até lá?"
+
+Faça a conta com ele: se guarda R$ 1.500 por mês e o bem custa R$ 60.000, são 40 meses, sem contar reajuste.
+
+Proposta: "E se o que você já juntou virar o lance? Você entra no consórcio, continua guardando e usa a reserva na hora certa." O dinheiro continua dele e ganha uma chance de contemplação antes.
+
+Não prometa que vai dar certo: apresente como estratégia a avaliar na análise de lance.`},
+ {t:'"O dólar e a gasolina subiram, não é hora"',c:`Quando o orçamento aperta, a objeção é financeira e é válida.
+
+Perguntas:
+• "Qual parcela cabe sem apertar o mês?"
+• "O aperto é agora ou o plano é para daqui a uns meses?"
+
+Respostas:
+• Parcela de consórcio é conhecida: ele sabe quanto paga todo mês, sem juros variáveis.
+• Dá para começar com crédito menor, ou plano com parcela reduzida quando o grupo oferece (confira as condições).
+• O que importa é a parcela caber: monte opções e deixe o cliente escolher.
+
+Nunca empurre uma parcela que o cliente disse que não cabe. Ajuste o crédito.`},
+ {t:'"Já tenho financiamento / empréstimo"',c:`Compare, não conteste.
+
+Perguntas:
+• "Qual a parcela e quanto falta?"
+• "Esse financiamento é de qual bem?"
+• "A parcela atual deixa espaço para outra?"
+
+Se faz sentido, mostre o caminho: quando acabar um compromisso, outro começa. Ou use o simulador para mostrar o custo de um novo financiamento comparado a um plano. Se a conta não fechar para ele, diga: "Ainda não é o momento, mas guardo seu contato e te chamo quando fizer sentido."`},
+ {t:'"Não confio / vi reclamação na internet"',c:`Respeite a desconfiança e entregue fatos.
+
+• Administradora autorizada e fiscalizada pelo Banco Central.
+• Mostre CNPJ, contrato e regulamento. Deixe ele conferir tudo.
+• Pagamento do consórcio por boleto ou Pix da administradora, nunca para conta pessoal. Confirme sempre o beneficiário.
+• Convide para ver o atendimento: "Pode checar tudo com calma antes de decidir."
+
+Pergunta: "O que você viu que te deixou com receio? Posso te explicar essa parte?"`},
+ {t:'Treino: responder em 30 segundos',c:`Treine em dupla com os cenários abaixo. Um é o cliente, o outro responde com a fórmula: escutar, validar, perguntar, responder.
+
+1. "Com esse dólar, vou esperar."
+2. "Vou ver com minha esposa."
+3. "Consórcio demora demais."
+4. "Vou juntar e pagar à vista."
+5. "Vou pensar."
+
+Critérios:
+• Fez uma pergunta antes de responder?
+• Usou um número ou exemplo?
+• Terminou com próximo passo e data?
+• Não prometeu contemplação?
+
+Depois, grave um áudio de resposta para cada um e ouça. Reescreva o que ficou longo.`}
+ ],
+ quiz:[
+ {q:'Qual o primeiro passo ao ouvir uma objeção?',op:['Rebater com argumento','Escutar e validar','Baixar o preço','Encerrar a conversa'],r:1},
+ {q:'Cliente diz "vou pensar". Qual a melhor reação?',op:['Esperar o retorno dele','Descobrir qual dúvida ficou e combinar data','Insistir no fechamento','Enviar mais material sem perguntar'],r:1},
+ {q:'Sobre "consórcio demora", o correto é:',op:['Prometer contemplação em poucos meses','Dizer que sempre é rápido','Ser honesto e apresentar o lance como caminho','Evitar o assunto'],r:2},
+ {q:'Em cenário de juros subindo, a melhor forma de usar o contexto é:',op:['Assustar o cliente','Comparar com números no simulador, sem prometer nada','Dizer que o consórcio vai subir de preço','Ignorar o cenário'],r:1},
+ {q:'Para quem quer juntar e pagar à vista, uma boa pergunta é:',op:['Por que não financia?','Quanto você já juntou?','Isso nunca funciona','Qual seu CPF?'],r:1}
  ]});
 /* ---- marcar aula como concluída (não marca ao abrir) ---- */
 window.estAbrirAula=function(moduloId,idx){

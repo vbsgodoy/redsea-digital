@@ -1610,6 +1610,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
 
     <div class="fc" style="margin-bottom:20px;">
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Motorcycle/3D/motorcycle_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Dados da Proposta</div>
+      <div class="subtabs" id="prop-marcas" style="margin:0 24px 14px;"><button class="stab ac" data-m="kw" onclick="propMarca('kw')">Kawasaki</button><button class="stab" data-m="bmw" onclick="propMarca('bmw')">BMW</button><button class="stab" data-m="vw" onclick="propMarca('vw')">Volkswagen</button></div>
       <div class="fg">
         <div class="fi"><label>Modelo</label><select id="prop_modelo" onchange="propModeloChange()"><option value="">— Selecione —</option><optgroup label="Versys"><option>Versys 300</option><option>Versys 300 TR</option><option>Versys 650</option><option>Versys 650 TR</option><option>Versys 1000</option><option>Versys 1100</option><option>Versys 1000 GT</option><option>Versys 1100 TR</option></optgroup><optgroup label="Ninja"><option>Ninja 300</option><option>Ninja 500</option><option>Ninja 500 SE</option><option>Ninja 650</option><option>Ninja ZX-4RR</option><option>Ninja ZX-4R</option><option>Ninja ZX-6R</option><option>Ninja ZX-10R</option></optgroup><optgroup label="Z"><option>Z500</option><option>Z500 SE</option><option>Z650 Novo Grafismo</option><option>Z650</option><option>Z650 RS</option><option>Z900</option><option>Z900 R Edition</option><option>Z900 SE</option><option>Z900 RS</option><option>Z900 RS Café</option><option>Z900 RS Edition</option><option>Z1100</option><option>Z1100 SE</option><option>Z1000</option><option>Z1000 R</option><option>Z H2</option></optgroup><optgroup label="Vulcan / Eliminator"><option>Eliminator 500</option><option>Eliminator 500 SE</option><option>Vulcan S</option><option>Vulcan S Café</option></optgroup><optgroup label="Off-Road (KX / KLX)"><option>KX 450X</option><option>KX 450</option><option>KX 250X</option><option>KX 250</option><option>KX 112</option><option>KLX 300R</option><option>KLX 110R</option></optgroup><optgroup label="BMW Motorrad"><option>G 310 R</option><option>G 310 GS</option><option>C 400 X</option><option>F 800 GS</option><option>F 900 R</option><option>F 900 GS</option><option>R 12</option><option>F 900 GS Adventure</option><option>R 12 G/S</option><option>R 1300 GS</option><option>R 18</option><option>S 1000 RR</option><option>R 1300 GS Adventure</option><option>R 1300 RT</option><option>K 1600 GTL</option></optgroup><optgroup label="Volkswagen Polo"><option>Polo Track 1.0</option><option>Polo Robust 1.0</option><option>Polo Sense TSI</option><option>Polo Comfortline TSI</option><option>Polo Highline TSI</option><option>Polo GTS 1.4 TSI</option></optgroup><optgroup label="Volkswagen Virtus"><option>Virtus Sense 1.0 MT</option><option>Virtus TSI 1.0 AT</option><option>Virtus Comfortline 200 TSI</option><option>Virtus Highline 200 TSI</option><option>Virtus Exclusive 250 TSI</option></optgroup><optgroup label="Volkswagen T-Cross"><option>T-Cross Sense 200 TSI</option><option>T-Cross Rock in Rio 200 TSI</option><option>T-Cross 200 TSI</option><option>T-Cross Comfortline 200 TSI</option><option>T-Cross Highline 250 TSI</option><option>T-Cross Extreme 250 TSI</option></optgroup><optgroup label="Volkswagen Nivus"><option>Nivus Sense 200 TSI</option><option>Nivus Comfortline 200 TSI</option><option>Nivus Highline 200 TSI</option><option>Nivus GTS 250 TSI</option></optgroup><optgroup label="Volkswagen Tera"><option>Tera 1.0 MPI</option><option>Tera 170 TSI MT</option><option>Tera Comfort 170 TSI</option><option>Tera High 170 TSI</option></optgroup><optgroup label="Volkswagen Saveiro"><option>Saveiro Robust 1.6</option><option>Saveiro Trendline 1.6</option><option>Saveiro Robust CD</option><option>Saveiro Extreme CD</option></optgroup><optgroup label="Volkswagen Amarok"><option>Amarok Comfortline V6</option><option>Amarok Highline V6</option><option>Amarok Extreme V6</option></optgroup><optgroup label="Volkswagen Jetta"><option>Jetta GLI 350 TSI</option></optgroup><optgroup label="Volkswagen Taos"><option>Taos Comfortline 250 TSI</option><option>Taos Highline 250 TSI</option></optgroup><optgroup label="Volkswagen Tiguan"><option>Tiguan Allspace R-Line</option><option>Tiguan R-Line 4Motion</option></optgroup></select></div>
         <div class="fi"><label>Ano</label><input type="text" id="prop_ano" placeholder="2025" oninput="renderProposta()"/></div>
@@ -4198,6 +4199,22 @@ function propModeloChange(){
   if(!qtdEl.value.trim())qtdEl.value='70';
   renderProposta();
 }
+
+/* ---- Proposta: subabas por marca ---- */
+var _propGrupos=null;
+function _propBrandOf(l){return /^BMW/.test(l)?'bmw':/^Volkswagen/.test(l)?'vw':'kw';}
+function propMarca(m){
+  var sel=document.getElementById('prop_modelo');if(!sel)return;
+  if(!_propGrupos){_propGrupos=[].slice.call(sel.querySelectorAll('optgroup')).map(function(g){return {m:_propBrandOf(g.label),el:g.cloneNode(true)};});}
+  while(sel.options.length>1||sel.querySelector('optgroup')){sel.removeChild(sel.lastChild);if(sel.childNodes.length<=1)break;}
+  sel.innerHTML='<option value="">— Selecione —</option>';
+  _propGrupos.forEach(function(g){if(g.m===m)sel.appendChild(g.el.cloneNode(true));});
+  sel.value='';
+  document.querySelectorAll('#prop-marcas .stab').forEach(function(b){b.classList.toggle('ac',b.getAttribute('data-m')===m);});
+  try{localStorage.setItem('rsd_prop_marca',m);}catch(e){}
+  propModeloChange();
+}
+(function(){var m='kw';try{m=localStorage.getItem('rsd_prop_marca')||'kw';}catch(e){}propMarca(m);})();
 function _propNum(id){
   var v=(document.getElementById(id).value||'').replace(/\./g,'').replace(',','.');
   var n=parseFloat(v);

@@ -787,7 +787,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
         <div class="fi"><label>Ano</label><input type="text" id="ano" placeholder="2025" maxlength="4"/></div>
         <div class="fi"><label>Adesão / 1ª parcela</label><input type="text" id="adesao" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
         <div class="fi"><label>Parcelas mensais</label><input type="text" id="parcela" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
-        <div class="fi"><label>Prazo (meses)</label><input type="text" id="prazo" placeholder="60 meses"/></div>
+        <div class="fi"><label>Prazo (opcional)</label><input type="text" id="prazo" placeholder="Opcional. Ex: 60 meses"/></div>
         <div class="fi"><label>Crédito total</label><input type="text" id="credito" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
       </div>
       <div class="sd"></div>
@@ -857,7 +857,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
       <div class="fi"><label>Ano</label><input type="text" id="cnpj_ano" placeholder="2025" maxlength="4"/></div>
       <div class="fi"><label>Adesao / 1a parcela</label><input type="text" id="cnpj_adesao" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
       <div class="fi"><label>Parcelas mensais</label><input type="text" id="cnpj_parcela" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
-      <div class="fi"><label>Prazo (meses)</label><input type="text" id="cnpj_prazo" placeholder="60 meses"/></div>
+      <div class="fi"><label>Prazo (opcional)</label><input type="text" id="cnpj_prazo" placeholder="Opcional. Ex: 60 meses"/></div>
       <div class="fi"><label>Credito total</label><input type="text" id="cnpj_credito" placeholder="R$ 0.000,00" oninput="fBRL(this)"/></div>
     </div>
   </div>
@@ -5837,7 +5837,7 @@ function buildLance(qrURL){
     modelo=modRaw?(anoK?'Kawasaki '+modRaw+' '+anoK:'Kawasaki '+modRaw):'\u2014';
   }
   const adesao=v('adesao')?'R$ '+v('adesao'):'\u2014',parcela=v('parcela')?'R$ '+v('parcela'):'\u2014';
-  const prazo=v('prazo')||'\u2014',credito=v('credito')?'R$ '+v('credito'):'\u2014';
+  const prazo=v('prazo'),credito=v('credito')?'R$ '+v('credito'):'\u2014';
   const cons=v('consultor')||'Vitor Godoy',data=v('dt_aprov')||hoje();
   const prot=v('protocolo')||'\u2014',valid=v('validade')||'',obs=v('obs')||'';
 
@@ -5884,8 +5884,8 @@ ${blocoValid}
 <tr><td style="color:#888;padding:3px 0;width:90px;">Bem</td><td style="font-weight:600;">${modelo}</td></tr>
 <tr><td style="color:#888;padding:3px 0;">Cr\u00E9dito</td><td style="font-weight:600;">${credito}</td></tr>
 <tr><td style="color:#888;padding:3px 0;">1\u00AA Parcela</td><td>${adesao}</td></tr>
-<tr><td style="color:#888;padding:3px 0;">Mensalidade</td><td>${parcela}</td></tr>
-<tr><td style="color:#888;padding:3px 0;">Prazo</td><td>${prazo}</td></tr>
+<tr><td style="color:#888;padding:3px 0;">${prazo?"Mensalidade":"Demais parcelas"}</td><td>${parcela}${(!prazo&&parcela!=="\u2014")?" (todas no mesmo valor)":""}</td></tr>
+${prazo?`<tr><td style="color:#888;padding:3px 0;">Prazo</td><td>${prazo}</td></tr>`:""}
 </table></div>
 </div>
 <div style="padding:18px 32px 0;">
@@ -7495,7 +7495,7 @@ function buildLanceCnpj(qrURL){
     modelo=modRaw?(anoK?'Kawasaki '+modRaw+' '+anoK:'Kawasaki '+modRaw):'\u2014';
   }
   const adesao=v('cnpj_adesao')?'R$ '+v('cnpj_adesao'):'\u2014', parcela=v('cnpj_parcela')?'R$ '+v('cnpj_parcela'):'\u2014';
-  const prazo=v('cnpj_prazo')||'\u2014', credito=v('cnpj_credito')?'R$ '+v('cnpj_credito'):'\u2014';
+  const prazo=v('cnpj_prazo'), credito=v('cnpj_credito')?'R$ '+v('cnpj_credito'):'\u2014';
   const cons=v('cnpj_consultor')||'\u2014', data=v('cnpj_dt_aprov')||hoje();
   const prot=v('cnpj_protocolo')||'\u2014', valid=v('cnpj_validade')||'', obs=v('cnpj_obs')||'';
 
@@ -7556,8 +7556,8 @@ ${blocoValid}
 <tr><td style="color:#888;padding:3px 0;width:90px;">Bem</td><td style="font-weight:600;">${modelo}</td></tr>
 <tr><td style="color:#888;padding:3px 0;">Cr\u00E9dito</td><td style="font-weight:600;">${credito}</td></tr>
 <tr><td style="color:#888;padding:3px 0;">1\u00AA Parcela</td><td>${adesao}</td></tr>
-<tr><td style="color:#888;padding:3px 0;">Mensalidade</td><td>${parcela}</td></tr>
-<tr><td style="color:#888;padding:3px 0;">Prazo</td><td>${prazo}</td></tr>
+<tr><td style="color:#888;padding:3px 0;">${prazo?"Mensalidade":"Demais parcelas"}</td><td>${parcela}${(!prazo&&parcela!=="\u2014")?" (todas no mesmo valor)":""}</td></tr>
+${prazo?`<tr><td style="color:#888;padding:3px 0;">Prazo</td><td>${prazo}</td></tr>`:""}
 </table>
 </div>
 </div>

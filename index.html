@@ -795,6 +795,8 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
       <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Briefcase/3D/briefcase_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Consultor</div>
       <div class="fg">
         <div class="fi"><label>Nome do consultor</label><input type="text" id="consultor" value="Vitor Godoy"/></div>
+        <div class="fi"><label>Assinatura do rodapé (opcional)</label><input type="text" id="assin_nome" placeholder="Ex: nome do analista. Vazio = consultor"/></div>
+        <div class="fi"><label>Cargo no rodapé</label><select id="assin_cargo"><option>Analista</option><option>Analista de Crédito</option><option>Consultor</option><option>Gerente</option></select></div>
         <div class="fi"><label>WhatsApp do consultor</label><input type="text" id="consultor_whats" placeholder="(11) 99999-9999" oninput="fFone(this)" maxlength="15"/></div>
         <div class="fi"><label>Data de aprovação</label><input type="text" id="dt_aprov" placeholder="DD/MM/AAAA"/></div>
         <div class="fi"><label>Protocolo</label><input type="text" id="protocolo" placeholder="2025-00123"/></div>
@@ -866,6 +868,8 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="sh"><div class="si" style="background:transparent;"><img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Necktie/3D/necktie_3d.png" style="width:18px;height:18px;object-fit:contain;" onerror="this.style.display=&quot;none&quot;;this.parentElement.style.background=&quot;var(--v)&quot;;"></div>Consultor</div>
     <div class="fg">
       <div class="fi"><label>Nome do consultor</label><input type="text" id="cnpj_consultor" placeholder="Nome do consultor"/></div>
+      <div class="fi"><label>Assinatura do rodapé (opcional)</label><input type="text" id="cnpj_assin_nome" placeholder="Ex: nome do analista. Vazio = consultor"/></div>
+        <div class="fi"><label>Cargo no rodapé</label><select id="cnpj_assin_cargo"><option>Analista</option><option>Analista de Crédito</option><option>Consultor</option><option>Gerente</option></select></div>
       <div class="fi"><label>WhatsApp</label><input type="text" id="cnpj_consultor_whats" placeholder="(11) 99999-9999" oninput="fFone(this)" maxlength="15"/></div>
       <div class="fi"><label>Data de aprovacao</label><input type="text" id="cnpj_dt_aprov" placeholder="DD/MM/AAAA"/></div>
       <div class="fi"><label>Protocolo</label><input type="text" id="cnpj_protocolo" placeholder="2025-00123"/></div>
@@ -5829,7 +5833,8 @@ function _marcaConsorcio(){
   var m=(typeof _modo!=='undefined')?_modo:'kw';
   return m==='bmw'?'Cons\u00F3rcio BMW Motorrad':m==='gen'?('Cons\u00F3rcio '+_admCurto()):m==='vw'?'Cons\u00F3rcio Volkswagen':'Cons\u00F3rcio Kawasaki';
 }
-function assinaturaPDF(cons,wcons){return`<div style="margin:0 32px;padding:14px 0;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:flex-end;"><div><div style="font-size:12px;font-weight:700;color:#222;">${cons}</div><div style="font-size:10px;color:#888;">Consultor \u00B7 Digital Cons\u00F3rcio LTDA</div><div style="font-size:10px;color:#888;">${wcons?'WhatsApp: '+wcons:_marcaConsorcio()}</div></div><img src="${L.d}" style="height:30px;object-fit:contain;"/></div>`;}
+function _assinLance(cons,pre){var n=(v(pre+'assin_nome')||'').trim();return n?{n:n,c:v(pre+'assin_cargo')||'Analista'}:{n:cons,c:'Consultor'};}
+function assinaturaPDF(cons,wcons,cargo){return`<div style="margin:0 32px;padding:14px 0;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:flex-end;"><div><div style="font-size:12px;font-weight:700;color:#222;">${cons}</div><div style="font-size:10px;color:#888;">${cargo||'Consultor'} \u00B7 Digital Cons\u00F3rcio LTDA</div><div style="font-size:10px;color:#888;">${wcons?'WhatsApp: '+wcons:_marcaConsorcio()}</div></div><img src="${L.d}" style="height:30px;object-fit:contain;"/></div>`;}
 function badgesPDF(){return`<div style="display:flex;gap:10px;flex-wrap:wrap;"><a href="https://apps.apple.com/br/app/conta-%C3%A2ncora/id6746348039" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:10px;background:#111;border-radius:8px;padding:8px 14px;min-width:170px;"><img src="${L.a}" style="width:32px;height:32px;border-radius:7px;"/><div><div style="font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;">Dispon\u00EDvel na</div><div style="font-size:13px;font-weight:700;color:#fff;">App Store</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">Conta \u00C2ncora</div></div></a><a href="https://play.google.com/store/apps/details?id=com.ancora.AutoServico_Mobile&hl=pt_BR" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:10px;background:#111;border-radius:8px;padding:8px 14px;min-width:170px;"><img src="${L.a}" style="width:32px;height:32px;border-radius:7px;"/><div><div style="font-size:8px;color:rgba(255,255,255,0.6);text-transform:uppercase;">Dispon\u00EDvel no</div><div style="font-size:13px;font-weight:700;color:#fff;">Google Play</div><div style="font-size:9px;color:rgba(255,255,255,0.5);">Conta \u00C2ncora</div></div></a></div><div style="font-size:11px;color:#888;margin-top:8px;padding:6px 10px;background:#f9f9f9;border-left:3px solid #ddd;">Aguarde o login e senha \u2014 enviados pelo time de p\u00F3s-vendas da \u00C2ncora.</div>`;}
 
 // \u2500\u2500 BUILD AN\u00C1LISE DE LANCE \u2500\u2500
@@ -5918,7 +5923,7 @@ ${prazo?`<tr><td style="color:#888;padding:3px 0;">Prazo</td><td>${prazo}</td></
 </div>
 ${blocoObs}
 ${blocoQR(qrURL, prot, nome, "Analise de Lance")}
-${assinaturaPDF(cons,'')}
+${assinaturaPDF(_assinLance(cons,'').n,'',_assinLance(cons,'').c)}
 ${rodapePDF()}
 </div>`;
 }
@@ -7591,7 +7596,7 @@ ${prazo?`<tr><td style="color:#888;padding:3px 0;">Prazo</td><td>${prazo}</td></
 </div>
 ${blocoObs}
 ${blocoQR(qrURL, prot, empresa, "Analise de Lance CNPJ")}
-${assinaturaPDF(cons,'')}
+${assinaturaPDF(_assinLance(cons,'cnpj_').n,'',_assinLance(cons,'cnpj_').c)}
 ${rodapePDF()}
 </div>`;
 }

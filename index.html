@@ -8967,11 +8967,11 @@ window.estRenderAula=function(){_rA();_estAtualizaBotaoAula();};
 function _resCfg(){
   var m=(typeof _modo!=='undefined')?_modo:'kw',a=_admEf();
   var cor=m==='vw'?'#003D8F':m==='bmw'?'#0A2A5E':m==='gen'?'#12633F':'#0B5A26';
-  var marca=m==='vw'?'Volkswagen':m==='bmw'?'BMW Motorrad':m==='gen'?'Imóvel':'Kawasaki';
-  var logoMarca=m==='vw'?'_lvw':m==='bmw'?'_lbmw':m==='kw'?'_lk':null;
+  var marca=m==='vw'?'Volkswagen':m==='bmw'?'BMW Motorrad':m==='gen'?'':'Kawasaki';
+  var logoMarca=m==='vw'?'_lvw':m==='bmw'?'_lbmw':(m==='kw'&&a!=='recon')?'_lk':null;
   var adm=a==='embracon'?'Embracon':a==='recon'?'Recon':'Âncora';
   var logoAdm=a==='embracon'?'_lembracon':a==='recon'?'_lrecon':'_la';
-  var lblModelo=m==='vw'?'MODELO DO VEÍCULO':m==='gen'?'IMÓVEL':'MODELO DA MOTOCICLETA';
+  var lblModelo=m==='vw'?'MODELO DO VEÍCULO':m==='gen'?'BEM':'MODELO DA MOTOCICLETA';
   return {m:m,cor:cor,marca:marca,logoMarca:logoMarca,adm:adm,logoAdm:logoAdm,lblModelo:lblModelo};
 }
 function _resFit(ctx,id,x,y,w,h,align){
@@ -8983,7 +8983,7 @@ function _resFit(ctx,id,x,y,w,h,align){
 function resDesenhar(){
   var cv=document.getElementById('res-canvas');if(!cv)return;
   var C=_resCfg(),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  var lbl=document.getElementById('rs_lbl_modelo');if(lbl)lbl.textContent=C.m==='vw'?'Modelo do veículo':C.m==='gen'?'Imóvel':'Modelo da motocicleta';
+  var lbl=document.getElementById('rs_lbl_modelo');if(lbl)lbl.textContent=C.m==='vw'?'Modelo do veículo':C.m==='gen'?'Bem (imóvel, caminhão, veículo...)':'Modelo da motocicleta';
   var inp=document.getElementById('rs_modelo');if(inp)inp.setAttribute('list',C.m==='bmw'?'dl-modelo-bmw':C.m==='vw'?'dl-modelo-vw':C.m==='gen'?'':'dl-modelo-kw');
   var nome=v('rs_nome')||'—',cpf=v('rs_cpf')||'—',mod=v('rs_modelo')||'—',ano=v('rs_ano')||'—',lance=v('rs_lance')?'R$ '+v('rs_lance'):'—';
   var d=v('rs_data'),h=v('rs_hora');
@@ -8993,9 +8993,9 @@ function resDesenhar(){
   // cabeçalho
   ctx.fillStyle=C.cor;ctx.fillRect(0,0,W,120);
   ctx.textAlign='left';ctx.fillStyle='#FFFFFF';ctx.font='bold 40px Arial';
-  ctx.fillText('DIGITAL CONSÓRCIO',60,62);
+  ctx.fillText('PLANO INTELIGENTE',60,62);
   ctx.font='24px Arial';ctx.fillStyle='rgba(255,255,255,.82)';
-  ctx.fillText('em parceria com '+C.adm+(C.m==='gen'?'':' · '+C.marca),60,98);
+  ctx.fillText('SISTEMA DE CONSÓRCIO E FINANCIAMENTO',60,98);
   // logos à direita (adm e marca) em chips brancos
   var xr=W-60;
   function chip(id,wmax){var im=document.getElementById(id);if(!im||!im.naturalWidth)return;var hh=64,r=Math.min(wmax/im.naturalWidth,hh/im.naturalHeight),w=im.naturalWidth*r+28;
@@ -9008,7 +9008,7 @@ function resDesenhar(){
   ctx.fillText('Cliente: ',60,162);var cw=ctx.measureText('Cliente: ').width;
   ctx.fillStyle='#0F172A';ctx.font='bold 26px Arial';ctx.fillText(nome,60+cw,162);
   ctx.textAlign='right';ctx.fillStyle='#475569';ctx.font='26px Arial';
-  ctx.fillText('Aprovação '+C.marca+' – Plano Inteligente '+(new Date().getFullYear()),W-60,162);
+  ctx.fillText((C.marca?'Aprovação '+C.marca+' – ':'Aprovação · ')+'Plano Inteligente '+(new Date().getFullYear()),W-60,162);
   // cartão
   ctx.save();ctx.shadowColor='rgba(15,23,42,.14)';ctx.shadowBlur=24;ctx.shadowOffsetY=6;
   ctx.fillStyle='#FFFFFF';_agdRoundRect(ctx,60,214,W-120,610,16);ctx.fill();ctx.restore();

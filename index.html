@@ -750,6 +750,7 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <div class="subtabs">
       <button class="stab ac" onclick="subaLance('pf',this)">Pessoa Fisica</button>
       <button class="stab" onclick="subaLance('pj',this)">Pessoa Juridica</button>
+      <button class="stab" onclick="subaLance('res',this)">Resumo (imagem)</button>
     </div>
     <div class="mode-toggle">
       <button class="mode-btn active-kw" id="btn-kw" onclick="setModo('kw')">Kawasaki</button>
@@ -882,6 +883,29 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
     <button class="btn bl" onclick="limparCnpj()">Limpar</button>
   </div>
   <div id="pv-aprov-cnpj" class="pva"><div class="pvh">Pre-visualizacao CNPJ</div><div id="pv-aprov-cnpj-ct" style="padding:28px;background:#fff;"></div></div>
+</div>
+<div id="lance-res" style="display:none;">
+  <div class="pt"><h2>Resumo da Análise (imagem)</h2><p>Preencha e <span class="hl">copie a imagem</span> para colar direto no WhatsApp</p></div>
+  <div class="fc">
+    <div class="sh"><span>Dados da aprovação</span></div>
+    <div class="fg">
+      <div class="fi fw"><label>Nome do cliente</label><input type="text" id="rs_nome" placeholder="Nome completo" oninput="resDesenhar()"/></div>
+      <div class="fi"><label>CPF</label><input type="text" id="rs_cpf" placeholder="000.000.000-00" maxlength="14" oninput="fCPF(this);resDesenhar()"/></div>
+      <div class="fi"><label id="rs_lbl_modelo">Modelo da motocicleta</label><input type="text" id="rs_modelo" list="dl-modelo-kw" placeholder="Selecione ou digite" autocomplete="off" oninput="resDesenhar()"/></div>
+      <div class="fi"><label>Ano / modelo</label><input type="text" id="rs_ano" placeholder="2026/2027" oninput="resDesenhar()"/></div>
+      <div class="fi"><label>Lance liberado</label><input type="text" id="rs_lance" placeholder="0.000,00" oninput="fL(this);resDesenhar()"/></div>
+      <div class="fi"><label>Data limite para aquisição</label><input type="text" id="rs_data" placeholder="DD/MM/AAAA" maxlength="10" oninput="fData(this);resDesenhar()"/></div>
+      <div class="fi"><label>Horário limite</label><input type="time" id="rs_hora" oninput="resDesenhar()"/></div>
+      <div class="fi"><label>Protocolo (opcional)</label><input type="text" id="rs_prot" placeholder="000000" oninput="resDesenhar()"/></div>
+    </div>
+    <div style="padding:0 24px 14px;font-size:11px;color:var(--tm);line-height:1.6;">A marca e a administradora seguem os botões do topo da aba (Kawasaki, BMW / Recon, Volkswagen / Embracon ou Genérico).</div>
+  </div>
+  <div class="aa" style="margin:16px 0;">
+    <button class="btn be" onclick="resCopiar()">Copiar imagem</button>
+    <button class="btn bs2" onclick="resBaixar()">Baixar JPEG</button>
+    <button class="btn bl" onclick="resLimpar()">Limpar</button>
+  </div>
+  <canvas id="res-canvas" width="1600" height="900" style="width:100%;max-width:900px;border-radius:10px;border:1px solid var(--cb);display:block;margin-bottom:24px;"></canvas>
 </div>
 <!-- /lance-pf -->
   </div><!-- /page-content -->
@@ -8937,6 +8961,107 @@ var _rA=window.estRenderAula;
 window.estRenderAula=function(){_rA();_estAtualizaBotaoAula();};
 })();
 
+</script>
+<script>
+/* ===== Resumo da análise (imagem para WhatsApp) ===== */
+function _resCfg(){
+  var m=(typeof _modo!=='undefined')?_modo:'kw',a=_admEf();
+  var cor=m==='vw'?'#003D8F':m==='bmw'?'#0A2A5E':m==='gen'?'#12633F':'#0B5A26';
+  var marca=m==='vw'?'Volkswagen':m==='bmw'?'BMW Motorrad':m==='gen'?'Imóvel':'Kawasaki';
+  var logoMarca=m==='vw'?'_lvw':m==='bmw'?'_lbmw':m==='kw'?'_lk':null;
+  var adm=a==='embracon'?'Embracon':a==='recon'?'Recon':'Âncora';
+  var logoAdm=a==='embracon'?'_lembracon':a==='recon'?'_lrecon':'_la';
+  var lblModelo=m==='vw'?'MODELO DO VEÍCULO':m==='gen'?'IMÓVEL':'MODELO DA MOTOCICLETA';
+  return {m:m,cor:cor,marca:marca,logoMarca:logoMarca,adm:adm,logoAdm:logoAdm,lblModelo:lblModelo};
+}
+function _resFit(ctx,id,x,y,w,h,align){
+  var im=document.getElementById(id);if(!im||!im.naturalWidth)return 0;
+  var r=Math.min(w/im.naturalWidth,h/im.naturalHeight),dw=im.naturalWidth*r,dh=im.naturalHeight*r;
+  var dx=align==='right'?x+w-dw:x,dy=y+(h-dh)/2;
+  ctx.drawImage(im,dx,dy,dw,dh);return dw;
+}
+function resDesenhar(){
+  var cv=document.getElementById('res-canvas');if(!cv)return;
+  var C=_resCfg(),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  var lbl=document.getElementById('rs_lbl_modelo');if(lbl)lbl.textContent=C.m==='vw'?'Modelo do veículo':C.m==='gen'?'Imóvel':'Modelo da motocicleta';
+  var inp=document.getElementById('rs_modelo');if(inp)inp.setAttribute('list',C.m==='bmw'?'dl-modelo-bmw':C.m==='vw'?'dl-modelo-vw':C.m==='gen'?'':'dl-modelo-kw');
+  var nome=v('rs_nome')||'—',cpf=v('rs_cpf')||'—',mod=v('rs_modelo')||'—',ano=v('rs_ano')||'—',lance=v('rs_lance')?'R$ '+v('rs_lance'):'—';
+  var d=v('rs_data'),h=v('rs_hora');
+  var lim=d?(d+(h?' às '+h+'h':'')):'—',prot=v('rs_prot')||'000000';
+  // fundo
+  ctx.fillStyle='#EEF2F7';ctx.fillRect(0,0,W,H);
+  // cabeçalho
+  ctx.fillStyle=C.cor;ctx.fillRect(0,0,W,120);
+  ctx.textAlign='left';ctx.fillStyle='#FFFFFF';ctx.font='bold 40px Arial';
+  ctx.fillText('DIGITAL CONSÓRCIO',60,62);
+  ctx.font='24px Arial';ctx.fillStyle='rgba(255,255,255,.82)';
+  ctx.fillText('em parceria com '+C.adm+(C.m==='gen'?'':' · '+C.marca),60,98);
+  // logos à direita (adm e marca) em chips brancos
+  var xr=W-60;
+  function chip(id,wmax){var im=document.getElementById(id);if(!im||!im.naturalWidth)return;var hh=64,r=Math.min(wmax/im.naturalWidth,hh/im.naturalHeight),w=im.naturalWidth*r+28;
+    ctx.fillStyle='#FFFFFF';_agdRoundRect(ctx,xr-w,28,w,64,12);ctx.fill();ctx.drawImage(im,xr-w+14,28+(64-im.naturalHeight*r)/2,im.naturalWidth*r,im.naturalHeight*r);xr-=w+16;}
+  if(C.logoMarca)chip(C.logoMarca,200);
+  if(C.logoAdm==='_lrecon'){var im0=document.getElementById('_lrecon');if(im0&&im0.naturalWidth){var r0=Math.min(240/im0.naturalWidth,70/im0.naturalHeight),w0=im0.naturalWidth*r0;ctx.drawImage(im0,xr-w0,(120-im0.naturalHeight*r0)/2,w0,im0.naturalHeight*r0);xr-=w0+16;}}else chip(C.logoAdm,220);
+  // faixa de contexto
+  ctx.fillStyle='#FFFFFF';ctx.fillRect(0,120,W,64);
+  ctx.fillStyle='#64748B';ctx.font='26px Arial';ctx.textAlign='left';
+  ctx.fillText('Cliente: ',60,162);var cw=ctx.measureText('Cliente: ').width;
+  ctx.fillStyle='#0F172A';ctx.font='bold 26px Arial';ctx.fillText(nome,60+cw,162);
+  ctx.textAlign='right';ctx.fillStyle='#475569';ctx.font='26px Arial';
+  ctx.fillText('Aprovação '+C.marca+' – Plano Inteligente '+(new Date().getFullYear()),W-60,162);
+  // cartão
+  ctx.save();ctx.shadowColor='rgba(15,23,42,.14)';ctx.shadowBlur=24;ctx.shadowOffsetY=6;
+  ctx.fillStyle='#FFFFFF';_agdRoundRect(ctx,60,214,W-120,610,16);ctx.fill();ctx.restore();
+  ctx.textAlign='center';ctx.fillStyle=C.cor;ctx.font='bold 46px Arial';
+  ctx.fillText('PROPOSTA DE AQUISIÇÃO E LANCE APROVADO',W/2,290);
+  function linha(l,val,y,bold){ctx.textAlign='right';ctx.fillStyle=C.cor;ctx.font='bold 34px Arial';ctx.fillText(l,780,y);
+    ctx.textAlign='left';ctx.fillStyle='#1E293B';ctx.font=(bold?'bold ':'')+'36px Arial';ctx.fillText(val,820,y);}
+  linha('CLIENTE:',nome,360);linha('CPF:',cpf,420);linha(C.lblModelo+':',mod,480);linha('ANO/MODELO:',ano,540);
+  ctx.strokeStyle='#BFD0E0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(190,575);ctx.lineTo(W-190,575);ctx.stroke();
+  ctx.fillStyle='#EAF0F7';ctx.fillRect(190,590,W-380,84);
+  ctx.textAlign='right';ctx.fillStyle=C.cor;ctx.font='bold 36px Arial';ctx.fillText('LANCE LIBERADO:',780,646);
+  ctx.textAlign='left';ctx.fillStyle='#0F172A';ctx.font='bold 46px Arial';ctx.fillText(lance,820,648);
+  linha('DATA LIMITE PARA AQUISIÇÃO:',lim,730,false);
+  linha('HORÁRIO DE REFERÊNCIA:','Horário de Brasília (BRT)',790,false);
+  // rodapé
+  ctx.textAlign='center';ctx.fillStyle='#64748B';ctx.font='22px Arial';
+  ctx.fillText('Digital Consórcio '+(new Date().getFullYear())+' | Resumo da análise de lance | Protocolo: '+prot,W/2,868);
+}
+function _resBlob(tipo,cb){var cv=document.getElementById('res-canvas');if(!cv)return;
+  if(tipo==='image/jpeg'){var c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height;var x=c2.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c2.width,c2.height);x.drawImage(cv,0,0);c2.toBlob(cb,'image/jpeg',0.92);}
+  else cv.toBlob(cb,'image/png');}
+function resCopiar(){
+  if(!v('rs_nome')){toast('Preencha ao menos o nome do cliente','#c0392b');return;}
+  resDesenhar();
+  _resBlob('image/png',function(blob){
+    if(!blob){toast('Não foi possível gerar a imagem.','#c0392b');return;}
+    var nome='resumo_analise_'+(v('rs_nome')||'cliente');
+    if(navigator.clipboard&&window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){toast('Imagem copiada! Cole (Ctrl+V) no WhatsApp 📋');}).catch(function(){_baixarImagemFallback(blob,nome);});
+    }else _baixarImagemFallback(blob,nome);
+  });
+}
+function resBaixar(){
+  if(!v('rs_nome')){toast('Preencha ao menos o nome do cliente','#c0392b');return;}
+  resDesenhar();
+  _resBlob('image/jpeg',function(blob){
+    if(!blob)return;var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='resumo_analise_'+(v('rs_nome')||'cliente').replace(/\s+/g,'_')+'.jpg';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+    toast('JPEG baixado');
+  });
+}
+function resLimpar(){['rs_nome','rs_cpf','rs_modelo','rs_ano','rs_lance','rs_data','rs_hora','rs_prot'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});resDesenhar();}
+(function(){
+  var o=subaLance;
+  subaLance=function(id,btn){
+    var r=document.getElementById('lance-res');if(r)r.style.display=(id==='res'?'block':'none');
+    o(id==='res'?'__':id,btn);
+    var pf=document.getElementById('lance-pf'),pj=document.getElementById('lance-pj');
+    if(id==='res'){if(pf)pf.style.display='none';if(pj)pj.style.display='none';resDesenhar();}
+  };
+  var sm=setModo;
+  setModo=function(m){sm(m);try{resDesenhar();}catch(e){}};
+})();
 </script>
 </body>
 </html>

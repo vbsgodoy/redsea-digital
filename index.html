@@ -5784,9 +5784,9 @@ function blocoQR(qrDataURL, protocolo, nome, tipo) {
   if (!qrDataURL) return '';
   var vUrl = 'Documento: '+tipo+' | Protocolo: '+protocolo+' | Cliente: '+nome+' | Emitido: '+new Date().toLocaleString('pt-BR');
   return '<div style="margin:16px 32px 0;padding:14px 16px;background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;display:flex;align-items:center;gap:16px;">'
-    +'<img src="'+qrDataURL+'" style="width:80px;height:80px;flex-shrink:0;border:1px solid #ddd;border-radius:4px;"/>'
+    +'<img src="'+qrDataURL+'" style="width:96px;height:96px;flex-shrink:0;border:1px solid #ddd;border-radius:4px;"/>'
     +'<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#006B28;margin-bottom:4px;">Verificacao de Autenticidade</div>'
-    +'<div style="font-size:10px;color:#555;line-height:1.6;">Escaneie o QR Code para verificar a autenticidade deste documento.<br>'
+    +'<div style="font-size:10px;color:#555;line-height:1.6;">Escaneie o QR Code com a c\u00E2mera do celular para ver os dados do documento, da administradora, CNPJ e Banco Central.<br>'
     +'<span style="color:#888;font-size:9px;">'+vUrl.substring(0,90)+'...</span></div></div></div>';
 }
 
@@ -9082,6 +9082,37 @@ function resLimpar(){['rs_nome','rs_cpf','rs_modelo','rs_ano','rs_lance','rs_dat
   var sm=setModo;
   setModo=function(m){sm(m);try{pjSync();}catch(e){}};
   try{pjSync();}catch(e){}
+})();
+</script>
+<script>
+// QR Code de verificação: abre a página verificar.html (dados do documento, administradora, CNPJ, Bacen)
+(function(){
+  var VER_BASE='https://vbsgodoy.github.io/redsea-digital/verificar.html';
+  var orig=gerarQRDataURL;
+  gerarQRDataURL=function(texto,cb){
+    try{
+      if(/^https:\/\/wa\.me\//.test(texto)){
+        var u=new URL(texto),num=u.pathname.replace(/\D/g,''),msg=u.searchParams.get('text')||'';
+        if(num==='5511999999999')num='';
+        var tipo='Documento',m1=msg.match(/documento de (.+?) do cliente (.+?)\. Por favor/i),cli='',prot='';
+        if(m1){tipo=m1[1];cli=m1[2].replace(/\s*\(Protocolo:[^)]*\)\s*$/,'');}
+        var m2=msg.match(/\(Protocolo:\s*([^)]*)\)/);if(m2)prot=m2[1];
+        var m3=msg.match(/Verificacao de documento - (.+?) - Protocolo (.*)$/);if(m3){tipo='Análise de Lance (Pessoa Jurídica)';cli=m3[1];prot=m3[2];}
+        if(/^Analise de Lance$/i.test(tipo))tipo='Análise de Lance';
+        if(/^Cobranca$/i.test(tipo))tipo='Cobrança';
+        var P=new URLSearchParams();
+        P.set('t',tipo);if(prot&&prot!=='S/N')P.set('p',prot);if(cli)P.set('c',cli);
+        P.set('m',_modo);P.set('a',_admEf());P.set('d',new Date().toLocaleDateString('pt-BR'));
+        function gv(i){var e=document.getElementById(i);return e?(e.value||'').trim():'';}
+        var cons=m3?gv('cnpj_consultor'):(gv('consultor')||gv('bv_cons')||gv('cb_cons')||gv('cnpj_consultor'));
+        if(cons)P.set('n',cons);
+        if(m3&&!num)num=gv('cnpj_consultor_whats').replace(/\D/g,'').replace(/^(?!55)(.+)$/,'55$1');
+        if(num){P.set('w',num);}
+        texto=VER_BASE+'?'+P.toString();
+      }
+    }catch(e){}
+    orig(texto,cb);
+  };
 })();
 </script>
 </body>

@@ -1325,7 +1325,18 @@ html[data-visual="novo"] #agd-texto,html[data-visual="novo"] #prop-texto{backgro
 
     <!-- Controle Geral -->
     <div class="fc">
-      <div class="sh"><span class="emo">📊 </span>Controle Geral do Mês</div>
+      <div class="sh"><span class="emo">📊 </span>Controle Geral <span id="parc-ctl-rotulo" style="font-weight:400;font-size:12px;color:var(--tm);margin-left:6px;"></span></div>
+      <div style="padding:10px 0 4px;display:flex;gap:6px;flex-wrap:wrap;" id="parc-filtro-chips">
+        <button type="button" data-k="mes" onclick="parcFiltroRapido('mes')">Mês</button>
+        <button type="button" data-k="semana" onclick="parcFiltroRapido('semana')">Semana</button>
+        <button type="button" data-k="3" onclick="parcFiltroRapido('3')">3 dias</button>
+        <button type="button" data-k="2" onclick="parcFiltroRapido('2')">2 dias</button>
+        <button type="button" data-k="hoje" onclick="parcFiltroRapido('hoje')">Hoje</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding:4px 0 6px;">
+        <div class="fi" style="flex:1;min-width:130px;"><label>De</label><input type="date" id="parc-fde" onchange="parcFiltroCustom()"/></div>
+        <div class="fi" style="flex:1;min-width:130px;"><label>Até</label><input type="date" id="parc-fate" onchange="parcFiltroCustom()"/></div>
+      </div>
       <div id="parc-controle"></div>
     </div>
 
@@ -6878,17 +6889,44 @@ function parcSalvar(){
     _parcRenderControle();
   }).catch(function(e){toast('Erro ao salvar parcial: '+e.message,'#c0392b');});
 }
+var _parcFiltro={k:'mes',de:'',ate:''};
+function _parcISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function _parcRange(){
+  var h=new Date(),f=_parcFiltro,k=f.k;
+  if(k==='custom'&&(f.de||f.ate))return {de:f.de||'0000-00-00',ate:f.ate||'9999-99-99',mes:false};
+  if(k==='semana'){var dow=(h.getDay()+6)%7;var i=new Date(h.getFullYear(),h.getMonth(),h.getDate()-dow);return {de:_parcISO(i),ate:_parcISO(h),mes:false};}
+  if(k==='2'||k==='3'){var n=parseInt(k,10);var i2=new Date(h.getFullYear(),h.getMonth(),h.getDate()-(n-1));return {de:_parcISO(i2),ate:_parcISO(h),mes:false};}
+  if(k==='hoje'){var t=_parcISO(h);return {de:t,ate:t,mes:false};}
+  var m=hojeISO().substring(0,7);return {de:m+'-01',ate:m+'-31',mes:true};
+}
+function parcFiltroRapido(k){
+  _parcFiltro={k:k,de:'',ate:''};
+  var r=_parcRange(),a=document.getElementById('parc-fde'),b=document.getElementById('parc-fate');
+  if(a)a.value=k==='mes'?'':r.de;if(b)b.value=k==='mes'?'':r.ate;
+  _parcRenderControle();
+}
+function parcFiltroCustom(){
+  var a=document.getElementById('parc-fde'),b=document.getElementById('parc-fate');
+  _parcFiltro={k:'custom',de:a?a.value:'',ate:b?b.value:''};
+  if(!_parcFiltro.de&&!_parcFiltro.ate)_parcFiltro.k='mes';
+  _parcRenderControle();
+}
+function _parcBR(d){var p=d.split('-');return p[2]+'/'+p[1];}
 function _parcRenderControle(){
   var host=document.getElementById('parc-controle');
   if(!host)return;
-  var mesAtual=hojeISO().substring(0,7); // "2026-10"
+  var R=_parcRange();
+  document.querySelectorAll('#parc-filtro-chips button').forEach(function(b){
+    var on=b.getAttribute('data-k')===_parcFiltro.k;
+    b.style.cssText='padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid '+(on?'var(--v)':'var(--cb)')+';background:'+(on?'var(--v)':'transparent')+';color:'+(on?'#fff':'var(--t)')+';';
+  });
   // Buscar todas as parciais do mês
   db.collection('parciais').where('timeId','==',_timeAtual).get().then(function(snap){
     // Agrupar por data, pegar o período mais recente de cada dia
     var porData={};
     snap.forEach(function(doc){
       var d=doc.data();
-      if(!d.date||d.date.substring(0,7)!==mesAtual)return;
+      if(!d.date||d.date<R.de||d.date>R.ate)return;
       var ordem={'17h30':3,'15h':2,'12h':1};
       var o=ordem[d.period]||4;
       if(!porData[d.date]||o>(ordem[porData[d.date].period]||4)){
@@ -6917,11 +6955,20 @@ function _parcRenderControle(){
       var projecao=diaAtual>0?Math.round(totalVendas/diaAtual*diasNoMes):0;
       var falta=Math.max(0,meta-totalVendas);
       var membros=Object.values(totais);
+      var nDias=Object.keys(porData).length;
+      var rot=document.getElementById('parc-ctl-rotulo');
+      if(rot)rot.textContent=R.mes?'· mês atual':'· '+(R.de==='0000-00-00'?'início':_parcBR(R.de))+' a '+(R.ate==='9999-99-99'?'hoje':_parcBR(R.ate))+' · '+nDias+' dia'+(nDias!==1?'s':'')+' com parcial';
       var html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 0 10px;">';
-      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Vendas no mês</div><div style="font-size:22px;font-weight:900;color:var(--v);">'+totalVendas+'</div></div>';
-      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Projeção</div><div style="font-size:22px;font-weight:900;color:#f97316;">'+projecao+'</div></div>';
-      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Falta para meta</div><div style="font-size:22px;font-weight:900;color:'+(falta===0?'var(--v)':'#dc2626')+';">'+falta+'</div></div>';
+      html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">'+(R.mes?'Vendas no mês':'Vendas no período')+'</div><div style="font-size:22px;font-weight:900;color:var(--v);">'+totalVendas+'</div></div>';
+      if(R.mes){
+        html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Projeção</div><div style="font-size:22px;font-weight:900;color:#f97316;">'+projecao+'</div></div>';
+        html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Falta para meta</div><div style="font-size:22px;font-weight:900;color:'+(falta===0?'var(--v)':'#dc2626')+';">'+falta+'</div></div>';
+      } else {
+        html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Dias com parcial</div><div style="font-size:22px;font-weight:900;color:#f97316;">'+nDias+'</div></div>';
+        html+='<div style="text-align:center;"><div style="font-size:11px;color:var(--tm);">Média por dia</div><div style="font-size:22px;font-weight:900;color:var(--t);">'+(nDias?(totalVendas/nDias).toFixed(1).replace('.',','):'0')+'</div></div>';
+      }
       html+='</div>';
+      if(!membros.length)html+='<div style="padding:10px 0;color:var(--tm);font-size:12px;">Nenhuma parcial salva nesse período.</div>';
       if(membros.length){
         html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
         html+='<tr style="color:var(--tm);"><th style="padding:6px 8px;text-align:left;">Vendedor</th><th>Camp.</th><th>Fichas</th><th>Aprov.</th><th>Contr.</th><th>Vendas</th><th>Prem.</th><th>Norm.</th><th>Upgr.</th></tr>';

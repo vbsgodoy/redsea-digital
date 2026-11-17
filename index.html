@@ -5812,9 +5812,9 @@ function suba(id,btn){
 // \u2500\u2500 HELPER PDF \u2500\u2500
 function abrirPDF(html,nome,tipo){
   const title=(nome+'_'+tipo).replace(/[^\w\s\u00C0-\u00FA_-]/g,'');
-  const css=`*{box-sizing:border-box;}html,body{margin:0;padding:0;background:#fff;}@media print{@page{size:A4 portrait;margin:6mm 8mm;}html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}.w{transform:scale(0.88);transform-origin:top center;}}@media screen{.w{max-width:720px;margin:0 auto;}}`;
+  const css=`*{box-sizing:border-box;}html,body{margin:0;padding:0;background:#fff;}@media print{@page{size:A4 portrait;margin:6mm 8mm;}html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}.w{zoom:.88;}}@media screen{.w{max-width:720px;margin:0 auto;}}`;
   const w=window.open('','_blank','width=820,height=700');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'<\/title><style>'+css+'<\/style><\/head><body><div class="w">'+html+'<\/div><scr'+'ipt>window.onload=function(){document.title="'+title+'";window.print();setTimeout(function(){window.close();},1800);};<\/scr'+'ipt><\/body><\/html>');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'<\/title><style>'+css+'<\/style><\/head><body><div class="w">'+html+'<\/div><scr'+'ipt>window.onload=function(){document.title="'+title+'";try{var w=document.querySelector(".w");w.style.zoom=1;var h=w.scrollHeight,z=0.88,f=1065/h;if(f<z&&f>=0.78)z=f;w.style.zoom=z;}catch(e){}window.print();setTimeout(function(){window.close();},1800);};<\/scr'+'ipt><\/body><\/html>');
   w.document.close();
 }
 
